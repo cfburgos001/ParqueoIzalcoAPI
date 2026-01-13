@@ -1,0 +1,6 @@
+@DataparkBarreraAPI_HostAddress = http://localhost:5225
+
+GET {{DataparkBarreraAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
