@@ -6,7 +6,7 @@ namespace DataparkBarreraAPI.Services
 {
     public interface IPagoService
     {
-        Task<ConsultaPagoResponse> ConsultarPorCodigoBarrasAsync(string codigoBarras);
+        Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa);
         Task<RegistrarPagoResponse> RegistrarPagoAsync(RegistrarPagoRequest request);
         Task<VerificarPagoResponse> VerificarPagoPorPlacaAsync(string placa);
     }
@@ -23,14 +23,14 @@ namespace DataparkBarreraAPI.Services
         }
 
         /// <summary>
-        /// Consulta un vehículo por código de barras y calcula el monto a pagar
+        /// Consulta un vehículo por placa (código de barras del ticket = placa) y calcula el monto a pagar
         /// Usado por la PayStation cuando se escanea el ticket
         /// </summary>
-        public async Task<ConsultaPagoResponse> ConsultarPorCodigoBarrasAsync(string codigoBarras)
+        public async Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa)
         {
             try
             {
-                // 1. Buscar el vehículo por código de barras
+                // 1. Buscar el vehículo por placa (el ticket tiene la placa como código de barras)
                 var sqlBuscar = @"
                     SELECT 
                         Id,
@@ -43,29 +43,29 @@ namespace DataparkBarreraAPI.Services
                         Monto,
                         FechaPago
                     FROM IOT_Vehiculos
-                    WHERE CodigoBarras = @CodigoBarras
+                    WHERE Placa = @Placa
                     AND Estado = 'DENTRO'";
 
                 var paramBuscar = new SqlParameter[]
                 {
-                    new SqlParameter("@CodigoBarras", codigoBarras)
+                    new SqlParameter("@Placa", placa)
                 };
 
                 var dtVehiculo = await _db.ExecuteQueryAsync(sqlBuscar, paramBuscar);
 
                 if (dtVehiculo.Rows.Count == 0)
                 {
-                    _logger.LogWarning("No se encontró vehículo con código de barras: {CodigoBarras}", codigoBarras);
+                    _logger.LogWarning("No se encontró vehículo con placa: {Placa}", placa);
                     return new ConsultaPagoResponse
                     {
                         Exitoso = false,
-                        Mensaje = "No se encontró el vehículo con ese código de barras o ya salió del parqueo"
+                        Mensaje = "No se encontró el vehículo con esa placa o ya salió del parqueo"
                     };
                 }
 
                 var rowVehiculo = dtVehiculo.Rows[0];
-                var placa = rowVehiculo["Placa"].ToString() ?? "";
                 var idVehiculo = Convert.ToInt32(rowVehiculo["Id"]);
+                var codigoBarrasBD = rowVehiculo["CodigoBarras"]?.ToString() ?? "";
                 var fechaEntrada = Convert.ToDateTime(rowVehiculo["FechaEntrada"]);
                 var strRateKey = rowVehiculo["strRateKey"]?.ToString() ?? "A";
                 var yaPago = rowVehiculo["bitPaid"] != DBNull.Value && Convert.ToInt32(rowVehiculo["bitPaid"]) == 1;
@@ -120,7 +120,7 @@ namespace DataparkBarreraAPI.Services
                     // Datos del vehículo
                     IdVehiculo = idVehiculo,
                     Placa = placa,
-                    CodigoBarras = codigoBarras,
+                    CodigoBarras = codigoBarrasBD,
                     FechaEntrada = fechaEntrada,
                     StrRateKey = strRateKey,
 
@@ -142,7 +142,7 @@ namespace DataparkBarreraAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al consultar pago por código de barras: {CodigoBarras}", codigoBarras);
+                _logger.LogError(ex, "Error al consultar pago por placa: {Placa}", placa);
                 return new ConsultaPagoResponse
                 {
                     Exitoso = false,

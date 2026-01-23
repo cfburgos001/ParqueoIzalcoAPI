@@ -18,29 +18,30 @@ namespace DataparkBarreraAPI.Controllers
         }
 
         /// <summary>
-        /// Consulta un vehículo por código de barras y calcula el monto a pagar
+        /// Consulta un vehículo por placa (código de barras del ticket) y calcula el monto a pagar
         /// Usado por la PayStation cuando se escanea el ticket
+        /// NOTA: El código de barras impreso en el ticket ES la placa del vehículo
         /// </summary>
-        /// <param name="codigoBarras">Código de barras del ticket</param>
+        /// <param name="placa">Placa del vehículo (código de barras del ticket)</param>
         /// <returns>Información del vehículo y monto a pagar</returns>
-        [HttpGet("consultar/{codigoBarras}")]
+        [HttpGet("consultar/{placa}")]
         [ProducesResponseType(typeof(ApiResponse<ConsultaPagoResponse>), 200)]
-        public async Task<IActionResult> ConsultarPorCodigoBarras(string codigoBarras)
+        public async Task<IActionResult> ConsultarPorPlaca(string placa)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(codigoBarras))
+                if (string.IsNullOrWhiteSpace(placa))
                 {
                     return BadRequest(new ApiResponse<ConsultaPagoResponse>
                     {
                         Exitoso = false,
-                        Mensaje = "El código de barras es requerido"
+                        Mensaje = "La placa es requerida"
                     });
                 }
 
-                _logger.LogInformation("Consultando pago por código de barras: {CodigoBarras}", codigoBarras);
+                _logger.LogInformation("Consultando pago por placa (ticket escaneado): {Placa}", placa);
 
-                var resultado = await _pagoService.ConsultarPorCodigoBarrasAsync(codigoBarras);
+                var resultado = await _pagoService.ConsultarPorPlacaAsync(placa);
 
                 if (!resultado.Exitoso)
                 {
@@ -61,7 +62,7 @@ namespace DataparkBarreraAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al consultar pago por código de barras");
+                _logger.LogError(ex, "Error al consultar pago por placa");
                 return StatusCode(500, new ApiResponse<ConsultaPagoResponse>
                 {
                     Exitoso = false,
