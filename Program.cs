@@ -40,6 +40,7 @@ builder.Services.AddCors(options =>
 // Registrar servicios personalizados
 builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 builder.Services.AddSingleton<IBarreraService, BarreraService>();
+builder.Services.AddSingleton<IPagoService, PagoService>();  // ← NUEVO: Servicio de pago para PayStation
 
 // ===== CONSTRUCCIÓN DE LA APLICACIÓN =====
 var app = builder.Build();
@@ -49,19 +50,20 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Datapark Barrera API v1");
-    c.RoutePrefix = string.Empty; // Swagger en la raíz (http://localhost:5000)
+    c.RoutePrefix = string.Empty; // Swagger en la raíz
 });
 
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 
-// Mensaje de inicio
+// Mensaje de inicio - Obtener URL y puerto de la configuración
+var urls = builder.Configuration["urls"] ?? "http://localhost:5225";
 Console.WriteLine("════════════════════════════════════════════════");
 Console.WriteLine("🚀 DATAPARK BARRERA API - INICIANDO");
 Console.WriteLine("════════════════════════════════════════════════");
-Console.WriteLine($"🌐 Servidor: http://localhost:5000");
-Console.WriteLine($"📚 Swagger: http://localhost:5000");
+Console.WriteLine($"🌐 Servidor: {urls}");
+Console.WriteLine($"📚 Swagger: {urls}");
 Console.WriteLine($"🗄️  Base de Datos: Datapark");
 Console.WriteLine("════════════════════════════════════════════════");
 

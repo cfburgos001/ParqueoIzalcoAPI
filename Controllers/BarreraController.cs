@@ -46,7 +46,7 @@ namespace DataparkBarreraAPI.Controllers
                 return Ok(new ApiResponse<Barrera>
                 {
                     Exitoso = true,
-                    Mensaje = $"Estado: {barrera.EstadoTexto}",
+                    Mensaje = $"Estado:  {barrera.EstadoTexto}",
                     Data = barrera
                 });
             }
@@ -56,7 +56,7 @@ namespace DataparkBarreraAPI.Controllers
                 return StatusCode(500, new ApiResponse<Barrera>
                 {
                     Exitoso = false,
-                    Mensaje = $"Error: {ex.Message}"
+                    Mensaje = $"Error:  {ex.Message}"
                 });
             }
         }
@@ -84,7 +84,6 @@ namespace DataparkBarreraAPI.Controllers
                     });
                 }
 
-                // Obtener estado actualizado
                 var barrera = await _barreraService.ObtenerEstadoBarreraAsync();
 
                 return Ok(new ApiResponse<Barrera>
@@ -268,7 +267,7 @@ namespace DataparkBarreraAPI.Controllers
                         : "✗ No se pudo conectar a Datapark",
                     Data = new
                     {
-                        Servidor = "10.0.1.39:1433",
+                        Servidor = "10.0.1.39: 1433",
                         BaseDatos = "Datapark",
                         Estado = conectado ? "Conectado" : "Desconectado"
                     }
@@ -281,6 +280,60 @@ namespace DataparkBarreraAPI.Controllers
                 {
                     Exitoso = false,
                     Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Registra un log en IOT_Logs - Endpoint genérico para el Controllino
+        /// Permite escribir cualquier tipo de log con los datos que se necesiten
+        /// </summary>
+        /// <param name="request">Datos del log a registrar</param>
+        /// <returns>Confirmación del registro</returns>
+        [HttpPost("registro-log")]
+        [ProducesResponseType(typeof(ApiResponse<RegistroLogResponse>), 200)]
+        public async Task<IActionResult> RegistrarLog([FromBody] RegistroLogRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new ApiResponse<RegistroLogResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "El request no puede ser nulo"
+                    });
+                }
+
+                _logger.LogInformation(
+                    "Registrando log - TipoLog: {TipoLog}, Dispositivo: {Dispositivo}, Placa: {Placa}, Datos: {Datos}",
+                    request.IdTipoLog,
+                    request.IdDispositivo,
+                    request.Placa ?? "N/A",
+                    request.DatosAdicionales ?? "N/A"
+                );
+
+                var resultado = await _barreraService.RegistrarLogAsync(request);
+
+                if (resultado.Exitoso)
+                {
+                    _logger.LogInformation("✓ Log registrado exitosamente - ID: {IdLog}", resultado.IdLog);
+                }
+
+                return Ok(new ApiResponse<RegistroLogResponse>
+                {
+                    Exitoso = resultado.Exitoso,
+                    Mensaje = resultado.Mensaje,
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar log");
+                return StatusCode(500, new ApiResponse<RegistroLogResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error:  {ex.Message}"
                 });
             }
         }

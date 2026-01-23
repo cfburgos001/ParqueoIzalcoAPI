@@ -1,0 +1,180 @@
+﻿using DataparkBarreraAPI.Models;
+using DataparkBarreraAPI.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace DataparkBarreraAPI.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PagoController : ControllerBase
+    {
+        private readonly IPagoService _pagoService;
+        private readonly ILogger<PagoController> _logger;
+
+        public PagoController(IPagoService pagoService, ILogger<PagoController> logger)
+        {
+            _pagoService = pagoService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Consulta un vehículo por código de barras y calcula el monto a pagar
+        /// Usado por la PayStation cuando se escanea el ticket
+        /// </summary>
+        /// <param name="codigoBarras">Código de barras del ticket</param>
+        /// <returns>Información del vehículo y monto a pagar</returns>
+        [HttpGet("consultar/{codigoBarras}")]
+        [ProducesResponseType(typeof(ApiResponse<ConsultaPagoResponse>), 200)]
+        public async Task<IActionResult> ConsultarPorCodigoBarras(string codigoBarras)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codigoBarras))
+                {
+                    return BadRequest(new ApiResponse<ConsultaPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "El código de barras es requerido"
+                    });
+                }
+
+                _logger.LogInformation("Consultando pago por código de barras: {CodigoBarras}", codigoBarras);
+
+                var resultado = await _pagoService.ConsultarPorCodigoBarrasAsync(codigoBarras);
+
+                if (!resultado.Exitoso)
+                {
+                    return NotFound(new ApiResponse<ConsultaPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = resultado.Mensaje,
+                        Data = resultado
+                    });
+                }
+
+                return Ok(new ApiResponse<ConsultaPagoResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = resultado.Mensaje,
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar pago por código de barras");
+                return StatusCode(500, new ApiResponse<ConsultaPagoResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Registra un pago desde la PayStation
+        /// </summary>
+        /// <param name="request">Datos del pago</param>
+        /// <returns>Confirmación del pago registrado</returns>
+        [HttpPost("registrar")]
+        [ProducesResponseType(typeof(ApiResponse<RegistrarPagoResponse>), 200)]
+        public async Task<IActionResult> RegistrarPago([FromBody] RegistrarPagoRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new ApiResponse<RegistrarPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "El request no puede ser nulo"
+                    });
+                }
+
+                _logger.LogInformation(
+                    "Registrando pago - Placa: {Placa}, Monto: ${Monto}, Device: {Device}",
+                    request.Placa, request.Monto, request.IdPayDevice
+                );
+
+                var resultado = await _pagoService.RegistrarPagoAsync(request);
+
+                if (!resultado.Exitoso)
+                {
+                    return BadRequest(new ApiResponse<RegistrarPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = resultado.Mensaje,
+                        Data = resultado
+                    });
+                }
+
+                return Ok(new ApiResponse<RegistrarPagoResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = resultado.Mensaje,
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar pago");
+                return StatusCode(500, new ApiResponse<RegistrarPagoResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Verifica el estado de pago de un vehículo por placa
+        /// </summary>
+        /// <param name="placa">Placa del vehículo</param>
+        /// <returns>Estado de pago del vehículo</returns>
+        [HttpGet("verificar/{placa}")]
+        [ProducesResponseType(typeof(ApiResponse<VerificarPagoResponse>), 200)]
+        public async Task<IActionResult> VerificarPagoPorPlaca(string placa)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(placa))
+                {
+                    return BadRequest(new ApiResponse<VerificarPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "La placa es requerida"
+                    });
+                }
+
+                _logger.LogInformation("Verificando pago por placa: {Placa}", placa);
+
+                var resultado = await _pagoService.VerificarPagoPorPlacaAsync(placa);
+
+                if (!resultado.Exitoso)
+                {
+                    return NotFound(new ApiResponse<VerificarPagoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = resultado.Mensaje,
+                        Data = resultado
+                    });
+                }
+
+                return Ok(new ApiResponse<VerificarPagoResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = resultado.Mensaje,
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al verificar pago por placa");
+                return StatusCode(500, new ApiResponse<VerificarPagoResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+    }
+}

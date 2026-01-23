@@ -1,4 +1,5 @@
 ﻿using DataparkBarreraAPI.Models;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace DataparkBarreraAPI.Services
@@ -11,6 +12,7 @@ namespace DataparkBarreraAPI.Services
         Task<bool> ResetearBarreraAsync();
         Task<BarreraEstadisticas> ObtenerEstadisticasAsync();
         Task<List<BarreraLog>> ObtenerHistorialAsync(int ultimosRegistros = 10);
+        Task<RegistroLogResponse> RegistrarLogAsync(RegistroLogRequest request);
     }
 
     public class BarreraService : IBarreraService
@@ -73,7 +75,6 @@ namespace DataparkBarreraAPI.Services
         {
             try
             {
-                // Ejecutar el SP que cierra la barrera
                 var sql = "EXEC IOT_sp_CerrarBarreraManual";
                 var result = await _db.ExecuteNonQueryAsync(sql);
 
@@ -149,7 +150,6 @@ namespace DataparkBarreraAPI.Services
                 var dt = await _db.ExecuteQueryAsync(sql);
                 var row = dt.Rows[0];
 
-                // Contar entradas y salidas del día actual
                 var sqlHoy = @"
                     SELECT 
                         SUM(CASE WHEN bitEntry = 1 THEN 1 ELSE 0 END) as Entradas,
@@ -227,6 +227,85 @@ namespace DataparkBarreraAPI.Services
             {
                 _logger.LogError(ex, "Error al obtener historial");
                 return new List<BarreraLog>();
+            }
+        }
+
+        /// <summary>
+        /// Registra un log en IOT_Logs usando el SP existente IOT_sp_RegistroLog
+        /// Permite al Controllino escribir cualquier tipo de log
+        /// </summary>
+        public async Task<RegistroLogResponse> RegistrarLogAsync(RegistroLogRequest request)
+        {
+            try
+            {
+                // Validar que IdTipoLog sea válido
+                if (request.IdTipoLog <= 0)
+                {
+                    return new RegistroLogResponse
+                    {
+                        Exitoso = false,
+                        Mensaje = "IdTipoLog debe ser mayor a 0"
+                    };
+                }
+
+                // Validar que IdDispositivo no esté vacío
+                if (string.IsNullOrWhiteSpace(request.IdDispositivo))
+                {
+                    request.IdDispositivo = "CONTROLLINO";
+                }
+
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@IdTipoLog", request.IdTipoLog),
+                    new SqlParameter("@Placa", (object?)request. Placa ?? DBNull.Value),
+                    new SqlParameter("@IdDispositivo", request.IdDispositivo),
+                    new SqlParameter("@DatosAdicionales", (object?)request.DatosAdicionales ?? DBNull.Value)
+                };
+
+                // Ejecutar el SP existente
+                await _db.ExecuteNonQueryAsync(
+                    "EXEC IOT_sp_RegistroLog @IdTipoLog, @Placa, @IdDispositivo, @DatosAdicionales",
+                    parameters
+                );
+
+                // Obtener el ID del log recién insertado
+                var dtLastId = await _db.ExecuteQueryAsync(
+                    "SELECT TOP 1 Id, FechaEvento FROM IOT_Logs WHERE IdDispositivo = @IdDispositivo ORDER BY Id DESC",
+                    new SqlParameter[] { new SqlParameter("@IdDispositivo", request.IdDispositivo) }
+                );
+
+                int? idLog = null;
+                DateTime? fechaRegistro = null;
+
+                if (dtLastId.Rows.Count > 0)
+                {
+                    idLog = Convert.ToInt32(dtLastId.Rows[0]["Id"]);
+                    fechaRegistro = Convert.ToDateTime(dtLastId.Rows[0]["FechaEvento"]);
+                }
+
+                _logger.LogInformation(
+                    "✓ Log registrado - TipoLog: {TipoLog}, Dispositivo: {Dispositivo}, Placa: {Placa}",
+                    request.IdTipoLog,
+                    request.IdDispositivo,
+                    request.Placa ?? "N/A"
+                );
+
+                return new RegistroLogResponse
+                {
+                    Exitoso = true,
+                    Mensaje = "Log registrado correctamente",
+                    IdLog = idLog,
+                    FechaRegistro = fechaRegistro ?? DateTime.Now
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar log");
+                return new RegistroLogResponse
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error:  {ex.Message}"
+                };
             }
         }
     }

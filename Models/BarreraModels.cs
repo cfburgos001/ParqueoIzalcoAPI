@@ -57,4 +57,133 @@
         public string? PlacaVehiculo { get; set; }
         public string? TipoMovimiento { get; set; }
     }
+
+    /// <summary>
+    /// Request para registrar un log desde el Controllino
+    /// </summary>
+    public class RegistroLogRequest
+    {
+        public int IdTipoLog { get; set; }
+        public string? Placa { get; set; }
+        public string IdDispositivo { get; set; } = "CONTROLLINO";
+        public string? DatosAdicionales { get; set; }
+    }
+
+    /// <summary>
+    /// Response del registro de log
+    /// </summary>
+    public class RegistroLogResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+        public int? IdLog { get; set; }
+        public DateTime? FechaRegistro { get; set; }
+    }
+
+    // =============================================
+    // MODELOS PARA PAGO - PAYSTATION
+    // =============================================
+
+    /// <summary>
+    /// Response de consulta de vehículo para pago (cuando se escanea el ticket)
+    /// </summary>
+    public class ConsultaPagoResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+
+        // Datos del vehículo
+        public int IdVehiculo { get; set; }
+        public string Placa { get; set; } = string.Empty;
+        public string CodigoBarras { get; set; } = string.Empty;
+        public DateTime FechaEntrada { get; set; }
+        public string? StrRateKey { get; set; }
+
+        // Datos del cálculo
+        public int TiempoTotalMinutos { get; set; }
+        public int TiempoCobrableMinutos { get; set; }
+        public decimal MontoAPagar { get; set; }
+        public decimal PrecioPorHora { get; set; }
+        public decimal PrecioMinimo { get; set; }
+
+        // Estado
+        public bool YaPago { get; set; }
+        public string EstadoCobro { get; set; } = string.Empty;
+        public DateTime? FechaPago { get; set; }
+
+        // Información formateada para mostrar
+        public string TiempoFormateado { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Request para registrar un pago desde la PayStation
+    /// </summary>
+    public class RegistrarPagoRequest
+    {
+        /// <summary>
+        /// Placa del vehículo
+        /// </summary>
+        public string Placa { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Monto cobrado
+        /// </summary>
+        public decimal Monto { get; set; }
+
+        /// <summary>
+        /// ID del dispositivo de pago (PayStation)
+        /// </summary>
+        public int IdPayDevice { get; set; }
+
+        /// <summary>
+        /// Tipo de tarifa (A=Auto, M=Moto, C=Carga) - Opcional, mantiene el original
+        /// </summary>
+        public string? StrRateKey { get; set; } = "A";
+
+        /// <summary>
+        /// Tipo de operación (1=Normal, 2=Cortesía, etc.)
+        /// </summary>
+        public int OperationType { get; set; } = 1;
+    }
+
+    /// <summary>
+    /// Response del registro de pago
+    /// </summary>
+    public class RegistrarPagoResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+        public int? IdVehiculo { get; set; }
+        public decimal? MontoRegistrado { get; set; }
+        public DateTime? FechaPago { get; set; }
+        public int? IdPayDevice { get; set; }
+    }
+
+    /// <summary>
+    /// Response de verificación de pago por placa
+    /// </summary>
+    public class VerificarPagoResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+
+        // Datos del vehículo
+        public int? IdVehiculo { get; set; }
+        public string Placa { get; set; } = string.Empty;
+        public string CodigoBarras { get; set; } = string.Empty;
+        public string Estado { get; set; } = string.Empty;
+
+        // Estado de pago
+        public bool YaPago { get; set; }
+        public decimal? MontoPagado { get; set; }
+        public DateTime? FechaPago { get; set; }
+
+        // Tiempo de gracia
+        public bool DentroDeGracia { get; set; }
+        public int? MinutosRestantesGracia { get; set; }
+
+        // Si necesita pagar más
+        public bool NecesitaPagarMas { get; set; }
+        public decimal? MontoAdicional { get; set; }
+    }
 }
