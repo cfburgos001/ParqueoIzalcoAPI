@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Ingreso - Centro Panamericano de Ojos</title>
+    <link rel="stylesheet" href="css/visitas.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ============================== -->
+    <!-- HEADER -->
+    <!-- ============================== -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-icon">👁️</div>
+            <div class="header-text">
+                <h1>DOBLE GEMINIS, S.A. DE C.V.</h1>
+                <p>Centro Panamericano de Ojos — Control de Ingreso</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="stats-box" id="statsDentro">
+                <span class="stats-number" id="statsNumDentro">0</span>
+                <span class="stats-label">Dentro</span>
+            </div>
+            <div class="stats-box" id="statsTotal">
+                <span class="stats-number" id="statsNumTotal">0</span>
+                <span class="stats-label">Hoy</span>
+            </div>
+            <div class="fecha-hora" id="fechaHoraActual"></div>
+        </div>
+    </header>
+
+    <!-- ============================== -->
+    <!-- CONTENIDO PRINCIPAL -->
+    <!-- ============================== -->
+    <main class="main-content">
+
+        <!-- FORMULARIO DE REGISTRO -->
+        <section class="form-section">
+            <div class="section-header">
+                <h2>📝 Registrar Entrada</h2>
+                <button class="btn btn-secondary btn-sm" onclick="toggleAdmin()" id="btnAdmin">⚙️ Administrar</button>
+            </div>
+
+            <form id="formEntrada" onsubmit="registrarEntrada(event)">
+                <div class="form-grid">
+                    <!-- Nombre del visitante (con autocompletar) -->
+                    <div class="form-group form-group-lg">
+                        <label for="nombreVisitante">Nombre del visitante *</label>
+                        <div class="autocomplete-container">
+                            <input type="text" id="nombreVisitante"
+                                   placeholder="Escriba el nombre..."
+                                   autocomplete="off"
+                                   oninput="buscarVisitantes(this.value)"
+                                   required>
+                            <div class="autocomplete-list" id="autocompleteList"></div>
+                        </div>
+                        <input type="hidden" id="idVisitante" value="">
+                    </div>
+
+                    <!-- Tipo de visitante -->
+                    <div class="form-group">
+                        <label for="tipoVisitante">Tipo *</label>
+                        <select id="tipoVisitante" required>
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+
+                    <!-- Placa -->
+                    <div class="form-group">
+                        <label for="placa">Placa #</label>
+                        <input type="text" id="placa" placeholder="Ej: P123ABC"
+                               style="text-transform: uppercase;">
+                    </div>
+
+                    <!-- Área destino -->
+                    <div class="form-group">
+                        <label for="areaDestino">Área destino</label>
+                        <select id="areaDestino">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+
+                    <!-- Observación -->
+                    <div class="form-group form-group-lg">
+                        <label for="observacion">Observación</label>
+                        <input type="text" id="observacion" placeholder="Notas adicionales...">
+                    </div>
+                </div>
+
+                <!-- Botón de registro -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" id="btnRegistrar">
+                        ✅ Registrar Entrada
+                    </button>
+                    <button type="button" class="btn btn-outline btn-lg" onclick="limpiarFormulario()">
+                        🔄 Limpiar
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- PANEL DE ADMINISTRACIÓN (oculto por defecto) -->
+        <section class="admin-section" id="adminSection" style="display:none;">
+            <div class="section-header">
+                <h2>⚙️ Administración de Catálogos</h2>
+                <button class="btn btn-secondary btn-sm" onclick="toggleAdmin()">✕ Cerrar</button>
+            </div>
+            <div class="admin-grid">
+                <!-- Agregar Tipo de Visitante -->
+                <div class="admin-card">
+                    <h3>👤 Tipos de Visitante</h3>
+                    <div class="admin-form">
+                        <input type="text" id="nuevoTipoVisitante" placeholder="Ej: Técnico">
+                        <button class="btn btn-primary btn-sm" onclick="crearTipoVisitante()">➕ Agregar</button>
+                    </div>
+                    <ul class="admin-list" id="listaTiposVisitante"></ul>
+                </div>
+                <!-- Agregar Área Destino -->
+                <div class="admin-card">
+                    <h3>🏢 Áreas Destino</h3>
+                    <div class="admin-form">
+                        <input type="text" id="nuevaAreaDestino" placeholder="Ej: Farmacia">
+                        <button class="btn btn-primary btn-sm" onclick="crearAreaDestino()">➕ Agregar</button>
+                    </div>
+                    <ul class="admin-list" id="listaAreasDestino"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABLA DE VISITAS DEL DÍA -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>📋 Visitas de Hoy</h2>
+                <div class="table-filters">
+                    <button class="btn-filter active" onclick="filtrarTabla('TODOS', this)" data-filter="TODOS">Todos</button>
+                    <button class="btn-filter" onclick="filtrarTabla('DENTRO', this)" data-filter="DENTRO">🟢 Dentro</button>
+                    <button class="btn-filter" onclick="filtrarTabla('SALIO', this)" data-filter="SALIO">🔴 Salieron</button>
+                    <button class="btn btn-outline btn-sm" onclick="cargarVisitasHoy()">🔄 Actualizar</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="tablaVisitas">
+                    <thead>
+                        <tr>
+                            <th>Hora Entrada</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Placa</th>
+                            <th>Área</th>
+                            <th>Hora Salida</th>
+                            <th>Tiempo</th>
+                            <th>Observación</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyVisitas">
+                        <tr>
+                            <td colspan="10" class="empty-row">Cargando visitas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TOAST / NOTIFICACIONES -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- MODAL DE OBSERVACIÓN -->
+    <div class="modal-overlay" id="modalObservacion" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>✏️ Editar Observación</h3>
+                <button class="btn-close" onclick="cerrarModalObservacion()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalObsId">
+                <textarea id="modalObsTexto" rows="3" placeholder="Escriba la observación..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="guardarObservacion()">💾 Guardar</button>
+                <button class="btn btn-outline" onclick="cerrarModalObservacion()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/visitas.js"></script>
+</body>
+</html>
