@@ -170,6 +170,73 @@
                 </table>
             </div>
         </section>
+                <!-- SECCIÓN DE REPORTES -->
+        <section class="form-section" id="reporteSection">
+            <div class="section-header">
+                <h2>📊 Generar Bitácora / Reporte</h2>
+            </div>
+
+            <div class="reporte-grid">
+                <!-- Fecha Inicio -->
+                <div class="form-group">
+                    <label for="reporteFechaInicio">Fecha Inicio *</label>
+                    <input type="date" id="reporteFechaInicio">
+                </div>
+
+                <!-- Fecha Fin -->
+                <div class="form-group">
+                    <label for="reporteFechaFin">Fecha Fin</label>
+                    <input type="date" id="reporteFechaFin">
+                </div>
+
+                <!-- Filtro Tipo -->
+                <div class="form-group">
+                    <label for="reporteTipo">Tipo Visitante</label>
+                    <select id="reporteTipo">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <div class="form-group reporte-actions">
+                    <label>&nbsp;</label>
+                    <div class="reporte-btns">
+                        <button class="btn btn-success" onclick="descargarExcel()">
+                            📗 Descargar Excel
+                        </button>
+                        <button class="btn btn-danger" onclick="descargarPDF()">
+                            📕 Descargar PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista previa -->
+            <div id="reportePreview" style="display:none;">
+                <div class="section-header" style="margin-top: 16px;">
+                    <h3 id="reporteTitulo">Vista previa</h3>
+                    <span class="badge badge-dentro" id="reporteConteo">0 registros</span>
+                </div>
+                <div class="table-container">
+                    <table id="tablaReporte">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Placa</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Tiempo</th>
+                                <th>Área</th>
+                                <th>Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyReporte"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
     </main>
 

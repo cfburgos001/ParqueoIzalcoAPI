@@ -483,3 +483,344 @@ function mostrarToast(mensaje, tipo = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3500);
 }
+
+
+// =============================================
+// REPORTES - EXCEL Y PDF
+// =============================================
+
+// Inicializar fechas del reporte
+document.addEventListener('DOMContentLoaded', () => {
+    // Poner fecha de hoy por defecto
+    const hoy = new Date().toISOString().split('T')[0];
+    const inputInicio = document.getElementById('reporteFechaInicio');
+    const inputFin = document.getElementById('reporteFechaFin');
+    if (inputInicio) inputInicio.value = hoy;
+    if (inputFin) inputFin.value = hoy;
+
+    // Llenar select de tipos en reportes
+    setTimeout(() => {
+        const selectTipo = document.getElementById('reporteTipo');
+        if (selectTipo && tiposVisitante.length > 0) {
+            selectTipo.innerHTML = '<option value="">Todos</option>';
+            tiposVisitante.forEach(t => {
+                selectTipo.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
+            });
+        }
+    }, 2000);
+});
+
+// Buscar datos para el reporte
+async function buscarDatosReporte() {
+    const fechaInicio = document.getElementById('reporteFechaInicio').value;
+    const fechaFin = document.getElementById('reporteFechaFin').value;
+    const idTipo = document.getElementById('reporteTipo').value;
+
+    if (!fechaInicio) {
+        mostrarToast('Seleccione la fecha de inicio', 'error');
+        return null;
+    }
+
+    try {
+        const body = {
+            fechaInicio: fechaInicio + 'T00:00:00',
+            fechaFin: (fechaFin || fechaInicio) + 'T23:59:59',
+            idTipoVisitante: idTipo ? parseInt(idTipo) : null,
+            top: 5000
+        };
+
+        const res = await fetch(`${API_BASE}/buscar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (data.exitoso && data.data) {
+            // Mostrar vista previa
+            mostrarVistaPrevia(data.data, fechaInicio, fechaFin);
+            return data.data;
+        } else {
+            mostrarToast('No se encontraron registros', 'warning');
+            return null;
+        }
+    } catch (err) {
+        console.error('Error al buscar datos para reporte:', err);
+        mostrarToast('Error de conexión', 'error');
+        return null;
+    }
+}
+
+function mostrarVistaPrevia(datos, fechaInicio, fechaFin) {
+    const preview = document.getElementById('reportePreview');
+    const titulo = document.getElementById('reporteTitulo');
+    const conteo = document.getElementById('reporteConteo');
+    const tbody = document.getElementById('tbodyReporte');
+
+    titulo.textContent = `Bitácora: ${formatearFechaCorta(fechaInicio)}${fechaFin && fechaFin !== fechaInicio ? ' al ' + formatearFechaCorta(fechaFin) : ''}`;
+    conteo.textContent = `${datos.length} registros`;
+
+    tbody.innerHTML = datos.map(v => {
+        const fecha = new Date(v.fechaVisita || v.horaEntrada).toLocaleDateString('es-GT');
+        const entrada = new Date(v.horaEntrada).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+        const salida = v.horaSalida ? new Date(v.horaSalida).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) : '—';
+        const minutos = v.minutosEstancia || 0;
+        const horas = Math.floor(minutos / 60);
+        const mins = minutos % 60;
+        const tiempo = horas > 0 ? `${horas}h ${mins}m` : `${mins}m`;
+
+        return `<tr>
+            <td>${fecha}</td>
+            <td>${v.nombreVisitante || ''}</td>
+            <td>${v.tipoVisitante || ''}</td>
+            <td>${v.placa || '—'}</td>
+            <td>${entrada}</td>
+            <td>${salida}</td>
+            <td>${tiempo}</td>
+            <td>${v.areaDestino || '—'}</td>
+            <td>${v.observacion || '—'}</td>
+        </tr>`;
+    }).join('');
+
+    preview.style.display = 'block';
+    preview.scrollIntoView({ behavior: 'smooth' });
+}
+
+// =============================================
+// DESCARGAR EXCEL
+// =============================================
+async function descargarExcel() {
+    const datos = await buscarDatosReporte();
+    if (!datos || datos.length === 0) return;
+
+    const fechaInicio = document.getElementById('reporteFechaInicio').value;
+    const fechaFin = document.getElementById('reporteFechaFin').value || fechaInicio;
+
+    // Construir contenido XML para Excel
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<?mso-application progid="Excel.Sheet"?>\n';
+    xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
+    xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
+
+    // Estilos
+    xml += '<Styles>\n';
+    xml += '  <Style ss:ID="titulo"><Font ss:Bold="1" ss:Size="14"/><Alignment ss:Horizontal="Center"/></Style>\n';
+    xml += '  <Style ss:ID="subtitulo"><Font ss:Bold="1" ss:Size="11"/><Alignment ss:Horizontal="Center"/></Style>\n';
+    xml += '  <Style ss:ID="header"><Font ss:Bold="1" ss:Size="10" ss:Color="#FFFFFF"/><Interior ss:Color="#1F2937" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>\n';
+    xml += '  <Style ss:ID="celda"><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E5E7EB"/></Borders></Style>\n';
+    xml += '  <Style ss:ID="fecha"><NumberFormat ss:Format="dd/mm/yyyy"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E5E7EB"/></Borders></Style>\n';
+    xml += '</Styles>\n';
+
+    xml += '<Worksheet ss:Name="Bitácora de Visitas">\n';
+    xml += '<Table>\n';
+
+    // Anchos de columna
+    xml += '<Column ss:Width="90"/><Column ss:Width="200"/><Column ss:Width="100"/><Column ss:Width="90"/><Column ss:Width="80"/><Column ss:Width="80"/><Column ss:Width="70"/><Column ss:Width="150"/><Column ss:Width="200"/>\n';
+
+    // Título empresa
+    xml += '<Row ss:Height="25">';
+    xml += '<Cell ss:MergeAcross="8" ss:StyleID="titulo"><Data ss:Type="String">DOBLE GEMINIS, S.A. DE C.V.</Data></Cell>';
+    xml += '</Row>\n';
+
+    // Subtítulo
+    xml += '<Row ss:Height="20">';
+    xml += '<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">CONTROL DE PARQUEO PARA MÉDICOS, VISITANTES Y PROVEEDORES</Data></Cell>';
+    xml += '</Row>\n';
+
+    // Período
+    const periodoTexto = fechaInicio === fechaFin
+        ? `Fecha: ${formatearFechaLarga(fechaInicio)}`
+        : `Período: ${formatearFechaLarga(fechaInicio)} al ${formatearFechaLarga(fechaFin)}`;
+
+    xml += '<Row ss:Height="18">';
+    xml += `<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">${periodoTexto}</Data></Cell>`;
+    xml += '</Row>\n';
+
+    // Fila vacía
+    xml += '<Row></Row>\n';
+
+    // Encabezados
+    xml += '<Row>';
+    const headers = ['FECHA DE VISITA', 'NOMBRE', 'TIPO', 'PLACA #', 'ENTRADA', 'SALIDA', 'TIEMPO', 'ÁREA DESTINO', 'OBSERVACIÓN'];
+    headers.forEach(h => {
+        xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>`;
+    });
+    xml += '</Row>\n';
+
+    // Datos
+    datos.forEach(v => {
+        const fecha = new Date(v.fechaVisita || v.horaEntrada).toLocaleDateString('es-GT');
+        const entrada = new Date(v.horaEntrada).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+        const salida = v.horaSalida ? new Date(v.horaSalida).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) : '';
+        const minutos = v.minutosEstancia || 0;
+        const horas = Math.floor(minutos / 60);
+        const mins = minutos % 60;
+        const tiempo = horas > 0 ? `${horas}h ${mins}m` : `${mins}m`;
+
+        xml += '<Row>';
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${fecha}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${escapeXml(v.nombreVisitante || '')}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${escapeXml(v.tipoVisitante || '')}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${escapeXml(v.placa || '')}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${entrada}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${salida}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${tiempo}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${escapeXml(v.areaDestino || '')}</Data></Cell>`;
+        xml += `<Cell ss:StyleID="celda"><Data ss:Type="String">${escapeXml(v.observacion || '')}</Data></Cell>`;
+        xml += '</Row>\n';
+    });
+
+    xml += '</Table>\n</Worksheet>\n</Workbook>';
+
+    // Descargar
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const nombreArchivo = `Bitacora_Visitas_${fechaInicio.replace(/-/g, '')}${fechaFin !== fechaInicio ? '_al_' + fechaFin.replace(/-/g, '') : ''}.xls`;
+    descargarBlob(blob, nombreArchivo);
+
+    mostrarToast(`📗 Excel descargado: ${datos.length} registros`, 'success');
+}
+
+// =============================================
+// DESCARGAR PDF
+// =============================================
+async function descargarPDF() {
+    const datos = await buscarDatosReporte();
+    if (!datos || datos.length === 0) return;
+
+    const fechaInicio = document.getElementById('reporteFechaInicio').value;
+    const fechaFin = document.getElementById('reporteFechaFin').value || fechaInicio;
+
+    const periodoTexto = fechaInicio === fechaFin
+        ? `Fecha: ${formatearFechaLarga(fechaInicio)}`
+        : `Período: ${formatearFechaLarga(fechaInicio)} al ${formatearFechaLarga(fechaFin)}`;
+
+    // Construir HTML para impresión/PDF
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Bitácora de Visitas</title>
+        <style>
+            @page { size: landscape; margin: 15mm; }
+            body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; margin: 0; padding: 20px; }
+            .header-report { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #1f2937; padding-bottom: 15px; }
+            .header-report h1 { font-size: 18px; margin: 0 0 4px; letter-spacing: 1px; }
+            .header-report h2 { font-size: 13px; font-weight: 600; color: #374151; margin: 0 0 8px; }
+            .header-report p { font-size: 12px; color: #6b7280; margin: 0; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+            thead th {
+                background: #1f2937; color: #fff; padding: 8px 6px;
+                text-align: left; font-size: 10px; text-transform: uppercase;
+                letter-spacing: 0.5px; border: 1px solid #1f2937;
+            }
+            tbody td { padding: 7px 6px; border: 1px solid #e5e7eb; vertical-align: top; }
+            tbody tr:nth-child(even) { background: #f9fafb; }
+            tbody tr:hover { background: #f3f4f6; }
+            .footer-report {
+                margin-top: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb;
+                font-size: 10px; color: #9ca3af; display: flex; justify-content: space-between;
+            }
+            .badge-tipo {
+                display: inline-block; padding: 2px 6px; border-radius: 10px;
+                font-size: 9px; font-weight: 600; background: #e8effc; color: #1a56db;
+            }
+            @media print {
+                body { padding: 0; }
+                .no-print { display: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header-report">
+            <h1>DOBLE GEMINIS, S.A. DE C.V.</h1>
+            <h2>CONTROL DE PARQUEO PARA MÉDICOS QUE NOS VISITAN PARA REALIZAR<br>PROCEDIMIENTOS EN SALA DE OPERACIONES Y UNIDAD DE DIAGNÓSTICO</h2>
+            <p>${periodoTexto} &nbsp;|&nbsp; Total: ${datos.length} registros</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>FECHA DE VISITA</th>
+                    <th>NOMBRE DE MÉDICO / VISITANTE</th>
+                    <th>TIPO</th>
+                    <th>PLACA #</th>
+                    <th>ENTRADA</th>
+                    <th>SALIDA</th>
+                    <th>TIEMPO</th>
+                    <th>ÁREA DESTINO</th>
+                    <th>OBSERVACIÓN</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${datos.map(v => {
+        const fecha = new Date(v.fechaVisita || v.horaEntrada).toLocaleDateString('es-GT');
+        const entrada = new Date(v.horaEntrada).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+        const salida = v.horaSalida ? new Date(v.horaSalida).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) : '';
+        const minutos = v.minutosEstancia || 0;
+        const horas = Math.floor(minutos / 60);
+        const mins = minutos % 60;
+        const tiempo = horas > 0 ? `${horas}h ${mins}m` : `${mins}m`;
+
+        return `<tr>
+                        <td>${fecha}</td>
+                        <td><strong>${v.nombreVisitante || ''}</strong></td>
+                        <td><span class="badge-tipo">${v.tipoVisitante || ''}</span></td>
+                        <td>${v.placa || ''}</td>
+                        <td>${entrada}</td>
+                        <td>${salida}</td>
+                        <td>${tiempo}</td>
+                        <td>${v.areaDestino || ''}</td>
+                        <td>${v.observacion || ''}</td>
+                    </tr>`;
+    }).join('')}
+            </tbody>
+        </table>
+
+        <div class="footer-report">
+            <span>Centro Panamericano de Ojos — Sistema de Control de Parqueo</span>
+            <span>Generado: ${new Date().toLocaleString('es-GT')}</span>
+        </div>
+
+        <script>
+            window.onload = () => { window.print(); };
+        <\/script>
+    </body>
+    </html>`;
+
+    // Abrir ventana de impresión (el usuario puede guardar como PDF)
+    const ventana = window.open('', '_blank');
+    ventana.document.write(htmlContent);
+    ventana.document.close();
+
+    mostrarToast(`📕 PDF generado: ${datos.length} registros. Use "Guardar como PDF" en el diálogo de impresión.`, 'success');
+}
+
+// =============================================
+// UTILIDADES DE REPORTE
+// =============================================
+function escapeXml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+function formatearFechaCorta(fechaStr) {
+    const [y, m, d] = fechaStr.split('-');
+    return `${d}/${m}/${y}`;
+}
+
+function formatearFechaLarga(fechaStr) {
+    const fecha = new Date(fechaStr + 'T12:00:00');
+    return fecha.toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function descargarBlob(blob, nombreArchivo) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}

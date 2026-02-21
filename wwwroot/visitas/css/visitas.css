@@ -755,3 +755,44 @@ tbody td {
         background: rgba(220, 38, 38, 0.5);
         color: var(--white);
     }
+
+
+/* ===== REPORTES ===== */
+.reporte-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.reporte-actions {
+    display: flex;
+    flex-direction: column;
+}
+
+.reporte-btns {
+    display: flex;
+    gap: 8px;
+}
+
+#reportePreview {
+    border-top: 2px solid var(--gray-200);
+    padding-top: 16px;
+    margin-top: 8px;
+}
+
+@media (max-width: 1024px) {
+    .reporte-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .reporte-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reporte-btns {
+        flex-direction: column;
+    }
+}
