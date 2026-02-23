@@ -9,6 +9,7 @@ namespace DataparkBarreraAPI.Services
         Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa);
         Task<RegistrarPagoResponse> RegistrarPagoAsync(RegistrarPagoRequest request);
         Task<VerificarPagoResponse> VerificarPagoPorPlacaAsync(string placa);
+        Task<ReingresoGraciaResponse> EjecutarReingresoGraciaAsync(string placa, string idDispositivoSalida);
     }
 
     public class PagoService : IPagoService
@@ -22,15 +23,16 @@ namespace DataparkBarreraAPI.Services
             _logger = logger;
         }
 
+
         /// <summary>
-        /// Consulta un vehículo por placa (código de barras del ticket = placa) y calcula el monto a pagar
-        /// Usado por la PayStation cuando se escanea el ticket
+        /// Consulta un vehículo por placa y calcula el monto a pagar.
+        /// Si el vehículo ya pagó y excedió la gracia, ejecuta REINGRESO AUTOMÁTICO.
         /// </summary>
         public async Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa)
         {
             try
             {
-                // 1. Buscar el vehículo por placa (el ticket tiene la placa como código de barras)
+                // 1. Buscar el vehículo por placa
                 var sqlBuscar = @"
                     SELECT 
                         Id,
@@ -73,7 +75,94 @@ namespace DataparkBarreraAPI.Services
                     ? Convert.ToDateTime(rowVehiculo["FechaPago"])
                     : (DateTime?)null;
 
-                // 2. Calcular el monto usando el SP existente
+                // =============================================
+                // ⚡ DETECCIÓN AUTOMÁTICA DE REINGRESO POR GRACIA
+                // =============================================
+                if (yaPago && fechaPago.HasValue)
+                {
+                    var minutosDesdePago = (int)(DateTime.Now - fechaPago.Value).TotalMinutes;
+
+                    // Obtener tiempo de gracia configurado (default 15 min)
+                    var tiempoGracia = await ObtenerTiempoGraciaAsync("POS-APS");
+
+                    if (minutosDesdePago > tiempoGracia)
+                    {
+                        _logger.LogWarning(
+                            "⚠️ GRACIA EXCEDIDA - Placa: {Placa}, Pagó hace {Minutos} min (gracia: {Gracia} min). Ejecutando reingreso automático...",
+                            placa, minutosDesdePago, tiempoGracia
+                        );
+
+                        // Ejecutar reingreso automático
+                        var reingresoResult = await EjecutarReingresoGraciaAsync(placa, "POS-APS");
+
+                        if (!reingresoResult.Exitoso)
+                        {
+                            _logger.LogError("Error en reingreso automático para placa: {Placa} - {Mensaje}", placa, reingresoResult.Mensaje);
+                            return new ConsultaPagoResponse
+                            {
+                                Exitoso = false,
+                                Mensaje = $"Error al procesar reingreso: {reingresoResult.Mensaje}"
+                            };
+                        }
+
+                        _logger.LogInformation(
+                            "✓ Reingreso ejecutado - Placa: {Placa}, Registro anterior: {Anterior}, Nuevo: {Nuevo}",
+                            placa, reingresoResult.IdRegistroAnterior, reingresoResult.IdNuevoRegistro
+                        );
+
+                        // Ahora volver a buscar el NUEVO registro (que acaba de crearse)
+                        // NOTA: Crear nuevos SqlParameter porque los anteriores ya están en uso
+                        var paramBuscarNuevo = new SqlParameter[]
+                        {
+                            new SqlParameter("@Placa", placa)
+                        };
+                        dtVehiculo = await _db.ExecuteQueryAsync(sqlBuscar, paramBuscarNuevo);
+
+                        if (dtVehiculo.Rows.Count == 0)
+                        {
+                            return new ConsultaPagoResponse
+                            {
+                                Exitoso = false,
+                                Mensaje = "Error: No se encontró el nuevo registro después del reingreso"
+                            };
+                        }
+
+                        // Actualizar variables con el nuevo registro
+                        rowVehiculo = dtVehiculo.Rows[0];
+                        idVehiculo = Convert.ToInt32(rowVehiculo["Id"]);
+                        codigoBarrasBD = rowVehiculo["CodigoBarras"]?.ToString() ?? "";
+                        fechaEntrada = Convert.ToDateTime(rowVehiculo["FechaEntrada"]);
+                        strRateKey = rowVehiculo["strRateKey"]?.ToString() ?? "X";
+                        yaPago = false; // El nuevo registro NO ha pagado
+                        fechaPago = null;
+                    }
+                    else
+                    {
+                        // Dentro de gracia: retornar que puede salir
+                        var minutosRestantes = tiempoGracia - minutosDesdePago;
+                        return new ConsultaPagoResponse
+                        {
+                            Exitoso = true,
+                            Mensaje = $"Vehículo ya pagó. Tiene {minutosRestantes} minutos para salir.",
+                            IdVehiculo = idVehiculo,
+                            Placa = placa,
+                            CodigoBarras = codigoBarrasBD,
+                            FechaEntrada = fechaEntrada,
+                            StrRateKey = strRateKey,
+                            TiempoTotalMinutos = (int)(DateTime.Now - fechaEntrada).TotalMinutes,
+                            TiempoCobrableMinutos = 0,
+                            MontoAPagar = 0.00m,
+                            PrecioPorHora = 0,
+                            PrecioMinimo = 0,
+                            YaPago = true,
+                            EstadoCobro = "GRACIA_SALIDA",
+                            FechaPago = fechaPago,
+                            TiempoFormateado = $"{minutosRestantes} minutos restantes"
+                        };
+                    }
+                }
+
+                // 2. Calcular el monto usando el SP existente (para vehículos que NO han pagado)
                 var paramCalcular = new SqlParameter[]
                 {
                     new SqlParameter("@Placa", placa)
@@ -106,14 +195,14 @@ namespace DataparkBarreraAPI.Services
                     : $"{minutos} minutos";
 
                 _logger.LogInformation(
-                    "Consulta de pago - Placa: {Placa}, Tiempo: {Tiempo}, Monto: {Monto}, Estado: {Estado}",
-                    placa, tiempoFormateado, montoCalculado, estadoCobro
+                    "Consulta de pago - Placa: {Placa}, Tiempo: {Tiempo}, Monto: {Monto}, Estado: {Estado}, RateKey: {RateKey}",
+                    placa, tiempoFormateado, montoCalculado, estadoCobro, strRateKey
                 );
 
                 return new ConsultaPagoResponse
                 {
                     Exitoso = true,
-                    Mensaje = estadoCobro == "GRACIA_ENTRADA" || estadoCobro == "GRACIA_SALIDA" || estadoCobro == "GRATIS"
+                    Mensaje = estadoCobro == "GRACIA_ENTRADA" || estadoCobro == "GRATIS"
                         ? "El vehículo no tiene monto a pagar"
                         : $"Monto a pagar: ${montoCalculado:F2}",
 
@@ -398,6 +487,104 @@ namespace DataparkBarreraAPI.Services
                     Mensaje = $"Error: {ex.Message}",
                     Placa = placa
                 };
+            }
+        }
+
+        // =============================================
+        // REINGRESO AUTOMÁTICO POR GRACIA EXCEDIDA
+        // =============================================
+
+        /// <summary>
+        /// Ejecuta el SP IOT_sp_RegistrarSalidaYReingresoPorGracia.
+        /// Cierra el registro actual y crea uno nuevo con strRateKey='X'.
+        /// </summary>
+        public async Task<ReingresoGraciaResponse> EjecutarReingresoGraciaAsync(string placa, string idDispositivoSalida)
+        {
+            try
+            {
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@Placa", placa),
+                    new SqlParameter("@IdDispositivoSalida", idDispositivoSalida)
+                };
+
+                var dt = await _db.ExecuteQueryAsync(
+                    "EXEC IOT_sp_RegistrarSalidaYReingresoPorGracia @Placa, @IdDispositivoSalida",
+                    parameters
+                );
+
+                if (dt.Rows.Count > 0)
+                {
+                    var row = dt.Rows[0];
+                    var exitoso = Convert.ToBoolean(row["Exitoso"]);
+                    var mensaje = row["Mensaje"]?.ToString() ?? "";
+
+                    if (exitoso)
+                    {
+                        _logger.LogInformation(
+                            "✓ Reingreso por gracia - Placa: {Placa}, Anterior: {Anterior}, Nuevo: {Nuevo}",
+                            placa,
+                            row["IdRegistroAnterior"] != DBNull.Value ? Convert.ToInt32(row["IdRegistroAnterior"]) : 0,
+                            row["IdNuevoRegistro"] != DBNull.Value ? Convert.ToInt32(row["IdNuevoRegistro"]) : 0
+                        );
+                    }
+
+                    return new ReingresoGraciaResponse
+                    {
+                        Exitoso = exitoso,
+                        Mensaje = mensaje,
+                        IdRegistroAnterior = row["IdRegistroAnterior"] != DBNull.Value ? Convert.ToInt32(row["IdRegistroAnterior"]) : null,
+                        IdNuevoRegistro = row["IdNuevoRegistro"] != DBNull.Value ? Convert.ToInt32(row["IdNuevoRegistro"]) : null,
+                        CodigoBarrasAnterior = row["CodigoBarrasAnterior"]?.ToString(),
+                        NuevoCodigoBarras = row["NuevoCodigoBarras"]?.ToString(),
+                        FechaSalida = row["FechaSalida"] != DBNull.Value ? Convert.ToDateTime(row["FechaSalida"]) : null,
+                        TiempoEstancia = row["TiempoEstancia"] != DBNull.Value ? Convert.ToInt32(row["TiempoEstancia"]) : null
+                    };
+                }
+
+                return new ReingresoGraciaResponse
+                {
+                    Exitoso = false,
+                    Mensaje = "No se obtuvo respuesta del procedimiento de reingreso"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al ejecutar reingreso por gracia - Placa: {Placa}", placa);
+                return new ReingresoGraciaResponse
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el tiempo de gracia configurado para un dispositivo.
+        /// Si no hay configuración, retorna 15 minutos por defecto.
+        /// </summary>
+        private async Task<int> ObtenerTiempoGraciaAsync(string idDispositivo)
+        {
+            try
+            {
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@IdDispositivo", idDispositivo)
+                };
+
+                var dt = await _db.ExecuteQueryAsync("EXEC IOT_sp_ObtenerTiempoGracia @IdDispositivo", parameters);
+
+                if (dt.Rows.Count > 0)
+                {
+                    return Convert.ToInt32(dt.Rows[0]["TiempoGraciaMinutos"]);
+                }
+
+                return 15; // Default: 15 minutos
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error al obtener tiempo de gracia, usando default 15 min");
+                return 15;
             }
         }
     }

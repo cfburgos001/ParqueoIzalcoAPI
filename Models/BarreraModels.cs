@@ -186,4 +186,23 @@
         public bool NecesitaPagarMas { get; set; }
         public decimal? MontoAdicional { get; set; }
     }
+
+    // =============================================
+    // MODELO PARA REINGRESO POR GRACIA
+    // =============================================
+
+    /// <summary>
+    /// Response del proceso de reingreso automático cuando se excede la gracia
+    /// </summary>
+    public class ReingresoGraciaResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+        public int? IdRegistroAnterior { get; set; }
+        public int? IdNuevoRegistro { get; set; }
+        public string? CodigoBarrasAnterior { get; set; }
+        public string? NuevoCodigoBarras { get; set; }
+        public DateTime? FechaSalida { get; set; }
+        public int? TiempoEstancia { get; set; }
+    }
 }
