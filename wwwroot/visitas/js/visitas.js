@@ -3,6 +3,14 @@
 // Lógica del frontend
 // =============================================
 
+const API_BASE = '/api/visitas';
+let operadorActual = null;
+let tiposVisitante = [];
+let areasDestino = [];
+let visitasHoy = [];
+let filtroActual = 'TODOS';
+let debounceTimer = null;
+
 // ===== PROTECCIÓN DE SESIÓN + PERMISOS =====
 function verificarSesion() {
     const datos = sessionStorage.getItem('operador');
@@ -53,7 +61,10 @@ function actualizarReloj() {
     const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const fecha = now.toLocaleDateString('es-GT', opciones);
     const hora = now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    document.getElementById('fechaHoraActual').innerHTML = `${fecha}<br><strong>${hora}</strong>`;
+    const elFecha = document.getElementById('fechaActual');
+    const elHora = document.getElementById('horaActual');
+    if (elFecha) elFecha.textContent = fecha;
+    if (elHora) elHora.textContent = hora;
 }
 
 // ===== CARGAR CATÁLOGOS =====
@@ -91,7 +102,7 @@ async function cargarCatalogos() {
 }
 
 // ===== AUTOCOMPLETAR VISITANTES =====
-function buscarVisitantes(termino) {
+function buscarVisitante(termino) {
     clearTimeout(debounceTimer);
 
     if (termino.length < 2) {
@@ -100,7 +111,7 @@ function buscarVisitantes(termino) {
     }
 
     // Limpiar selección previa cuando el usuario escribe
-    document.getElementById('idVisitante').value = '';
+    document.getElementById('visitanteId').value = '';
 
     debounceTimer = setTimeout(async () => {
         try {
@@ -138,36 +149,36 @@ function buscarVisitantes(termino) {
 }
 
 function seleccionarVisitante(visitante) {
-    document.getElementById('idVisitante').value = visitante.id;
+    document.getElementById('visitanteId').value = visitante.id;
     document.getElementById('nombreVisitante').value = visitante.nombreCompleto;
     document.getElementById('tipoVisitante').value = visitante.idTipoVisitante;
-    document.getElementById('placa').value = visitante.placaFrecuente || '';
+    document.getElementById('placaVisitante').value = visitante.placaFrecuente || '';
     document.getElementById('autocompleteList').classList.remove('active');
 }
 
 // ===== REGISTRAR ENTRADA =====
-async function registrarEntrada(event) {
-    event.preventDefault();
-
-    const btnRegistrar = document.getElementById('btnRegistrar');
-    btnRegistrar.disabled = true;
-    btnRegistrar.textContent = '⏳ Registrando...';
+let registrando = false;
+async function registrarEntrada() {
+    if (registrando) return;
+    registrando = true;
 
     try {
-        const idVisitante = document.getElementById('idVisitante').value;
+        const idVisitante = document.getElementById('visitanteId').value;
         const nombreVisitante = document.getElementById('nombreVisitante').value.trim();
         const idTipoVisitante = parseInt(document.getElementById('tipoVisitante').value);
-        const placa = document.getElementById('placa').value.trim().toUpperCase();
+        const placa = document.getElementById('placaVisitante').value.trim().toUpperCase();
         const idAreaDestino = document.getElementById('areaDestino').value;
         const observacion = document.getElementById('observacion').value.trim();
 
         // Validaciones
         if (!nombreVisitante) {
             mostrarToast('El nombre del visitante es requerido', 'error');
+            registrando = false;
             return;
         }
         if (!idTipoVisitante) {
             mostrarToast('Seleccione el tipo de visitante', 'error');
+            registrando = false;
             return;
         }
 
@@ -221,8 +232,7 @@ async function registrarEntrada(event) {
         console.error('Error al registrar entrada:', err);
         mostrarToast('Error de conexión al servidor', 'error');
     } finally {
-        btnRegistrar.disabled = false;
-        btnRegistrar.textContent = '✅ Registrar Entrada';
+        registrando = false;
     }
 }
 
@@ -259,8 +269,8 @@ async function cargarVisitasHoy() {
 
         // Actualizar estadísticas
         if (dataStats.exitoso && dataStats.data) {
-            document.getElementById('statsNumDentro').textContent = dataStats.data.visitantesDentro || 0;
-            document.getElementById('statsNumTotal').textContent = dataStats.data.totalVisitas || 0;
+            document.getElementById('statDentro').textContent = dataStats.data.visitantesDentro || 0;
+            document.getElementById('statHoy').textContent = dataStats.data.totalVisitas || 0;
         }
 
         // Actualizar tabla
@@ -329,7 +339,7 @@ function renderizarTabla() {
 }
 
 // ===== FILTRAR TABLA =====
-function filtrarTabla(filtro, btn) {
+function filtrarVisitas(filtro, btn) {
     filtroActual = filtro;
     document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -374,7 +384,7 @@ async function guardarObservacion() {
 }
 
 // ===== ADMINISTRACIÓN =====
-function toggleAdmin() {
+function mostrarFormAdmin() {
     const section = document.getElementById('adminSection');
     const isVisible = section.style.display !== 'none';
     section.style.display = isVisible ? 'none' : 'block';
@@ -448,8 +458,12 @@ async function crearAreaDestino() {
 
 // ===== UTILIDADES =====
 function limpiarFormulario() {
-    document.getElementById('formEntrada').reset();
-    document.getElementById('idVisitante').value = '';
+    document.getElementById('nombreVisitante').value = '';
+    document.getElementById('visitanteId').value = '';
+    document.getElementById('tipoVisitante').selectedIndex = 0;
+    document.getElementById('placaVisitante').value = '';
+    document.getElementById('areaDestino').selectedIndex = 0;
+    document.getElementById('observacion').value = '';
     document.getElementById('autocompleteList').classList.remove('active');
     document.getElementById('nombreVisitante').focus();
 }
@@ -808,4 +822,24 @@ function descargarBlob(blob, nombreArchivo) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+// ===== NAVEGACIÓN SIDEBAR =====
+function navegarA(pagina, elemento) {
+    document.querySelectorAll('.content').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    if (pagina === 'bitacora') {
+        document.getElementById('pageBitacora').style.display = '';
+        document.getElementById('pageTitle').textContent = '📋 Bitácora de Visitas';
+    } else if (pagina === 'reportes-venta') {
+        document.getElementById('pageReportesVenta').style.display = '';
+        document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
+    }
+
+    if (elemento) elemento.classList.add('active');
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
 }
