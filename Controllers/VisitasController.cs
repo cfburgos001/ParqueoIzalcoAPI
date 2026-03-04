@@ -430,5 +430,41 @@ namespace DataparkBarreraAPI.Controllers
                 return StatusCode(500, new ApiResponse<EstadisticasVisitas> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
             }
         }
+
+        // =============================================
+        // REPORTES DE VEHÍCULOS (IOT_Vehiculos)
+        // =============================================
+
+        /// <summary>
+        /// Consulta IOT_Vehiculos con filtros dinámicos para reportes de venta
+        /// </summary>
+        [HttpPost("reporte-vehiculos")]
+        [ProducesResponseType(typeof(ApiResponse<List<Dictionary<string, object>>>), 200)]
+        public async Task<IActionResult> ReporteVehiculos([FromBody] ReporteVehiculosRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Generando reporte de vehículos - Columnas: {Columnas}", string.Join(",", request.Columnas ?? new List<string>()));
+
+                var resultado = await _visitasService.ReporteVehiculosAsync(request);
+                return Ok(new ApiResponse<List<Dictionary<string, object>>>
+                {
+                    Exitoso = true,
+                    Mensaje = $"{resultado.Count} registros encontrados",
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar reporte de vehículos");
+                return StatusCode(500, new ApiResponse<List<Dictionary<string, object>>>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+
+
     }
 }

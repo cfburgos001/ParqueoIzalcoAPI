@@ -3,264 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Ingreso - Centro Panamericano de Ojos</title>
-    <link rel="stylesheet" href="css/visitas.css">
-    <!-- Google Fonts -->
+    <title>Sistema de Control — IOT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/visitas/css/visitas.css">
+    <link rel="stylesheet" href="/visitas/css/layout.css">
 </head>
 <body>
 
-    <!-- ============================== -->
-    <!-- HEADER -->
-    <!-- ============================== -->
-    <header class="header">
-        <div class="header-left">
-            <div class="logo-icon">👁️</div>
-            <div class="header-text">
-                <h1>DOBLE GEMINIS, S.A. DE C.V.</h1>
-                <p>Centro Panamericano de Ojos — Control de Ingreso</p>
-            </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">👁️</div>
+            <h1 class="sidebar-title">CEPA</h1>
+            <p class="sidebar-subtitle">Control de Parqueo</p>
         </div>
-        <div class="header-right">
-            <div class="stats-box" id="statsDentro">
-                <span class="stats-number" id="statsNumDentro">0</span>
-                <span class="stats-label">Dentro</span>
-            </div>
-            <div class="stats-box" id="statsTotal">
-                <span class="stats-number" id="statsNumTotal">0</span>
-                <span class="stats-label">Hoy</span>
-            </div>
-            <div class="fecha-hora" id="fechaHoraActual"></div>
-        </div>
-    </header>
 
-    <!-- ============================== -->
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="bitacora" onclick="navegarA('bitacora', this)">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Bitácora de Visitas</span>
+            </a>
+            <a href="#" class="nav-item admin-only" data-page="reportes-venta" onclick="navegarA('reportes-venta', this)">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Reportes de Venta</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-icon">👤</span>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarUserName">Usuario</span>
+                    <span class="user-role" id="sidebarUserRole">Rol</span>
+                </div>
+            </div>
+            <button class="btn-sidebar-logout" onclick="cerrarSesion()" title="Cerrar sesión">🚪 Salir</button>
+        </div>
+    </aside>
+
     <!-- CONTENIDO PRINCIPAL -->
-    <!-- ============================== -->
-    <main class="main-content">
-
-        <!-- FORMULARIO DE REGISTRO -->
-        <section class="form-section">
-            <div class="section-header">
-                <h2>📝 Registrar Entrada</h2>
-                <button class="btn btn-secondary btn-sm" onclick="toggleAdmin()" id="btnAdmin">⚙️ Administrar</button>
+    <div class="main-wrapper">
+        <!-- HEADER -->
+        <header class="top-header">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">☰</button>
+            <h2 class="page-title" id="pageTitle">📋 Bitácora de Visitas</h2>
+            <div class="header-right">
+                <div class="header-stats">
+                    <span class="stat" id="statDentro">0 Dentro</span>
+                    <span class="stat" id="statHoy">0 Hoy</span>
+                </div>
+                <div class="header-clock">
+                    <span id="fechaActual"></span>
+                    <span id="horaActual" class="hora"></span>
+                </div>
             </div>
+        </header>
 
-            <form id="formEntrada" onsubmit="registrarEntrada(event)">
+        <!-- PÁGINA: BITÁCORA (visible por defecto) -->
+        <main class="content" id="pageBitacora">
+            <!-- Aquí va todo el contenido actual de bitácora -->
+            <!-- (formulario registro entrada, tabla visitas hoy, sección reportes) -->
+            <!-- ESTE CONTENIDO SE MANTIENE IGUAL QUE ANTES -->
+            <!-- SECCIÓN: REGISTRO DE ENTRADA -->
+            <section class="form-section">
+                <div class="section-header">
+                    <h2>📝 Registrar Entrada</h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="mostrarFormAdmin()" id="btnAdmin">⚙️ Administrar</button>
+                </div>
+
                 <div class="form-grid">
-                    <!-- Nombre del visitante (con autocompletar) -->
-                    <div class="form-group form-group-lg">
+                    <div class="form-group autocomplete-container">
                         <label for="nombreVisitante">Nombre del visitante *</label>
-                        <div class="autocomplete-container">
-                            <input type="text" id="nombreVisitante"
-                                   placeholder="Escriba el nombre..."
-                                   autocomplete="off"
-                                   oninput="buscarVisitantes(this.value)"
-                                   required>
-                            <div class="autocomplete-list" id="autocompleteList"></div>
-                        </div>
-                        <input type="hidden" id="idVisitante" value="">
+                        <input type="text" id="nombreVisitante" placeholder="Escriba el nombre..." oninput="buscarVisitante(this.value)" autocomplete="off">
+                        <input type="hidden" id="visitanteId">
+                        <div class="autocomplete-list" id="autocompleteList"></div>
                     </div>
-
-                    <!-- Tipo de visitante -->
                     <div class="form-group">
                         <label for="tipoVisitante">Tipo *</label>
-                        <select id="tipoVisitante" required>
-                            <option value="">Seleccione...</option>
-                        </select>
+                        <select id="tipoVisitante"></select>
                     </div>
-
-                    <!-- Placa -->
                     <div class="form-group">
-                        <label for="placa">Placa #</label>
-                        <input type="text" id="placa" placeholder="Ej: P123ABC"
-                               style="text-transform: uppercase;">
+                        <label for="placaVisitante">Placa #</label>
+                        <input type="text" id="placaVisitante" placeholder="EJ: P123ABC">
                     </div>
-
-                    <!-- Área destino -->
                     <div class="form-group">
                         <label for="areaDestino">Área destino</label>
-                        <select id="areaDestino">
-                            <option value="">Seleccione...</option>
-                        </select>
+                        <select id="areaDestino"></select>
                     </div>
-
-                    <!-- Observación -->
-                    <div class="form-group form-group-lg">
+                    <div class="form-group form-group-full">
                         <label for="observacion">Observación</label>
                         <input type="text" id="observacion" placeholder="Notas adicionales...">
                     </div>
                 </div>
-
-                <!-- Botón de registro -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg" id="btnRegistrar">
-                        ✅ Registrar Entrada
-                    </button>
-                    <button type="button" class="btn btn-outline btn-lg" onclick="limpiarFormulario()">
-                        🔄 Limpiar
-                    </button>
+                    <button class="btn btn-success" onclick="registrarEntrada()">✅ Registrar Entrada</button>
+                    <button class="btn btn-secondary" onclick="limpiarFormulario()">🔄 Limpiar</button>
                 </div>
-            </form>
-        </section>
+            </section>
 
-        <!-- PANEL DE ADMINISTRACIÓN (oculto por defecto) -->
-        <section class="admin-section" id="adminSection" style="display:none;">
-            <div class="section-header">
-                <h2>⚙️ Administración de Catálogos</h2>
-                <button class="btn btn-secondary btn-sm" onclick="toggleAdmin()">✕ Cerrar</button>
-            </div>
-            <div class="admin-grid">
-                <!-- Agregar Tipo de Visitante -->
-                <div class="admin-card">
-                    <h3>👤 Tipos de Visitante</h3>
-                    <div class="admin-form">
-                        <input type="text" id="nuevoTipoVisitante" placeholder="Ej: Técnico">
-                        <button class="btn btn-primary btn-sm" onclick="crearTipoVisitante()">➕ Agregar</button>
+            <!-- SECCIÓN: VISITAS DE HOY -->
+            <section class="table-section">
+                <div class="section-header">
+                    <h2>📋 Visitas de Hoy</h2>
+                    <div class="filter-btns">
+                        <button class="btn btn-sm btn-filter active" onclick="filtrarVisitas('TODOS', this)">Todos</button>
+                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('DENTRO', this)">🟢 Dentro</button>
+                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('SALIO', this)">🔴 Salieron</button>
+                        <button class="btn btn-sm" onclick="cargarVisitasHoy()">🔄 Actualizar</button>
                     </div>
-                    <ul class="admin-list" id="listaTiposVisitante"></ul>
-                </div>
-                <!-- Agregar Área Destino -->
-                <div class="admin-card">
-                    <h3>🏢 Áreas Destino</h3>
-                    <div class="admin-form">
-                        <input type="text" id="nuevaAreaDestino" placeholder="Ej: Farmacia">
-                        <button class="btn btn-primary btn-sm" onclick="crearAreaDestino()">➕ Agregar</button>
-                    </div>
-                    <ul class="admin-list" id="listaAreasDestino"></ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- TABLA DE VISITAS DEL DÍA -->
-        <section class="table-section">
-            <div class="section-header">
-                <h2>📋 Visitas de Hoy</h2>
-                <div class="table-filters">
-                    <button class="btn-filter active" onclick="filtrarTabla('TODOS', this)" data-filter="TODOS">Todos</button>
-                    <button class="btn-filter" onclick="filtrarTabla('DENTRO', this)" data-filter="DENTRO">🟢 Dentro</button>
-                    <button class="btn-filter" onclick="filtrarTabla('SALIO', this)" data-filter="SALIO">🔴 Salieron</button>
-                    <button class="btn btn-outline btn-sm" onclick="cargarVisitasHoy()">🔄 Actualizar</button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table id="tablaVisitas">
-                    <thead>
-                        <tr>
-                            <th>Hora Entrada</th>
-                            <th>Nombre</th>
-                            <th>Tipo</th>
-                            <th>Placa</th>
-                            <th>Área</th>
-                            <th>Hora Salida</th>
-                            <th>Tiempo</th>
-                            <th>Observación</th>
-                            <th>Estado</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbodyVisitas">
-                        <tr>
-                            <td colspan="10" class="empty-row">Cargando visitas...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-                <!-- SECCIÓN DE REPORTES -->
-        <section class="form-section" id="reporteSection">
-            <div class="section-header">
-                <h2>📊 Generar Bitácora / Reporte</h2>
-            </div>
-
-            <div class="reporte-grid">
-                <!-- Fecha Inicio -->
-                <div class="form-group">
-                    <label for="reporteFechaInicio">Fecha Inicio *</label>
-                    <input type="date" id="reporteFechaInicio">
-                </div>
-
-                <!-- Fecha Fin -->
-                <div class="form-group">
-                    <label for="reporteFechaFin">Fecha Fin</label>
-                    <input type="date" id="reporteFechaFin">
-                </div>
-
-                <!-- Filtro Tipo -->
-                <div class="form-group">
-                    <label for="reporteTipo">Tipo Visitante</label>
-                    <select id="reporteTipo">
-                        <option value="">Todos</option>
-                    </select>
-                </div>
-
-                <!-- Botones -->
-                <div class="form-group reporte-actions">
-                    <label>&nbsp;</label>
-                    <div class="reporte-btns">
-                        <button class="btn btn-success" onclick="descargarExcel()">
-                            📗 Descargar Excel
-                        </button>
-                        <button class="btn btn-danger" onclick="descargarPDF()">
-                            📕 Descargar PDF
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vista previa -->
-            <div id="reportePreview" style="display:none;">
-                <div class="section-header" style="margin-top: 16px;">
-                    <h3 id="reporteTitulo">Vista previa</h3>
-                    <span class="badge badge-dentro" id="reporteConteo">0 registros</span>
                 </div>
                 <div class="table-container">
-                    <table id="tablaReporte">
+                    <table>
                         <thead>
                             <tr>
-                                <th>Fecha</th>
+                                <th>Hora Entrada</th>
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Placa</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Tiempo</th>
                                 <th>Área</th>
+                                <th>Hora Salida</th>
+                                <th>Tiempo</th>
                                 <th>Observación</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
-                        <tbody id="tbodyReporte"></tbody>
+                        <tbody id="tbodyVisitas"></tbody>
                     </table>
                 </div>
-            </div>
-        </section>
+            </section>
 
-    </main>
+            <!-- SECCIÓN: GENERAR BITÁCORA / REPORTE -->
+            <section class="form-section" id="reporteSection">
+                <div class="section-header">
+                    <h2>📊 Generar Bitácora / Reporte</h2>
+                </div>
+                <div class="reporte-grid">
+                    <div class="form-group">
+                        <label for="reporteFechaInicio">Fecha Inicio *</label>
+                        <input type="date" id="reporteFechaInicio">
+                    </div>
+                    <div class="form-group">
+                        <label for="reporteFechaFin">Fecha Fin</label>
+                        <input type="date" id="reporteFechaFin">
+                    </div>
+                    <div class="form-group">
+                        <label for="reporteTipo">Tipo Visitante</label>
+                        <select id="reporteTipo"><option value="">Todos</option></select>
+                    </div>
+                    <div class="form-group reporte-actions">
+                        <label>&nbsp;</label>
+                        <div class="reporte-btns">
+                            <button class="btn btn-success" onclick="descargarExcel()">📗 Descargar Excel</button>
+                            <button class="btn btn-danger" onclick="descargarPDF()">📕 Descargar PDF</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="reportePreview" style="display:none;">
+                    <div class="section-header" style="margin-top: 16px;">
+                        <h3 id="reporteTitulo">Vista previa</h3>
+                        <span class="badge badge-dentro" id="reporteConteo">0 registros</span>
+                    </div>
+                    <div class="table-container">
+                        <table id="tablaReporte">
+                            <thead><tr><th>Fecha</th><th>Nombre</th><th>Tipo</th><th>Placa</th><th>Entrada</th><th>Salida</th><th>Tiempo</th><th>Área</th><th>Observación</th></tr></thead>
+                            <tbody id="tbodyReporte"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
 
-    <!-- TOAST / NOTIFICACIONES -->
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- PÁGINA: REPORTES DE VENTA (solo ADMINISTRADOR) -->
+        <main class="content" id="pageReportesVenta" style="display:none;">
+            <section class="form-section">
+                <div class="section-header">
+                    <h2>📊 Reportes de Venta — IOT_Vehiculos</h2>
+                </div>
 
-    <!-- MODAL DE OBSERVACIÓN -->
-    <div class="modal-overlay" id="modalObservacion" style="display:none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>✏️ Editar Observación</h3>
-                <button class="btn-close" onclick="cerrarModalObservacion()">✕</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="modalObsId">
-                <textarea id="modalObsTexto" rows="3" placeholder="Escriba la observación..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="guardarObservacion()">💾 Guardar</button>
-                <button class="btn btn-outline" onclick="cerrarModalObservacion()">Cancelar</button>
-            </div>
-        </div>
+                <!-- Filtros -->
+                <div class="reporte-grid">
+                    <div class="form-group">
+                        <label for="rvFechaInicio">Fecha Inicio *</label>
+                        <input type="date" id="rvFechaInicio">
+                    </div>
+                    <div class="form-group">
+                        <label for="rvFechaFin">Fecha Fin</label>
+                        <input type="date" id="rvFechaFin">
+                    </div>
+                    <div class="form-group">
+                        <label for="rvEstado">Estado</label>
+                        <select id="rvEstado">
+                            <option value="">Todos</option>
+                            <option value="DENTRO">DENTRO</option>
+                            <option value="SALIO">SALIO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rvPagado">Pago</label>
+                        <select id="rvPagado">
+                            <option value="">Todos</option>
+                            <option value="true">Pagados</option>
+                            <option value="false">No pagados</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="reporte-grid" style="margin-top:0;">
+                    <div class="form-group">
+                        <label for="rvPlaca">Placa</label>
+                        <input type="text" id="rvPlaca" placeholder="Buscar placa...">
+                    </div>
+                    <div class="form-group">
+                        <label for="rvTarifa">Tarifa</label>
+                        <select id="rvTarifa">
+                            <option value="">Todas</option>
+                            <option value="A">A - Auto</option>
+                            <option value="M">M - Moto</option>
+                            <option value="X">X - Reingreso</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rvTop">Máximo registros</label>
+                        <input type="number" id="rvTop" value="500" min="1" max="5000">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="buscarReporteVenta()" style="width:100%;">🔍 Buscar</button>
+                    </div>
+                </div>
+
+                <!-- Selector de columnas -->
+                <div class="columnas-section">
+                    <div class="section-header">
+                        <h3>📑 Columnas a mostrar</h3>
+                        <div>
+                            <button class="btn btn-sm btn-secondary" onclick="seleccionarTodasColumnas()">Todas</button>
+                            <button class="btn btn-sm btn-secondary" onclick="deseleccionarTodasColumnas()">Ninguna</button>
+                        </div>
+                    </div>
+                    <div class="columnas-grid" id="columnasGrid"></div>
+
+                    <!-- Favoritos -->
+                    <div class="favoritos-section">
+                        <div class="favoritos-header">
+                            <h4>⭐ Favoritos</h4>
+                            <div class="favoritos-actions">
+                                <input type="text" id="nombreFavorito" placeholder="Nombre del favorito..." class="input-favorito">
+                                <button class="btn btn-sm btn-success" onclick="guardarFavorito()">💾 Guardar</button>
+                            </div>
+                        </div>
+                        <div class="favoritos-list" id="favoritosList"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Resultados -->
+            <section class="table-section" id="rvResultados" style="display:none;">
+                <div class="section-header">
+                    <h2 id="rvTitulo">Resultados</h2>
+                    <div>
+                        <span class="badge badge-dentro" id="rvConteo">0</span>
+                        <button class="btn btn-sm btn-success" onclick="descargarExcelVenta()">📗 Excel</button>
+                        <button class="btn btn-sm btn-danger" onclick="descargarPDFVenta()">📕 PDF</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="tablaVenta">
+                        <thead><tr id="rvThead"></tr></thead>
+                        <tbody id="rvTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen -->
+                <div class="resumen-venta" id="rvResumen"></div>
+            </section>
+        </main>
     </div>
 
-    <script src="js/visitas.js"></script>
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/visitas/js/visitas.js"></script>
+    <script src="/visitas/js/reportes-venta.js"></script>
 </body>
 </html>

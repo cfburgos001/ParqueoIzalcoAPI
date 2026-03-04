@@ -10,6 +10,7 @@ namespace DataparkBarreraAPI.Services
         Task<RegistrarPagoResponse> RegistrarPagoAsync(RegistrarPagoRequest request);
         Task<VerificarPagoResponse> VerificarPagoPorPlacaAsync(string placa);
         Task<ReingresoGraciaResponse> EjecutarReingresoGraciaAsync(string placa, string idDispositivoSalida);
+        Task<AperturaCierreResponse> RegistrarAperturaCierreAsync(AperturaCierreRequest request);
     }
 
     public class PagoService : IPagoService
@@ -585,6 +586,77 @@ namespace DataparkBarreraAPI.Services
             {
                 _logger.LogWarning(ex, "Error al obtener tiempo de gracia, usando default 15 min");
                 return 15;
+            }
+        }
+
+        // =============================================
+        // APERTURA / CIERRE - INSERT DIRECTO
+        // =============================================
+
+        public async Task<AperturaCierreResponse> RegistrarAperturaCierreAsync(AperturaCierreRequest request)
+        {
+            try
+            {
+                var sql = @"
+                    INSERT INTO IOT_AperturaCierre (
+                        TipoOperacion,
+                        FechaOperacion,
+                        IdOperador,
+                        NombreOperador,
+                        IdDispositivo,
+                        MontoTotalCobrado,
+                        CantidadVehiculos,
+                        VehiculosDentro,
+                        VehiculosDetalle
+                    )
+                    VALUES (
+                        @TipoOperacion,
+                        GETDATE(),
+                        @IdOperador,
+                        @NombreOperador,
+                        @IdDispositivo,
+                        @MontoTotalCobrado,
+                        @CantidadVehiculos,
+                        @VehiculosDentro,
+                        @VehiculosDetalle
+                    );
+                    SELECT SCOPE_IDENTITY() AS IdRegistro;";
+
+                var parameters = new SqlParameter[]
+                {
+                    new SqlParameter("@TipoOperacion", request.TipoOperacion),
+                    new SqlParameter("@IdOperador", request.IdOperador),
+                    new SqlParameter("@NombreOperador", request.NombreOperador ?? ""),
+                    new SqlParameter("@IdDispositivo", request.IdDispositivo ?? ""),
+                    new SqlParameter("@MontoTotalCobrado", (object?)request.MontoTotalCobrado ?? DBNull.Value),
+                    new SqlParameter("@CantidadVehiculos", (object?)request.CantidadVehiculos ?? DBNull.Value),
+                    new SqlParameter("@VehiculosDentro", (object?)request.VehiculosDentro ?? DBNull.Value),
+                    new SqlParameter("@VehiculosDetalle", (object?)request.VehiculosDetalle ?? DBNull.Value)
+                };
+
+                var dt = await _db.ExecuteQueryAsync(sql, parameters);
+
+                var idRegistro = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["IdRegistro"]) : 0;
+
+                _logger.LogInformation("✓ {Tipo} registrado - ID: {Id}, Dispositivo: {Dispositivo}",
+                    request.TipoOperacion, idRegistro, request.IdDispositivo);
+
+                return new AperturaCierreResponse
+                {
+                    Exitoso = true,
+                    Mensaje = $"{request.TipoOperacion} registrada exitosamente",
+                    IdRegistro = idRegistro,
+                    FechaOperacion = DateTime.Now
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar {Tipo}", request.TipoOperacion);
+                return new AperturaCierreResponse
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                };
             }
         }
     }

@@ -177,5 +177,55 @@ namespace DataparkBarreraAPI.Controllers
                 });
             }
         }
+        /// <summary>
+        /// Registra una operación en IOT_AperturaCierre
+        /// </summary>
+        [HttpPost("apertura-cierre")]
+        [ProducesResponseType(typeof(ApiResponse<AperturaCierreResponse>), 200)]
+        public async Task<IActionResult> RegistrarAperturaCierre([FromBody] AperturaCierreRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new ApiResponse<AperturaCierreResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "El request no puede ser nulo"
+                    });
+                }
+
+                _logger.LogInformation("Registrando {Tipo} - Dispositivo: {Dispositivo}",
+                    request.TipoOperacion, request.IdDispositivo);
+
+                var resultado = await _pagoService.RegistrarAperturaCierreAsync(request);
+
+                if (!resultado.Exitoso)
+                {
+                    return BadRequest(new ApiResponse<AperturaCierreResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = resultado.Mensaje,
+                        Data = resultado
+                    });
+                }
+
+                return Ok(new ApiResponse<AperturaCierreResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = resultado.Mensaje,
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar apertura/cierre");
+                return StatusCode(500, new ApiResponse<AperturaCierreResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
     }
 }

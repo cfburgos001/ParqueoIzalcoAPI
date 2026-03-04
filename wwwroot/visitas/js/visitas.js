@@ -3,16 +3,7 @@
 // Lógica del frontend
 // =============================================
 
-// ===== CONFIGURACIÓN =====
-const API_BASE = '/api/visitas';
-let tiposVisitante = [];
-let areasDestino = [];
-let visitasHoy = [];
-let filtroActual = 'TODOS';
-let debounceTimer = null;
-let operadorActual = null;
-
-// ===== PROTECCIÓN DE SESIÓN =====
+// ===== PROTECCIÓN DE SESIÓN + PERMISOS =====
 function verificarSesion() {
     const datos = sessionStorage.getItem('operador');
     if (!datos) {
@@ -20,6 +11,16 @@ function verificarSesion() {
         return false;
     }
     operadorActual = JSON.parse(datos);
+
+    // Aplicar rol al body para CSS de permisos
+    document.body.classList.add('role-' + operadorActual.tipoUsuario);
+
+    // Mostrar info en sidebar
+    const sidebarName = document.getElementById('sidebarUserName');
+    const sidebarRole = document.getElementById('sidebarUserRole');
+    if (sidebarName) sidebarName.textContent = operadorActual.nombreCompleto;
+    if (sidebarRole) sidebarRole.textContent = operadorActual.tipoUsuario;
+
     return true;
 }
 
@@ -34,34 +35,18 @@ function cerrarSesion() {
 document.addEventListener('DOMContentLoaded', () => {
     if (!verificarSesion()) return;
 
-    // Mostrar nombre del operador en el header
-    const headerRight = document.querySelector('.header-right');
-    if (headerRight && operadorActual) {
-        const userBox = document.createElement('div');
-        userBox.className = 'user-box';
-        userBox.innerHTML = `
-            <span class="user-name">👤 ${operadorActual.nombreCompleto}</span>
-            <button class="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">🚪</button>
-        `;
-        headerRight.insertBefore(userBox, headerRight.firstChild);
-    }
-
     cargarCatalogos();
     cargarVisitasHoy();
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
-
-    // Auto-refrescar visitas cada 30 segundos
     setInterval(cargarVisitasHoy, 30000);
 
-    // Cerrar autocompletar al hacer click fuera
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-container')) {
             document.getElementById('autocompleteList').classList.remove('active');
         }
     });
 });
-
 // ===== RELOJ =====
 function actualizarReloj() {
     const now = new Date();

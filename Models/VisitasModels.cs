@@ -220,4 +220,27 @@
         public string Username { get; set; } = string.Empty;
         public string TipoUsuario { get; set; } = string.Empty;
     }
+
+    // =============================================
+    // REPORTE DE VEHÍCULOS
+    // =============================================
+
+    public class ReporteVehiculosRequest
+    {
+        /// <summary>
+        /// Lista de columnas a incluir. Si está vacío, devuelve todas.
+        /// Columnas válidas: Id, Placa, CodigoBarras, FechaEntrada, FechaSalida, Estado,
+        /// bitPaid, Monto, FechaPago, strRateKey, TiempoEstancia, IdDispositivoEntrada,
+        /// IdDispositivoSalida, NombreOperador, UsuarioRegistro
+        /// </summary>
+        public List<string>? Columnas { get; set; }
+
+        public string? FechaInicio { get; set; }
+        public string? FechaFin { get; set; }
+        public string? Estado { get; set; }
+        public string? Placa { get; set; }
+        public bool? SoloPagados { get; set; }
+        public string? StrRateKey { get; set; }
+        public int Top { get; set; } = 500;
+    }
 }

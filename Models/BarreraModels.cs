@@ -205,4 +205,35 @@
         public DateTime? FechaSalida { get; set; }
         public int? TiempoEstancia { get; set; }
     }
+
+
+    // =============================================
+    // MODELOS PARA APERTURA/CIERRE
+    // =============================================
+
+    /// <summary>
+    /// Request para escribir en IOT_AperturaCierre
+    /// </summary>
+    public class AperturaCierreRequest
+    {
+        public string TipoOperacion { get; set; } = string.Empty;
+        public int IdOperador { get; set; }
+        public string NombreOperador { get; set; } = string.Empty;
+        public string IdDispositivo { get; set; } = string.Empty;
+        public decimal? MontoTotalCobrado { get; set; }
+        public int? CantidadVehiculos { get; set; }
+        public int? VehiculosDentro { get; set; }
+        public string? VehiculosDetalle { get; set; }
+    }
+
+    /// <summary>
+    /// Response del registro
+    /// </summary>
+    public class AperturaCierreResponse
+    {
+        public bool Exitoso { get; set; }
+        public string Mensaje { get; set; } = string.Empty;
+        public int? IdRegistro { get; set; }
+        public DateTime? FechaOperacion { get; set; }
+    }
 }

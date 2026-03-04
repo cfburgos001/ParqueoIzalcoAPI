@@ -27,6 +27,7 @@ namespace DataparkBarreraAPI.Services
         Task<List<RegistroVisita>> BuscarVisitasAsync(BuscarVisitasRequest request);
         Task<VisitanteResponse> ActualizarObservacionAsync(int id, string observacion);
         Task<EstadisticasVisitas> ObtenerEstadisticasAsync(DateTime? fecha = null);
+        Task<List<Dictionary<string, object>>> ReporteVehiculosAsync(ReporteVehiculosRequest request);
 
     }
 
@@ -638,6 +639,106 @@ namespace DataparkBarreraAPI.Services
             }
 
             return lista;
+        }
+
+        // =============================================
+        // REPORTE DE VEHÍCULOS
+        // =============================================
+
+        private static readonly HashSet<string> ColumnasPermitidas = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Id", "Placa", "CodigoBarras", "FechaEntrada", "FechaSalida", "Estado",
+            "bitPaid", "Monto", "FechaPago", "strRateKey", "TiempoEstancia",
+            "IdDispositivoEntrada", "IdDispositivoSalida", "NombreOperador",
+            "UsuarioRegistro", "IdOperador", "bitEntry", "bitExit",
+            "IdEntryDevice", "IdExitDevice", "bitCopy"
+        };
+
+        public async Task<List<Dictionary<string, object>>> ReporteVehiculosAsync(ReporteVehiculosRequest request)
+        {
+            try
+            {
+                // Validar y construir columnas
+                var columnas = new List<string>();
+                if (request.Columnas != null && request.Columnas.Count > 0)
+                {
+                    foreach (var col in request.Columnas)
+                    {
+                        if (ColumnasPermitidas.Contains(col))
+                            columnas.Add(col);
+                    }
+                }
+
+                var selectCols = columnas.Count > 0 ? string.Join(", ", columnas) : "*";
+
+                // Construir WHERE dinámico
+                var condiciones = new List<string>();
+                var parametros = new List<SqlParameter>();
+
+                if (!string.IsNullOrWhiteSpace(request.FechaInicio))
+                {
+                    condiciones.Add("FechaEntrada >= @FechaInicio");
+                    parametros.Add(new SqlParameter("@FechaInicio", request.FechaInicio));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.FechaFin))
+                {
+                    condiciones.Add("FechaEntrada <= @FechaFin");
+                    parametros.Add(new SqlParameter("@FechaFin", request.FechaFin));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Estado))
+                {
+                    condiciones.Add("Estado = @Estado");
+                    parametros.Add(new SqlParameter("@Estado", request.Estado));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Placa))
+                {
+                    condiciones.Add("Placa LIKE @Placa");
+                    parametros.Add(new SqlParameter("@Placa", $"%{request.Placa}%"));
+                }
+
+                if (request.SoloPagados.HasValue)
+                {
+                    condiciones.Add("bitPaid = @BitPaid");
+                    parametros.Add(new SqlParameter("@BitPaid", request.SoloPagados.Value ? 1 : 0));
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.StrRateKey))
+                {
+                    condiciones.Add("strRateKey = @StrRateKey");
+                    parametros.Add(new SqlParameter("@StrRateKey", request.StrRateKey));
+                }
+
+                var whereClause = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
+                var top = request.Top > 0 && request.Top <= 5000 ? request.Top : 500;
+
+                var sql = $"SELECT TOP {top} {selectCols} FROM IOT_Vehiculos {whereClause} ORDER BY FechaEntrada DESC";
+
+                _logger.LogInformation("Reporte vehículos SQL: {SQL}", sql);
+
+                var dt = await _db.ExecuteQueryAsync(sql, parametros.ToArray());
+
+                // Convertir a lista de diccionarios (dinámico según columnas)
+                var resultado = new List<Dictionary<string, object>>();
+                foreach (DataRow row in dt.Rows)
+                {
+                    var dict = new Dictionary<string, object>();
+                    foreach (DataColumn col in dt.Columns)
+                    {
+                        dict[col.ColumnName] = row[col] == DBNull.Value ? null : row[col];
+                    }
+                    resultado.Add(dict);
+                }
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en reporte de vehículos");
+                throw;
+            }
         }
     }
 }
