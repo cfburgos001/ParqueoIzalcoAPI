@@ -654,6 +654,11 @@ namespace DataparkBarreraAPI.Services
             "IdEntryDevice", "IdExitDevice", "bitCopy"
         };
 
+        private static readonly HashSet<string> CamposFechaPermitidos = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "FechaEntrada", "FechaSalida", "FechaPago"
+        };
+
         public async Task<List<Dictionary<string, object>>> ReporteVehiculosAsync(ReporteVehiculosRequest request)
         {
             try
@@ -675,15 +680,20 @@ namespace DataparkBarreraAPI.Services
                 var condiciones = new List<string>();
                 var parametros = new List<SqlParameter>();
 
+                // Validar campo de fecha (whitelist para seguridad)
+                var campoFecha = CamposFechaPermitidos.Contains(request.CampoFecha ?? "")
+                    ? request.CampoFecha
+                    : "FechaEntrada";
+
                 if (!string.IsNullOrWhiteSpace(request.FechaInicio))
                 {
-                    condiciones.Add("FechaEntrada >= @FechaInicio");
+                    condiciones.Add($"{campoFecha} >= @FechaInicio");
                     parametros.Add(new SqlParameter("@FechaInicio", request.FechaInicio));
                 }
 
                 if (!string.IsNullOrWhiteSpace(request.FechaFin))
                 {
-                    condiciones.Add("FechaEntrada <= @FechaFin");
+                    condiciones.Add($"{campoFecha} <= @FechaFin");
                     parametros.Add(new SqlParameter("@FechaFin", request.FechaFin));
                 }
 
@@ -714,7 +724,8 @@ namespace DataparkBarreraAPI.Services
                 var whereClause = condiciones.Count > 0 ? "WHERE " + string.Join(" AND ", condiciones) : "";
                 var top = request.Top > 0 && request.Top <= 5000 ? request.Top : 500;
 
-                var sql = $"SELECT TOP {top} {selectCols} FROM IOT_Vehiculos {whereClause} ORDER BY FechaEntrada DESC";
+                // campoFecha is safe to interpolate: it was validated against CamposFechaPermitidos whitelist above
+                var sql = $"SELECT TOP {top} {selectCols} FROM IOT_Vehiculos {whereClause} ORDER BY {campoFecha} DESC";
 
                 _logger.LogInformation("Reporte vehículos SQL: {SQL}", sql);
 
