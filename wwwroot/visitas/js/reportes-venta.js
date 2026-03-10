@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const hoy = new Date().toISOString().split('T')[0];
     const rvInicio = document.getElementById('rvFechaInicio');
     const rvFin = document.getElementById('rvFechaFin');
-    if (rvInicio) rvInicio.value = hoy;
-    if (rvFin) rvFin.value = hoy;
+    if (rvInicio) rvInicio.value = hoy + 'T00:00';
+    if (rvFin) rvFin.value = hoy + 'T23:59';
 });
 
 // ===== NAVEGACIÓN =====
@@ -181,20 +181,33 @@ async function buscarReporteVenta() {
     const columnas = getColumnasSeleccionadas();
     if (columnas.length === 0) { mostrarToast('Seleccione al menos una columna', 'error'); return; }
 
-    const fechaInicio = document.getElementById('rvFechaInicio').value;
-    if (!fechaInicio) { mostrarToast('Seleccione fecha de inicio', 'error'); return; }
+    const fechaInicioRaw = document.getElementById('rvFechaInicio').value;
+    if (!fechaInicioRaw) { mostrarToast('Seleccione fecha de inicio', 'error'); return; }
 
-    const fechaFin = document.getElementById('rvFechaFin').value || fechaInicio;
+    const fechaFinRaw = document.getElementById('rvFechaFin').value || fechaInicioRaw;
+    const campoFecha = document.getElementById('rvCampoFecha').value;
     const estado = document.getElementById('rvEstado').value;
     const pagado = document.getElementById('rvPagado').value;
     const placa = document.getElementById('rvPlaca').value.trim();
     const tarifa = document.getElementById('rvTarifa').value;
     const top = parseInt(document.getElementById('rvTop').value) || 500;
 
+    // Para datetime-local el valor ya viene como "2025-03-10T08:00"
+    // Si solo tiene fecha sin hora, agregar hora por defecto
+    // Longitud 10 = "YYYY-MM-DD" (solo fecha), 16 = "YYYY-MM-DDTHH:mm" (sin segundos)
+    let fechaInicio = fechaInicioRaw;
+    if (fechaInicio.length === 10) fechaInicio += 'T00:00:00';
+    else if (fechaInicio.length === 16) fechaInicio += ':00';
+
+    let fechaFin = fechaFinRaw;
+    if (fechaFin.length === 10) fechaFin += 'T23:59:59';
+    else if (fechaFin.length === 16) fechaFin += ':59';
+
     const body = {
         columnas,
-        fechaInicio: fechaInicio + 'T00:00:00',
-        fechaFin: fechaFin + 'T23:59:59',
+        campoFecha,
+        fechaInicio,
+        fechaFin,
         estado: estado || null,
         placa: placa || null,
         soloPagados: pagado === '' ? null : pagado === 'true',

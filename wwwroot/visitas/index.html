@@ -212,12 +212,20 @@
                 <!-- Filtros -->
                 <div class="reporte-grid">
                     <div class="form-group">
-                        <label for="rvFechaInicio">Fecha Inicio *</label>
-                        <input type="date" id="rvFechaInicio">
+                        <label for="rvCampoFecha">Buscar por</label>
+                        <select id="rvCampoFecha">
+                            <option value="FechaEntrada" selected>Fecha Entrada</option>
+                            <option value="FechaSalida">Fecha Salida</option>
+                            <option value="FechaPago">Fecha Pago</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label for="rvFechaFin">Fecha Fin</label>
-                        <input type="date" id="rvFechaFin">
+                        <label for="rvFechaInicio">Fecha/Hora Inicio *</label>
+                        <input type="datetime-local" id="rvFechaInicio">
+                    </div>
+                    <div class="form-group">
+                        <label for="rvFechaFin">Fecha/Hora Fin</label>
+                        <input type="datetime-local" id="rvFechaFin">
                     </div>
                     <div class="form-group">
                         <label for="rvEstado">Estado</label>
@@ -227,6 +235,9 @@
                             <option value="SALIO">SALIO</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="reporte-grid" style="margin-top:0;">
                     <div class="form-group">
                         <label for="rvPagado">Pago</label>
                         <select id="rvPagado">
@@ -235,9 +246,6 @@
                             <option value="false">No pagados</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="reporte-grid" style="margin-top:0;">
                     <div class="form-group">
                         <label for="rvPlaca">Placa</label>
                         <input type="text" id="rvPlaca" placeholder="Buscar placa...">

@@ -235,6 +235,11 @@
         /// </summary>
         public List<string>? Columnas { get; set; }
 
+        /// <summary>
+        /// Campo de fecha por el que se filtra: FechaEntrada, FechaSalida, FechaPago
+        /// </summary>
+        public string CampoFecha { get; set; } = "FechaEntrada";
+
         public string? FechaInicio { get; set; }
         public string? FechaFin { get; set; }
         public string? Estado { get; set; }
