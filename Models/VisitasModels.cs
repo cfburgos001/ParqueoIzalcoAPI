@@ -225,6 +225,34 @@
     // REPORTE DE VEHÍCULOS
     // =============================================
 
+    // =============================================
+    // DASHBOARD DE VEHÍCULOS
+    // =============================================
+
+    /// <summary>
+    /// KPIs del dashboard basados en IOT_Vehiculos
+    /// </summary>
+    public class DashboardVehiculosResponse
+    {
+        /// <summary>Vehículos actualmente con Estado = 'DENTRO'</summary>
+        public int VehiculosDentro { get; set; }
+
+        /// <summary>Total de registros cuya FechaEntrada es del día actual</summary>
+        public int TotalVehiculosHoy { get; set; }
+
+        /// <summary>Vehículos con Estado = 'DENTRO' y FechaEntrada dentro de la semana actual (Lun–Dom)</summary>
+        public int VehiculosDentroSemana { get; set; }
+
+        /// <summary>Promedio en minutos de estancia para vehículos que ya salieron (FechaSalida IS NOT NULL)</summary>
+        public double? TiempoPromedioEstanciaMin { get; set; }
+
+        /// <summary>Promedio de Monto solo para pagados (bitPaid = 1 AND Monto IS NOT NULL)</summary>
+        public decimal? MontoPromedioCobrado { get; set; }
+
+        /// <summary>Momento en que se generó la respuesta (UTC)</summary>
+        public DateTime GeneratedAt { get; set; }
+    }
+
     public class ReporteVehiculosRequest
     {
         /// <summary>

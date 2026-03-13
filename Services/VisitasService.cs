@@ -28,6 +28,7 @@ namespace DataparkBarreraAPI.Services
         Task<VisitanteResponse> ActualizarObservacionAsync(int id, string observacion);
         Task<EstadisticasVisitas> ObtenerEstadisticasAsync(DateTime? fecha = null);
         Task<List<Dictionary<string, object>>> ReporteVehiculosAsync(ReporteVehiculosRequest request);
+        Task<DashboardVehiculosResponse> ObtenerDashboardAsync();
 
     }
 
@@ -748,6 +749,68 @@ namespace DataparkBarreraAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error en reporte de vehículos");
+                throw;
+            }
+        }
+
+        // =============================================
+        // DASHBOARD DE VEHÍCULOS
+        // =============================================
+
+        public async Task<DashboardVehiculosResponse> ObtenerDashboardAsync()
+        {
+            try
+            {
+                // Calcular rangos en C# para mayor claridad y evitar expresiones complejas en SQL
+                var hoy = DateTime.Today;
+                var inicioHoy = hoy;
+                var finHoy = hoy.AddDays(1);
+
+                // Semana ISO: Lunes 00:00:00 – Domingo 23:59:59
+                // DayOfWeek: Sunday=0, Monday=1, ..., Saturday=6
+                var diasDesdeElLunes = hoy.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)hoy.DayOfWeek - 1;
+                var inicioSemana = hoy.AddDays(-diasDesdeElLunes);
+                var finSemana = inicioSemana.AddDays(7);
+
+                const string sql = @"
+SELECT
+    COUNT(CASE WHEN Estado = 'DENTRO' THEN 1 END) AS VehiculosDentro,
+    COUNT(CASE WHEN FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS TotalVehiculosHoy,
+    COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioSemana AND FechaEntrada < @FinSemana THEN 1 END) AS VehiculosDentroSemana,
+    AVG(CASE WHEN FechaSalida IS NOT NULL THEN CAST(DATEDIFF(minute, FechaEntrada, FechaSalida) AS FLOAT) END) AS TiempoPromedioEstanciaMin,
+    AVG(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL THEN Monto END) AS MontoPromedioCobrado
+FROM IOT_Vehiculos";
+
+                var parametros = new SqlParameter[]
+                {
+                    new SqlParameter("@InicioHoy",    inicioHoy),
+                    new SqlParameter("@FinHoy",       finHoy),
+                    new SqlParameter("@InicioSemana", inicioSemana),
+                    new SqlParameter("@FinSemana",    finSemana)
+                };
+
+                var dt = await _db.ExecuteQueryAsync(sql, parametros);
+
+                var response = new DashboardVehiculosResponse
+                {
+                    GeneratedAt = DateTime.UtcNow
+                };
+
+                if (dt.Rows.Count > 0)
+                {
+                    var row = dt.Rows[0];
+                    response.VehiculosDentro        = row["VehiculosDentro"]        == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentro"]);
+                    response.TotalVehiculosHoy       = row["TotalVehiculosHoy"]      == DBNull.Value ? 0 : Convert.ToInt32(row["TotalVehiculosHoy"]);
+                    response.VehiculosDentroSemana   = row["VehiculosDentroSemana"]  == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentroSemana"]);
+                    response.TiempoPromedioEstanciaMin = row["TiempoPromedioEstanciaMin"] == DBNull.Value ? null : Convert.ToDouble(row["TiempoPromedioEstanciaMin"]);
+                    response.MontoPromedioCobrado    = row["MontoPromedioCobrado"]   == DBNull.Value ? null : Convert.ToDecimal(row["MontoPromedioCobrado"]);
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener dashboard de vehículos");
                 throw;
             }
         }

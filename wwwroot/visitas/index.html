@@ -21,7 +21,11 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-page="bitacora" onclick="navegarA('bitacora', this)">
+            <a href="#" class="nav-item active" data-page="inicio" onclick="navegarA('inicio', this)">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Inicio</span>
+            </a>
+            <a href="#" class="nav-item" data-page="bitacora" onclick="navegarA('bitacora', this)">
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">Bitácora de Visitas</span>
             </a>
@@ -48,7 +52,7 @@
         <!-- HEADER -->
         <header class="top-header">
             <button class="btn-toggle-sidebar" onclick="toggleSidebar()">☰</button>
-            <h2 class="page-title" id="pageTitle">📋 Bitácora de Visitas</h2>
+            <h2 class="page-title" id="pageTitle">🏠 Inicio</h2>
             <div class="header-right">
                 <div class="header-stats">
                     <span class="stat" id="statDentro">0 Dentro</span>
@@ -61,8 +65,84 @@
             </div>
         </header>
 
-        <!-- PÁGINA: BITÁCORA (visible por defecto) -->
-        <main class="content" id="pageBitacora">
+        <!-- PÁGINA: INICIO (Dashboard — vista por defecto) -->
+        <main class="content" id="pageInicio" style="display:none;">
+            <section class="dashboard-section">
+                <div class="dashboard-header">
+                    <h2>🏠 Panel de Control</h2>
+                    <div class="dashboard-meta">
+                        <span id="dashLastUpdate" class="dash-last-update">—</span>
+                        <button class="btn btn-sm btn-secondary" onclick="cargarDashboard()">🔄 Actualizar</button>
+                    </div>
+                </div>
+
+                <!-- Estado: loading -->
+                <div id="dashLoading" class="dash-state dash-loading" style="display:none;">
+                    <div class="dash-spinner"></div>
+                    <span>Cargando datos…</span>
+                </div>
+
+                <!-- Estado: error -->
+                <div id="dashError" class="dash-state dash-error" style="display:none;">
+                    <span class="dash-error-icon">⚠️</span>
+                    <span id="dashErrorMsg">No se pudo conectar al servidor.</span>
+                    <button class="btn btn-sm btn-primary" onclick="cargarDashboard()">Reintentar</button>
+                </div>
+
+                <!-- KPI cards -->
+                <div class="kpi-grid" id="kpiGrid">
+                    <div class="kpi-card kpi-dentro">
+                        <div class="kpi-icon">🚗</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiDentro">—</div>
+                            <div class="kpi-label">Vehículos Dentro</div>
+                            <div class="kpi-sub">Estado = DENTRO</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-hoy">
+                        <div class="kpi-icon">📅</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiHoy">—</div>
+                            <div class="kpi-label">Vehículos Hoy</div>
+                            <div class="kpi-sub">Entradas del día</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-semana">
+                        <div class="kpi-icon">📆</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiSemana">—</div>
+                            <div class="kpi-label">Dentro esta semana</div>
+                            <div class="kpi-sub">Estado = DENTRO · Lun–Dom</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-tiempo">
+                        <div class="kpi-icon">⏱️</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiTiempo">—</div>
+                            <div class="kpi-label">Tiempo Prom. Estancia</div>
+                            <div class="kpi-sub">Vehículos que ya salieron</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-monto">
+                        <div class="kpi-icon">💰</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiMonto">—</div>
+                            <div class="kpi-label">Monto Prom. Cobrado</div>
+                            <div class="kpi-sub">Solo pagados (bitPaid = 1)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="dash-auto-info">🔁 Auto-actualiza cada 30 s</p>
+            </section>
+        </main>
+
+        <!-- PÁGINA: BITÁCORA -->
+        <main class="content" id="pageBitacora" style="display:none;">
             <!-- Aquí va todo el contenido actual de bitácora -->
             <!-- (formulario registro entrada, tabla visitas hoy, sección reportes) -->
             <!-- ESTE CONTENIDO SE MANTIENE IGUAL QUE ANTES -->
