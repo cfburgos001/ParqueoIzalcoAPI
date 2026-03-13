@@ -383,6 +383,156 @@ body.role-ADMINISTRADOR a.admin-only {
         margin-top: 4px;
     }
 
+/* ===== DASHBOARD / INICIO ===== */
+
+.dashboard-section {
+    padding: 0;
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.dashboard-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dash-last-update {
+    font-size: 12px;
+    color: var(--gray-400);
+}
+
+/* KPI grid — 5 columnas adaptables */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    transition: opacity .3s ease;
+}
+
+/* Base card */
+.kpi-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    border-left: 5px solid transparent;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,.12);
+}
+
+.kpi-icon {
+    font-size: 36px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.kpi-body {
+    min-width: 0;
+}
+
+.kpi-value {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--gray-800);
+    white-space: nowrap;
+}
+
+.kpi-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-top: 4px;
+}
+
+.kpi-sub {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 2px;
+}
+
+/* Color accent per card */
+.kpi-dentro  { border-left-color: #10b981; }
+.kpi-dentro .kpi-value { color: #059669; }
+
+.kpi-hoy     { border-left-color: #3b82f6; }
+.kpi-hoy .kpi-value { color: #2563eb; }
+
+.kpi-semana  { border-left-color: #8b5cf6; }
+.kpi-semana .kpi-value { color: #7c3aed; }
+
+.kpi-tiempo  { border-left-color: #f59e0b; }
+.kpi-tiempo .kpi-value { color: #d97706; }
+
+.kpi-monto   { border-left-color: #ef4444; }
+.kpi-monto .kpi-value { color: #dc2626; }
+
+/* Loading / Error states */
+.dash-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dash-loading {
+    color: var(--gray-500);
+    background: rgba(0,0,0,.03);
+}
+
+.dash-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.dash-error {
+    flex-direction: column;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.dash-error-icon { font-size: 28px; }
+
+.dash-auto-info {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--gray-400);
+    text-align: right;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .sidebar {

@@ -41,32 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (rvFin) rvFin.value = hoy + 'T23:59';
 });
 
-// ===== NAVEGACIÓN =====
-function navegarA(pagina, elemento) {
-    // Ocultar todas las páginas
-    document.getElementById('pageBitacora').style.display = 'none';
-    document.getElementById('pageReportesVenta').style.display = 'none';
-
-    // Mostrar la página seleccionada
-    if (pagina === 'bitacora') {
-        document.getElementById('pageBitacora').style.display = 'block';
-        document.getElementById('pageTitle').textContent = '📋 Bitácora de Visitas';
-    } else if (pagina === 'reportes-venta') {
-        document.getElementById('pageReportesVenta').style.display = 'block';
-        document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
-    }
-
-    // Actualizar nav activo
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    if (elemento) elemento.classList.add('active');
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('open');
-    sidebar.classList.toggle('collapsed');
-}
-
 // ===== COLUMNAS =====
 function renderizarColumnas() {
     const grid = document.getElementById('columnasGrid');

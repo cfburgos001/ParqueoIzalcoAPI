@@ -40,6 +40,9 @@ function cerrarSesion() {
 }
 
 // ===== INICIALIZACIÓN =====
+const DASHBOARD_INTERVAL_MS = 30000; // 30 segundos
+let dashboardIntervalId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     if (!verificarSesion()) return;
 
@@ -48,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
     setInterval(cargarVisitasHoy, 30000);
+
+    // Navegar a Inicio por defecto
+    const navInicio = document.querySelector('.nav-item[data-page="inicio"]');
+    navegarA('inicio', navInicio);
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-container')) {
@@ -803,6 +810,68 @@ function escapeXml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
+// =============================================
+// DASHBOARD — KPIs
+// =============================================
+async function cargarDashboard() {
+    const loading = document.getElementById('dashLoading');
+    const errorEl = document.getElementById('dashError');
+    const kpiGrid = document.getElementById('kpiGrid');
+    const lastUpdate = document.getElementById('dashLastUpdate');
+
+    if (!loading) return; // página no visible todavía
+
+    loading.style.display = 'flex';
+    if (errorEl) errorEl.style.display = 'none';
+    if (kpiGrid) kpiGrid.style.opacity = '0.4';
+
+    try {
+        const res = await fetch(`${API_BASE}/dashboard`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (!data.exitoso || !data.data) throw new Error(data.mensaje || 'Sin datos');
+
+        const d = data.data;
+
+        document.getElementById('kpiDentro').textContent   = d.vehiculosDentro ?? 0;
+        document.getElementById('kpiHoy').textContent      = d.totalVehiculosHoy ?? 0;
+        document.getElementById('kpiSemana').textContent   = d.vehiculosDentroSemana ?? 0;
+        document.getElementById('kpiTiempo').textContent   = formatearTiempo(d.tiempoPromedioEstanciaMin);
+        document.getElementById('kpiMonto').textContent    = formatearMonto(d.montoPromedioCobrado);
+
+        const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (lastUpdate) lastUpdate.textContent = `Actualizado: ${hora}`;
+        if (kpiGrid) kpiGrid.style.opacity = '1';
+        if (errorEl) errorEl.style.display = 'none';
+    } catch (err) {
+        console.error('Error al cargar dashboard:', err);
+        if (errorEl) {
+            document.getElementById('dashErrorMsg').textContent = `No se pudo obtener los datos: ${err.message}`;
+            errorEl.style.display = 'flex';
+        }
+        if (kpiGrid) kpiGrid.style.opacity = '0.3';
+    } finally {
+        if (loading) loading.style.display = 'none';
+    }
+}
+
+function formatearTiempo(minutos) {
+    if (minutos === null || minutos === undefined) return 'N/D';
+    const m = Math.round(minutos);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+}
+
+function formatearMonto(monto) {
+    if (monto === null || monto === undefined) return 'N/D';
+    return '$' + parseFloat(monto).toFixed(2);
+}
+
+
+
 function formatearFechaCorta(fechaStr) {
     const [y, m, d] = fechaStr.split('-');
     return `${d}/${m}/${y}`;
@@ -829,12 +898,26 @@ function navegarA(pagina, elemento) {
     document.querySelectorAll('.content').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    if (pagina === 'bitacora') {
-        document.getElementById('pageBitacora').style.display = '';
-        document.getElementById('pageTitle').textContent = '📋 Bitácora de Visitas';
-    } else if (pagina === 'reportes-venta') {
-        document.getElementById('pageReportesVenta').style.display = '';
-        document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
+    if (pagina === 'inicio') {
+        document.getElementById('pageInicio').style.display = '';
+        document.getElementById('pageTitle').textContent = '🏠 Inicio';
+        // Iniciar auto-refresh del dashboard
+        cargarDashboard();
+        if (dashboardIntervalId) clearInterval(dashboardIntervalId);
+        dashboardIntervalId = setInterval(cargarDashboard, DASHBOARD_INTERVAL_MS);
+    } else {
+        // Detener auto-refresh cuando se sale de Inicio
+        if (dashboardIntervalId) {
+            clearInterval(dashboardIntervalId);
+            dashboardIntervalId = null;
+        }
+        if (pagina === 'bitacora') {
+            document.getElementById('pageBitacora').style.display = '';
+            document.getElementById('pageTitle').textContent = '📋 Bitácora de Visitas';
+        } else if (pagina === 'reportes-venta') {
+            document.getElementById('pageReportesVenta').style.display = '';
+            document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
+        }
     }
 
     if (elemento) elemento.classList.add('active');

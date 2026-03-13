@@ -464,6 +464,37 @@ namespace DataparkBarreraAPI.Controllers
                 });
             }
         }
+        // =============================================
+        // DASHBOARD DE VEHÍCULOS
+        // =============================================
+
+        /// <summary>
+        /// Devuelve los 5 KPIs del dashboard en tiempo real desde IOT_Vehiculos
+        /// </summary>
+        [HttpGet("dashboard")]
+        [ProducesResponseType(typeof(ApiResponse<DashboardVehiculosResponse>), 200)]
+        public async Task<IActionResult> ObtenerDashboard()
+        {
+            try
+            {
+                var resultado = await _visitasService.ObtenerDashboardAsync();
+                return Ok(new ApiResponse<DashboardVehiculosResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = "Dashboard obtenido",
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener dashboard");
+                return StatusCode(500, new ApiResponse<DashboardVehiculosResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
 
 
     }
