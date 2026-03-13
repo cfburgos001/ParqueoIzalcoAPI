@@ -811,8 +811,12 @@ function escapeXml(str) {
 }
 
 // =============================================
-// DASHBOARD — KPIs
+// DASHBOARD — KPIs + GRÁFICOS
 // =============================================
+let _chartSemanal = null;
+let _chartEstado  = null;
+let _chartPagos   = null;
+
 async function cargarDashboard() {
     const loading = document.getElementById('dashLoading');
     const errorEl = document.getElementById('dashError');
@@ -834,11 +838,20 @@ async function cargarDashboard() {
 
         const d = data.data;
 
-        document.getElementById('kpiDentro').textContent   = d.vehiculosDentro ?? 0;
-        document.getElementById('kpiHoy').textContent      = d.totalVehiculosHoy ?? 0;
-        document.getElementById('kpiSemana').textContent   = d.vehiculosDentroSemana ?? 0;
-        document.getElementById('kpiTiempo').textContent   = formatearTiempo(d.tiempoPromedioEstanciaMin);
-        document.getElementById('kpiMonto').textContent    = formatearMonto(d.montoPromedioCobrado);
+        document.getElementById('kpiDentro').textContent     = d.vehiculosDentroHoy ?? 0;
+        document.getElementById('kpiHoy').textContent        = d.totalVehiculosHoy ?? 0;
+        document.getElementById('kpiSemana').textContent     = d.vehiculosDentroSemana ?? 0;
+        document.getElementById('kpiTiempo').textContent     = formatearTiempo(d.tiempoPromedioEstanciaMin);
+        document.getElementById('kpiMonto').textContent      = formatearMonto(d.montoPromedioCobrado);
+        document.getElementById('kpiMontoTotal').textContent = formatearMonto(d.montoTotalDia);
+
+        // Actualizar stats del header
+        const statDentro = document.getElementById('statDentro');
+        const statHoy    = document.getElementById('statHoy');
+        if (statDentro) statDentro.textContent = `${d.vehiculosDentroHoy ?? 0} Dentro`;
+        if (statHoy)    statHoy.textContent    = `${d.totalVehiculosHoy ?? 0} Hoy`;
+
+        renderizarGraficos(d);
 
         const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (lastUpdate) lastUpdate.textContent = `Actualizado: ${hora}`;
@@ -853,6 +866,119 @@ async function cargarDashboard() {
         if (kpiGrid) kpiGrid.style.opacity = '0.3';
     } finally {
         if (loading) loading.style.display = 'none';
+    }
+}
+
+function renderizarGraficos(d) {
+    const semana    = d.vehiculosPorDiaSemana ?? [];
+    const estadoHoy = d.estadoHoy ?? { dentro: 0, salio: 0 };
+    const pagoHoy   = d.pagoHoy   ?? { pagados: 0, noPagados: 0 };
+
+    // --- Gráfico de barras: vehículos por día de la semana ---
+    const ctxSemanal = document.getElementById('chartSemanal');
+    if (ctxSemanal) {
+        const labels = semana.map(x => x.label);
+        const totals = semana.map(x => x.total);
+        if (_chartSemanal) {
+            _chartSemanal.data.labels = labels;
+            _chartSemanal.data.datasets[0].data = totals;
+            _chartSemanal.update();
+        } else {
+            _chartSemanal = new Chart(ctxSemanal, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Vehículos',
+                        data: totals,
+                        backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: '#6b7280' },
+                            grid: { color: 'rgba(107,114,128,0.15)' }
+                        },
+                        x: { ticks: { color: '#6b7280' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+    }
+
+    // --- Donut: Estado hoy ---
+    const ctxEstado = document.getElementById('chartEstado');
+    if (ctxEstado) {
+        const labelsE = ['Dentro', 'Salió'];
+        const dataE   = [estadoHoy.dentro, estadoHoy.salio];
+        if (_chartEstado) {
+            _chartEstado.data.datasets[0].data = dataE;
+            _chartEstado.update();
+        } else {
+            _chartEstado = new Chart(ctxEstado, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsE,
+                    datasets: [{
+                        data: dataE,
+                        backgroundColor: ['rgba(16,185,129,0.8)', 'rgba(239,68,68,0.8)'],
+                        borderColor: ['rgba(16,185,129,1)', 'rgba(239,68,68,1)'],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#6b7280', padding: 14 } }
+                    }
+                }
+            });
+        }
+    }
+
+    // --- Donut: Pagados vs No pagados ---
+    const ctxPagos = document.getElementById('chartPagos');
+    if (ctxPagos) {
+        const labelsP = ['Pagados', 'No pagados'];
+        const dataP   = [pagoHoy.pagados, pagoHoy.noPagados];
+        if (_chartPagos) {
+            _chartPagos.data.datasets[0].data = dataP;
+            _chartPagos.update();
+        } else {
+            _chartPagos = new Chart(ctxPagos, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsP,
+                    datasets: [{
+                        data: dataP,
+                        backgroundColor: ['rgba(59,130,246,0.8)', 'rgba(245,158,11,0.8)'],
+                        borderColor: ['rgba(59,130,246,1)', 'rgba(245,158,11,1)'],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#6b7280', padding: 14 } }
+                    }
+                }
+            });
+        }
     }
 }
 

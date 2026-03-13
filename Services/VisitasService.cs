@@ -774,12 +774,23 @@ namespace DataparkBarreraAPI.Services
 
                 const string sql = @"
 SELECT
-    COUNT(CASE WHEN Estado = 'DENTRO' THEN 1 END) AS VehiculosDentro,
+    COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS VehiculosDentroHoy,
     COUNT(CASE WHEN FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS TotalVehiculosHoy,
     COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioSemana AND FechaEntrada < @FinSemana THEN 1 END) AS VehiculosDentroSemana,
     AVG(CASE WHEN FechaSalida IS NOT NULL THEN CAST(DATEDIFF(minute, FechaEntrada, FechaSalida) AS FLOAT) END) AS TiempoPromedioEstanciaMin,
-    AVG(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL THEN Monto END) AS MontoPromedioCobrado
+    AVG(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL THEN Monto END) AS MontoPromedioCobrado,
+    ISNULL(SUM(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL AND FechaPago >= @InicioHoy AND FechaPago < @FinHoy THEN Monto ELSE 0 END), 0) AS MontoTotalDia,
+    COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS EstadoDentroHoy,
+    COUNT(CASE WHEN Estado = 'SALIO' AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS EstadoSalioHoy,
+    COUNT(CASE WHEN bitPaid = 1 AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS PagadosHoy,
+    COUNT(CASE WHEN (bitPaid = 0 OR bitPaid IS NULL) AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS NoPagadosHoy
 FROM IOT_Vehiculos";
+
+                const string sqlSemanal = @"
+SELECT CAST(FechaEntrada AS DATE) AS Fecha, COUNT(*) AS Total
+FROM IOT_Vehiculos
+WHERE FechaEntrada >= @InicioSemana AND FechaEntrada < @FinSemana
+GROUP BY CAST(FechaEntrada AS DATE)";
 
                 var parametros = new SqlParameter[]
                 {
@@ -789,7 +800,14 @@ FROM IOT_Vehiculos";
                     new SqlParameter("@FinSemana",    finSemana)
                 };
 
+                var parametrosSemana = new SqlParameter[]
+                {
+                    new SqlParameter("@InicioSemana", inicioSemana),
+                    new SqlParameter("@FinSemana",    finSemana)
+                };
+
                 var dt = await _db.ExecuteQueryAsync(sql, parametros);
+                var dtSemanal = await _db.ExecuteQueryAsync(sqlSemanal, parametrosSemana);
 
                 var response = new DashboardVehiculosResponse
                 {
@@ -799,11 +817,41 @@ FROM IOT_Vehiculos";
                 if (dt.Rows.Count > 0)
                 {
                     var row = dt.Rows[0];
-                    response.VehiculosDentro        = row["VehiculosDentro"]        == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentro"]);
-                    response.TotalVehiculosHoy       = row["TotalVehiculosHoy"]      == DBNull.Value ? 0 : Convert.ToInt32(row["TotalVehiculosHoy"]);
-                    response.VehiculosDentroSemana   = row["VehiculosDentroSemana"]  == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentroSemana"]);
+                    response.VehiculosDentroHoy      = row["VehiculosDentroHoy"]      == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentroHoy"]);
+                    response.TotalVehiculosHoy       = row["TotalVehiculosHoy"]        == DBNull.Value ? 0 : Convert.ToInt32(row["TotalVehiculosHoy"]);
+                    response.VehiculosDentroSemana   = row["VehiculosDentroSemana"]    == DBNull.Value ? 0 : Convert.ToInt32(row["VehiculosDentroSemana"]);
                     response.TiempoPromedioEstanciaMin = row["TiempoPromedioEstanciaMin"] == DBNull.Value ? null : Convert.ToDouble(row["TiempoPromedioEstanciaMin"]);
-                    response.MontoPromedioCobrado    = row["MontoPromedioCobrado"]   == DBNull.Value ? null : Convert.ToDecimal(row["MontoPromedioCobrado"]);
+                    response.MontoPromedioCobrado    = row["MontoPromedioCobrado"]     == DBNull.Value ? null : Convert.ToDecimal(row["MontoPromedioCobrado"]);
+                    response.MontoTotalDia           = row["MontoTotalDia"]            == DBNull.Value ? 0 : Convert.ToDecimal(row["MontoTotalDia"]);
+                    response.EstadoHoy = new EstadoHoyItem
+                    {
+                        Dentro = row["EstadoDentroHoy"] == DBNull.Value ? 0 : Convert.ToInt32(row["EstadoDentroHoy"]),
+                        Salio  = row["EstadoSalioHoy"]  == DBNull.Value ? 0 : Convert.ToInt32(row["EstadoSalioHoy"])
+                    };
+                    response.PagoHoy = new PagoHoyItem
+                    {
+                        Pagados   = row["PagadosHoy"]   == DBNull.Value ? 0 : Convert.ToInt32(row["PagadosHoy"]),
+                        NoPagados = row["NoPagadosHoy"] == DBNull.Value ? 0 : Convert.ToInt32(row["NoPagadosHoy"])
+                    };
+                }
+
+                // Construir serie semanal con todos los días Lun–Dom (rellenar 0 en días sin datos)
+                var totalesPorFecha = new Dictionary<DateTime, int>();
+                foreach (System.Data.DataRow r in dtSemanal.Rows)
+                {
+                    var fecha = Convert.ToDateTime(r["Fecha"]);
+                    totalesPorFecha[fecha.Date] = Convert.ToInt32(r["Total"]);
+                }
+
+                string[] etiquetas = { "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom" };
+                for (int i = 0; i < 7; i++)
+                {
+                    var dia = inicioSemana.AddDays(i);
+                    response.VehiculosPorDiaSemana.Add(new DiaSemanaItem
+                    {
+                        Label = etiquetas[i],
+                        Total = totalesPorFecha.TryGetValue(dia.Date, out var t) ? t : 0
+                    });
                 }
 
                 return response;

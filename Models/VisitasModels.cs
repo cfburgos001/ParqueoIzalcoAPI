@@ -234,8 +234,8 @@
     /// </summary>
     public class DashboardVehiculosResponse
     {
-        /// <summary>Vehículos actualmente con Estado = 'DENTRO'</summary>
-        public int VehiculosDentro { get; set; }
+        /// <summary>Vehículos con Estado = 'DENTRO' Y FechaEntrada dentro del día actual</summary>
+        public int VehiculosDentroHoy { get; set; }
 
         /// <summary>Total de registros cuya FechaEntrada es del día actual</summary>
         public int TotalVehiculosHoy { get; set; }
@@ -249,8 +249,38 @@
         /// <summary>Promedio de Monto solo para pagados (bitPaid = 1 AND Monto IS NOT NULL)</summary>
         public decimal? MontoPromedioCobrado { get; set; }
 
+        /// <summary>Suma de Monto de registros pagados (bitPaid = 1) con FechaPago del día actual</summary>
+        public decimal MontoTotalDia { get; set; }
+
+        /// <summary>Serie de vehículos por día de la semana actual (7 elementos Lun–Dom)</summary>
+        public List<DiaSemanaItem> VehiculosPorDiaSemana { get; set; } = new();
+
+        /// <summary>Distribución de Estado del día actual: dentro vs salio</summary>
+        public EstadoHoyItem EstadoHoy { get; set; } = new();
+
+        /// <summary>Distribución de Pago del día actual: pagados vs no pagados</summary>
+        public PagoHoyItem PagoHoy { get; set; } = new();
+
         /// <summary>Momento en que se generó la respuesta (UTC)</summary>
         public DateTime GeneratedAt { get; set; }
+    }
+
+    public class DiaSemanaItem
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Total { get; set; }
+    }
+
+    public class EstadoHoyItem
+    {
+        public int Dentro { get; set; }
+        public int Salio { get; set; }
+    }
+
+    public class PagoHoyItem
+    {
+        public int Pagados { get; set; }
+        public int NoPagados { get; set; }
     }
 
     public class ReporteVehiculosRequest

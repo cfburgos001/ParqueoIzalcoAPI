@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/visitas/css/visitas.css">
     <link rel="stylesheet" href="/visitas/css/layout.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -96,7 +97,6 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiDentro">—</div>
                             <div class="kpi-label">Vehículos Dentro</div>
-                            <div class="kpi-sub">Estado = DENTRO</div>
                         </div>
                     </div>
 
@@ -105,7 +105,6 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiHoy">—</div>
                             <div class="kpi-label">Vehículos Hoy</div>
-                            <div class="kpi-sub">Entradas del día</div>
                         </div>
                     </div>
 
@@ -114,7 +113,6 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiSemana">—</div>
                             <div class="kpi-label">Dentro esta semana</div>
-                            <div class="kpi-sub">Estado = DENTRO · Lun–Dom</div>
                         </div>
                     </div>
 
@@ -123,7 +121,6 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiTiempo">—</div>
                             <div class="kpi-label">Tiempo Prom. Estancia</div>
-                            <div class="kpi-sub">Vehículos que ya salieron</div>
                         </div>
                     </div>
 
@@ -132,7 +129,36 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiMonto">—</div>
                             <div class="kpi-label">Monto Prom. Cobrado</div>
-                            <div class="kpi-sub">Solo pagados (bitPaid = 1)</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card kpi-monto-total">
+                        <div class="kpi-icon">💵</div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiMontoTotal">—</div>
+                            <div class="kpi-label">Monto Total del Día</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-grid" id="chartsGrid">
+                    <div class="chart-card chart-full">
+                        <h3 class="chart-title">📊 Vehículos por día de la semana</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="chartSemanal"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="chart-title">🍩 Estado hoy (Dentro vs Salió)</h3>
+                        <div class="chart-wrapper chart-wrapper-donut">
+                            <canvas id="chartEstado"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="chart-title">💳 Pagados vs No pagados (hoy)</h3>
+                        <div class="chart-wrapper chart-wrapper-donut">
+                            <canvas id="chartPagos"></canvas>
                         </div>
                     </div>
                 </div>
