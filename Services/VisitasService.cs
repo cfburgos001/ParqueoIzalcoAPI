@@ -779,7 +779,7 @@ SELECT
     COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioSemana AND FechaEntrada < @FinSemana THEN 1 END) AS VehiculosDentroSemana,
     AVG(CASE WHEN FechaSalida IS NOT NULL THEN CAST(DATEDIFF(minute, FechaEntrada, FechaSalida) AS FLOAT) END) AS TiempoPromedioEstanciaMin,
     AVG(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL THEN Monto END) AS MontoPromedioCobrado,
-    ISNULL(SUM(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL AND FechaPago >= @InicioHoy AND FechaPago < @FinHoy THEN Monto ELSE 0 END), 0) AS MontoTotalDia,
+    ISNULL(SUM(CASE WHEN bitPaid = 1 AND Monto IS NOT NULL AND FechaPago >= @InicioHoy AND FechaPago < @FinHoy THEN Monto END), 0) AS MontoTotalDia,
     COUNT(CASE WHEN Estado = 'DENTRO' AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS EstadoDentroHoy,
     COUNT(CASE WHEN Estado = 'SALIO' AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS EstadoSalioHoy,
     COUNT(CASE WHEN bitPaid = 1 AND FechaEntrada >= @InicioHoy AND FechaEntrada < @FinHoy THEN 1 END) AS PagadosHoy,
