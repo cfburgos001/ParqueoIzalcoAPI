@@ -1043,7 +1043,12 @@ function navegarA(pagina, elemento) {
         } else if (pagina === 'reportes-venta') {
             document.getElementById('pageReportesVenta').style.display = '';
             document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
+        } else if (pagina === 'cerrar-tickets') {
+            document.getElementById('pageCerrarTickets').style.display = '';
+            document.getElementById('pageTitle').textContent = '🎫 Cerrar Tickets';
+            cargarTicketsAntiguos();
         }
+
     }
 
     if (elemento) elemento.classList.add('active');

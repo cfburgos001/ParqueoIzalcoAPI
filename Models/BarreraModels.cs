@@ -236,4 +236,82 @@
         public int? IdRegistro { get; set; }
         public DateTime? FechaOperacion { get; set; }
     }
+
+
+    namespace DataparkBarreraAPI.Models
+    {
+        // =============================================
+        // MODELOS PARA CIERRE DE TICKETS ANTIGUOS
+        // =============================================
+
+        /// <summary>
+        /// Ticket antiguo pendiente de cierre (DENTRO de días anteriores)
+        /// </summary>
+        public class TicketAntiguo
+        {
+            public int Id { get; set; }
+            public string Placa { get; set; } = string.Empty;
+            public string CodigoBarras { get; set; } = string.Empty;
+            public DateTime FechaEntrada { get; set; }
+            public int DiasAdentro { get; set; }
+            public string? NombreOperador { get; set; }
+            public string? StrRateKey { get; set; }
+            public string? IdDispositivoEntrada { get; set; }
+            public int? IdOperador { get; set; }
+        }
+
+        /// <summary>
+        /// Request para cerrar un ticket antiguo individualmente
+        /// </summary>
+        public class CerrarTicketRequest
+        {
+            public int Id { get; set; }
+            public decimal Monto { get; set; }
+            public int IdOperador { get; set; }
+            public string NombreOperador { get; set; } = string.Empty;
+        }
+
+        /// <summary>
+        /// Request para cerrar múltiples tickets a la vez
+        /// </summary>
+        public class CerrarTicketsMasivosRequest
+        {
+            public List<CerrarTicketItem> Tickets { get; set; } = new();
+            public int IdOperador { get; set; }
+            public string NombreOperador { get; set; } = string.Empty;
+        }
+
+        public class CerrarTicketItem
+        {
+            public int Id { get; set; }
+            public decimal Monto { get; set; }
+        }
+
+        /// <summary>
+        /// Response del cierre de un ticket
+        /// </summary>
+        public class CerrarTicketResponse
+        {
+            public bool Exitoso { get; set; }
+            public string Mensaje { get; set; } = string.Empty;
+            public int? IdVehiculo { get; set; }
+            public string? Placa { get; set; }
+            public decimal? Monto { get; set; }
+            public DateTime? FechaSalida { get; set; }
+            public int? TiempoEstancia { get; set; }
+        }
+
+        /// <summary>
+        /// Response del cierre masivo de tickets
+        /// </summary>
+        public class CerrarTicketsMasivosResponse
+        {
+            public bool Exitoso { get; set; }
+            public string Mensaje { get; set; } = string.Empty;
+            public int TotalProcesados { get; set; }
+            public int TotalExitosos { get; set; }
+            public int TotalFallidos { get; set; }
+            public List<CerrarTicketResponse> Resultados { get; set; } = new();
+        }
+    }
 }
