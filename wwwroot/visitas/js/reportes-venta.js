@@ -13,6 +13,7 @@ const TODAS_COLUMNAS = [
     { key: 'Monto', label: 'Monto' },
     { key: 'FechaPago', label: 'Fecha Pago' },
     { key: 'strRateKey', label: 'Tarifa' },
+    { key: 'OperationType', label: 'Tipo Pago' },   // ← NUEVO
     { key: 'TiempoEstancia', label: 'Tiempo (min)' },
     { key: 'IdDispositivoEntrada', label: 'Disp. Entrada' },
     { key: 'IdDispositivoSalida', label: 'Disp. Salida' },
@@ -25,7 +26,18 @@ const TODAS_COLUMNAS = [
     { key: 'bitCopy', label: 'bitCopy' }
 ];
 
-const COLUMNAS_DEFAULT = ['Placa', 'FechaEntrada', 'FechaSalida', 'Estado', 'Monto', 'FechaPago', 'strRateKey', 'TiempoEstancia', 'NombreOperador'];
+const COLUMNAS_DEFAULT = [
+    'Placa', 'FechaEntrada', 'FechaSalida', 'Estado',
+    'Monto', 'FechaPago', 'strRateKey', 'OperationType',   // ← OperationType en default
+    'TiempoEstancia', 'NombreOperador'
+];
+
+// Mapa de OperationType → texto legible
+const OPERATION_TYPE_LABELS = {
+    1: '💵 Efectivo',
+    2: '💳 Tarjeta',
+    3: '🎁 Cortesía'
+};
 
 let datosVentaActual = [];
 
@@ -87,7 +99,7 @@ function aplicarColumnas(columnas) {
     });
 }
 
-// ===== FAVORITOS (localStorage — persiste siempre) =====
+// ===== FAVORITOS =====
 function getFavoritos() {
     try {
         return JSON.parse(localStorage.getItem('rv_favoritos') || '[]');
@@ -102,7 +114,6 @@ function guardarFavorito() {
     if (columnas.length === 0) { mostrarToast('Seleccione al menos una columna', 'error'); return; }
 
     const favoritos = getFavoritos();
-    // Si ya existe, reemplazar
     const idx = favoritos.findIndex(f => f.nombre === nombre);
     if (idx >= 0) {
         favoritos[idx].columnas = columnas;
@@ -166,9 +177,6 @@ async function buscarReporteVenta() {
     const tarifa = document.getElementById('rvTarifa').value;
     const top = parseInt(document.getElementById('rvTop').value) || 500;
 
-    // Para datetime-local el valor ya viene como "2025-03-10T08:00"
-    // Si solo tiene fecha sin hora, agregar hora por defecto
-    // Longitud 10 = "YYYY-MM-DD" (solo fecha), 16 = "YYYY-MM-DDTHH:mm" (sin segundos)
     let fechaInicio = fechaInicioRaw;
     if (fechaInicio.length === 10) fechaInicio += 'T00:00:00';
     else if (fechaInicio.length === 16) fechaInicio += ':00';
@@ -177,8 +185,13 @@ async function buscarReporteVenta() {
     if (fechaFin.length === 10) fechaFin += 'T23:59:59';
     else if (fechaFin.length === 16) fechaFin += ':59';
 
+    // Asegurarse de que OperationType siempre venga del backend para los totales
+    const columnasConOp = columnas.includes('OperationType')
+        ? columnas
+        : [...columnas, 'OperationType'];
+
     const body = {
-        columnas,
+        columnas: columnasConOp,
         campoFecha,
         fechaInicio,
         fechaFin,
@@ -195,12 +208,11 @@ async function buscarReporteVenta() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-
         const data = await res.json();
 
         if (data.exitoso && data.data) {
             datosVentaActual = data.data;
-            renderizarTablaVenta(data.data, columnas);
+            renderizarTablaVenta(data.data, columnas);   // mostrar solo columnas seleccionadas
             mostrarToast(`${data.data.length} registros encontrados`, 'success');
         } else {
             mostrarToast(data.mensaje || 'Sin resultados', 'warning');
@@ -210,6 +222,51 @@ async function buscarReporteVenta() {
     }
 }
 
+// ===== HELPER: formatear valor de celda =====
+function formatearCelda(key, val) {
+    if (val === null || val === undefined || val === '') return '';
+
+    if (key === 'FechaEntrada' || key === 'FechaSalida' || key === 'FechaPago') {
+        return new Date(val).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' });
+    }
+    if (key === 'Monto') return '$' + parseFloat(val).toFixed(2);
+    if (key === 'bitPaid') return val == 1 ? '✅ Sí' : '❌ No';
+    if (key === 'Estado') return val === 'DENTRO' ? '🟢 DENTRO' : val === 'SALIO' ? '🔴 SALIO' : val;
+    if (key === 'OperationType') return OPERATION_TYPE_LABELS[val] || `Tipo ${val}`;
+
+    return val;
+}
+
+// ===== CALCULAR TOTALES =====
+function calcularTotales(datos) {
+    let totalGeneral = 0;
+    let totalEfectivo = 0;
+    let totalTarjeta = 0;
+    let totalCortesia = 0;
+    let countEfectivo = 0;
+    let countTarjeta = 0;
+    let countCortesia = 0;
+
+    datos.forEach(r => {
+        const monto = parseFloat(r['Monto'] ?? r['monto'] ?? 0);
+        const opType = parseInt(r['OperationType'] ?? r['operationtype'] ?? 0);
+        const pagado = r['bitPaid'] == 1 || r['bitpaid'] == 1;
+
+        if (!isNaN(monto) && pagado) {
+            totalGeneral += monto;
+            if (opType === 1) { totalEfectivo += monto; countEfectivo++; }
+            else if (opType === 2) { totalTarjeta += monto; countTarjeta++; }
+            else if (opType === 3) { totalCortesia += monto; countCortesia++; }
+        }
+    });
+
+    return {
+        totalGeneral, totalEfectivo, totalTarjeta, totalCortesia,
+        countEfectivo, countTarjeta, countCortesia
+    };
+}
+
+// ===== RENDERIZAR TABLA =====
 function renderizarTablaVenta(datos, columnas) {
     const seccion = document.getElementById('rvResultados');
     const thead = document.getElementById('rvThead');
@@ -217,7 +274,7 @@ function renderizarTablaVenta(datos, columnas) {
     const conteo = document.getElementById('rvConteo');
     const resumen = document.getElementById('rvResumen');
 
-    // Headers
+    // Headers — solo las columnas seleccionadas por el usuario
     thead.innerHTML = columnas.map(c => {
         const col = TODAS_COLUMNAS.find(tc => tc.key === c);
         return `<th>${col ? col.label : c}</th>`;
@@ -226,103 +283,212 @@ function renderizarTablaVenta(datos, columnas) {
     // Rows
     tbody.innerHTML = datos.map(row => {
         return '<tr>' + columnas.map(c => {
-            let val = row[c] ?? row[c.toLowerCase()] ?? '';
-            // Formatear valores
-            if ((c === 'FechaEntrada' || c === 'FechaSalida' || c === 'FechaPago') && val) {
-                val = new Date(val).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' });
-            }
-            if (c === 'Monto' && val !== '' && val !== null) val = '$' + parseFloat(val).toFixed(2);
-            if (c === 'bitPaid') val = val == 1 ? '✅ Sí' : '❌ No';
-            if (c === 'Estado') val = val === 'DENTRO' ? '🟢 DENTRO' : val === 'SALIO' ? '🔴 SALIO' : val;
-            return `<td>${val ?? ''}</td>`;
+            const val = row[c] ?? row[c.toLowerCase()] ?? '';
+            return `<td>${formatearCelda(c, val)}</td>`;
         }).join('') + '</tr>';
     }).join('');
 
     conteo.textContent = `${datos.length} registros`;
 
-    // Resumen
-    let totalMonto = 0, totalPagados = 0, totalDentro = 0;
-    datos.forEach(r => {
-        const monto = parseFloat(r['Monto'] ?? r['monto'] ?? 0);
-        if (!isNaN(monto)) totalMonto += monto;
-        if (r['bitPaid'] == 1 || r['bitpaid'] == 1) totalPagados++;
-        if (r['Estado'] === 'DENTRO' || r['estado'] === 'DENTRO') totalDentro++;
-    });
+    // ===== RESUMEN SIEMPRE PRESENTE =====
+    const t = calcularTotales(datos);
+    const totalDentro = datos.filter(r => r['Estado'] === 'DENTRO' || r['estado'] === 'DENTRO').length;
+    const totalPagados = datos.filter(r => r['bitPaid'] == 1 || r['bitpaid'] == 1).length;
 
     resumen.innerHTML = `
-        <div class="resumen-card"><div class="rc-label">Total Registros</div><div class="rc-value">${datos.length}</div></div>
-        <div class="resumen-card"><div class="rc-label">Monto Total</div><div class="rc-value">$${totalMonto.toFixed(2)}</div></div>
-        <div class="resumen-card"><div class="rc-label">Pagados</div><div class="rc-value">${totalPagados}</div></div>
-        <div class="resumen-card"><div class="rc-label">Dentro</div><div class="rc-value">${totalDentro}</div></div>
-    `;
+        <!-- Fila 1: conteos -->
+        <div class="resumen-card">
+            <div class="rc-label">Total Registros</div>
+            <div class="rc-value">${datos.length}</div>
+        </div>
+        <div class="resumen-card">
+            <div class="rc-label">Pagados</div>
+            <div class="rc-value">${totalPagados}</div>
+        </div>
+        <div class="resumen-card">
+            <div class="rc-label">Dentro</div>
+            <div class="rc-value">${totalDentro}</div>
+        </div>
+
+        <!-- Fila 2: montos -->
+        <div class="resumen-card" style="border-top:3px solid #059669;">
+            <div class="rc-label">💰 Monto Total Cobrado</div>
+            <div class="rc-value" style="color:#059669;">$${t.totalGeneral.toFixed(2)}</div>
+        </div>
+        <div class="resumen-card" style="border-top:3px solid #1a56db;">
+            <div class="rc-label">💵 Total Efectivo (${t.countEfectivo})</div>
+            <div class="rc-value" style="color:#1a56db;">$${t.totalEfectivo.toFixed(2)}</div>
+        </div>
+        <div class="resumen-card" style="border-top:3px solid #7c3aed;">
+            <div class="rc-label">💳 Total Tarjeta (${t.countTarjeta})</div>
+            <div class="rc-value" style="color:#7c3aed;">$${t.totalTarjeta.toFixed(2)}</div>
+        </div>
+        <div class="resumen-card" style="border-top:3px solid #d97706;">
+            <div class="rc-label">🎁 Total Cortesía (${t.countCortesia})</div>
+            <div class="rc-value" style="color:#d97706;">$${t.totalCortesia.toFixed(2)}</div>
+        </div>`;
 
     seccion.style.display = 'block';
     seccion.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ===== DESCARGAR EXCEL VENTA =====
+// ===== DESCARGAR EXCEL =====
 function descargarExcelVenta() {
     if (!datosVentaActual.length) { mostrarToast('Primero busque datos', 'error'); return; }
     const columnas = getColumnasSeleccionadas();
 
+    // Asegurar que OperationType esté en los datos aunque no esté en columnas visibles
+    const columnasExcel = columnas.includes('OperationType')
+        ? columnas
+        : [...columnas, 'OperationType'];
+
+    const t = calcularTotales(datosVentaActual);
+
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n';
     xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
-    xml += '<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1F2937" ss:Pattern="Solid"/></Style>';
-    xml += '<Style ss:ID="c"></Style></Styles>\n';
+    xml += '<Styles>';
+    xml += '<Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1F2937" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="c"></Style>';
+    xml += '<Style ss:ID="total"><Font ss:Bold="1"/><Interior ss:Color="#F3F4F6" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="green"><Font ss:Bold="1" ss:Color="#065F46"/><Interior ss:Color="#D1FAE5" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="blue"><Font ss:Bold="1" ss:Color="#1E3A8A"/><Interior ss:Color="#DBEAFE" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="purple"><Font ss:Bold="1" ss:Color="#4C1D95"/><Interior ss:Color="#EDE9FE" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="amber"><Font ss:Bold="1" ss:Color="#78350F"/><Interior ss:Color="#FEF3C7" ss:Pattern="Solid"/></Style>';
+    xml += '</Styles>\n';
+
     xml += '<Worksheet ss:Name="Reporte Venta"><Table>\n';
 
     // Headers
     xml += '<Row>';
-    columnas.forEach(c => {
+    columnasExcel.forEach(c => {
         const col = TODAS_COLUMNAS.find(tc => tc.key === c);
         xml += `<Cell ss:StyleID="h"><Data ss:Type="String">${col ? col.label : c}</Data></Cell>`;
     });
     xml += '</Row>\n';
 
-    // Data
+    // Datos
     datosVentaActual.forEach(row => {
         xml += '<Row>';
-        columnas.forEach(c => {
+        columnasExcel.forEach(c => {
             let val = row[c] ?? row[c.toLowerCase()] ?? '';
+            // Texto legible para OperationType en Excel
+            if (c === 'OperationType') {
+                val = OPERATION_TYPE_LABELS[val] || (val !== '' ? `Tipo ${val}` : '');
+            }
             if (val === null) val = '';
             xml += `<Cell ss:StyleID="c"><Data ss:Type="String">${String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>`;
         });
         xml += '</Row>\n';
     });
 
+    // Fila vacía separadora
+    xml += '<Row></Row>\n';
+
+    // ===== BLOQUE DE TOTALES =====
+    xml += `<Row>
+        <Cell ss:StyleID="green"><Data ss:Type="String">💰 Monto Total Cobrado</Data></Cell>
+        <Cell ss:StyleID="green"><Data ss:Type="String">$${t.totalGeneral.toFixed(2)}</Data></Cell>
+    </Row>\n`;
+    xml += `<Row>
+        <Cell ss:StyleID="blue"><Data ss:Type="String">💵 Total Efectivo (${t.countEfectivo} transacciones)</Data></Cell>
+        <Cell ss:StyleID="blue"><Data ss:Type="String">$${t.totalEfectivo.toFixed(2)}</Data></Cell>
+    </Row>\n`;
+    xml += `<Row>
+        <Cell ss:StyleID="purple"><Data ss:Type="String">💳 Total Tarjeta (${t.countTarjeta} transacciones)</Data></Cell>
+        <Cell ss:StyleID="purple"><Data ss:Type="String">$${t.totalTarjeta.toFixed(2)}</Data></Cell>
+    </Row>\n`;
+    xml += `<Row>
+        <Cell ss:StyleID="amber"><Data ss:Type="String">🎁 Total Cortesía (${t.countCortesia} transacciones)</Data></Cell>
+        <Cell ss:StyleID="amber"><Data ss:Type="String">$${t.totalCortesia.toFixed(2)}</Data></Cell>
+    </Row>\n`;
+
     xml += '</Table></Worksheet></Workbook>';
 
     const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const fecha = document.getElementById('rvFechaInicio').value.replace(/-/g, '');
+    const fecha = document.getElementById('rvFechaInicio').value.replace(/[-T:]/g, '').substring(0, 8);
     descargarBlob(blob, `Reporte_Venta_${fecha}.xls`);
     mostrarToast('📗 Excel descargado', 'success');
 }
 
-// ===== DESCARGAR PDF VENTA =====
+// ===== DESCARGAR PDF =====
 function descargarPDFVenta() {
     if (!datosVentaActual.length) { mostrarToast('Primero busque datos', 'error'); return; }
     const columnas = getColumnasSeleccionadas();
 
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte de Venta</title>
-    <style>@page{size:landscape;margin:10mm}body{font-family:Arial;font-size:11px;padding:15px}
-    h1{font-size:16px;text-align:center;margin-bottom:10px}
-    table{width:100%;border-collapse:collapse;font-size:10px}
-    th{background:#1f2937;color:#fff;padding:6px;text-align:left;font-size:9px}
-    td{padding:5px;border:1px solid #e5e7eb}tr:nth-child(even){background:#f9fafb}
-    .footer{margin-top:15px;font-size:9px;color:#999;text-align:right}</style></head>
-    <body><h1>REPORTE DE VENTA — DOBLE GEMINIS S.A. DE C.V.</h1>
-    <p style="text-align:center;font-size:11px">Generado: ${new Date().toLocaleString('es-GT')} | ${datosVentaActual.length} registros</p>
-    <table><thead><tr>${columnas.map(c => {
+    // Asegurar OperationType en datos para totales aunque no esté en columnas visibles
+    const t = calcularTotales(datosVentaActual);
+
+    // Columnas a mostrar en la tabla del PDF
+    const columnasConOp = columnas.includes('OperationType')
+        ? columnas
+        : [...columnas, 'OperationType'];
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Reporte de Venta</title>
+    <style>
+        @page { size:landscape; margin:10mm }
+        body { font-family:Arial; font-size:11px; padding:15px }
+        h1 { font-size:15px; text-align:center; margin-bottom:4px }
+        h2 { font-size:11px; text-align:center; color:#555; margin-bottom:10px; font-weight:normal }
+        table { width:100%; border-collapse:collapse; font-size:9px; margin-bottom:20px }
+        th { background:#1f2937; color:#fff; padding:6px; text-align:left; font-size:8px }
+        td { padding:5px; border:1px solid #e5e7eb }
+        tr:nth-child(even) { background:#f9fafb }
+
+        /* Bloque de totales */
+        .totales { width:100%; border-collapse:collapse; margin-top:8px }
+        .totales td { padding:8px 12px; font-size:11px; border-radius:4px }
+        .tot-general { background:#d1fae5; color:#065f46; font-weight:bold; font-size:13px }
+        .tot-efectivo { background:#dbeafe; color:#1e3a8a; font-weight:bold }
+        .tot-tarjeta  { background:#ede9fe; color:#4c1d95; font-weight:bold }
+        .tot-cortesia { background:#fef3c7; color:#78350f; font-weight:bold }
+        .tot-label { width:60% }
+        .tot-value { width:40%; text-align:right; font-size:14px }
+
+        .footer { margin-top:15px; font-size:9px; color:#999; text-align:right }
+    </style></head>
+    <body>
+        <h1>REPORTE DE VENTA — DOBLE GEMINIS S.A. DE C.V.</h1>
+        <h2>Generado: ${new Date().toLocaleString('es-GT')} | ${datosVentaActual.length} registros</h2>
+
+        <table>
+            <thead><tr>
+                ${columnasConOp.map(c => {
         const col = TODAS_COLUMNAS.find(tc => tc.key === c);
         return `<th>${col ? col.label : c}</th>`;
-    }).join('')}</tr></thead><tbody>
-    ${datosVentaActual.map(row => '<tr>' + columnas.map(c => {
-        let v = row[c] ?? row[c.toLowerCase()] ?? '';
-        return `<td>${v ?? ''}</td>`;
+    }).join('')}
+            </tr></thead>
+            <tbody>
+                ${datosVentaActual.map(row => '<tr>' + columnasConOp.map(c => {
+        const val = row[c] ?? row[c.toLowerCase()] ?? '';
+        return `<td>${formatearCelda(c, val)}</td>`;
     }).join('') + '</tr>').join('')}
-    </tbody></table>
-    <div class="footer">Centro Panamericano de Ojos — Sistema de Control de Parqueo</div>
-    <script>window.onload=()=>window.print()<\/script></body></html>`;
+            </tbody>
+        </table>
+
+        <!-- TOTALES -->
+        <table class="totales">
+            <tr>
+                <td class="tot-label tot-general">💰 Monto Total Cobrado</td>
+                <td class="tot-value tot-general">$${t.totalGeneral.toFixed(2)}</td>
+            </tr>
+            <tr>
+                <td class="tot-label tot-efectivo">💵 Total Efectivo &nbsp;<small>(${t.countEfectivo} transacciones)</small></td>
+                <td class="tot-value tot-efectivo">$${t.totalEfectivo.toFixed(2)}</td>
+            </tr>
+            <tr>
+                <td class="tot-label tot-tarjeta">💳 Total Tarjeta &nbsp;<small>(${t.countTarjeta} transacciones)</small></td>
+                <td class="tot-value tot-tarjeta">$${t.totalTarjeta.toFixed(2)}</td>
+            </tr>
+            <tr>
+                <td class="tot-label tot-cortesia">🎁 Total Cortesía &nbsp;<small>(${t.countCortesia} transacciones)</small></td>
+                <td class="tot-value tot-cortesia">$${t.totalCortesia.toFixed(2)}</td>
+            </tr>
+        </table>
+
+        <div class="footer">Centro Panamericano de Ojos — Sistema de Control de Parqueo</div>
+        <script>window.onload=()=>window.print()<\/script>
+    </body></html>`;
 
     const ventana = window.open('', '_blank');
     ventana.document.write(html);
