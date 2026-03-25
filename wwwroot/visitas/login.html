@@ -3,227 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Control de Ingreso</title>
+    <title>Acceso — Datapark IOT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #1a56db;
-            --primary-hover: #1444b0;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            --danger: #dc2626;
-            --white: #ffffff;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--gray-900) 0%, #1e3a5f 50%, var(--gray-900) 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        :root {
+            --brand-400: #60a5fa;
+            --brand-500: #3b82f6;
+            --brand-600: #2563eb;
+            --brand-700: #1d4ed8;
+            --brand-900: #1e3a8a;
+            --brand-glow: rgba(59,130,246,0.3);
+            --s0: #080c14;
+            --s1: #0d1117;
+            --s2: #111827;
+            --s3: #161d2e;
+            --s4: #1c2437;
+            --bd: rgba(255,255,255,0.08);
+            --bds: rgba(255,255,255,0.04);
+            --bdb: rgba(59,130,246,0.35);
+            --text1: #f1f5f9;
+            --text2: #94a3b8;
+            --text3: #475569;
+            --danger: #ef4444;
+            --danger-t: #f87171;
+            --r: 8px;
+            --rmd: 10px;
+            --rlg: 14px;
+            --rxl: 18px;
         }
 
-        .login-container {
-            background: var(--white);
-            border-radius: 16px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-            width: 100%;
-            max-width: 420px;
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--s0);
+            display: flex;
+            align-items: stretch;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
             overflow: hidden;
         }
 
-        .login-header {
-            background: var(--gray-900);
-            padding: 32px 32px 28px;
-            text-align: center;
-            color: var(--white);
+        /* ===== BACKGROUND ===== */
+        .bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .login-logo {
+            /* Grid de puntos */
+            .bg::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+                background-size: 32px 32px;
+            }
+
+            /* Orbe azul */
+            .bg::after {
+                content: '';
+                position: absolute;
+                width: 700px;
+                height: 700px;
+                top: -200px;
+                left: -200px;
+                background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%);
+                border-radius: 50%;
+            }
+
+        .bg-orb2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            bottom: -100px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 65%);
+            border-radius: 50%;
+        }
+
+        /* ===== LAYOUT ===== */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== LEFT PANEL ===== */
+        .left-panel {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 56px;
+            border-right: 1px solid var(--bd);
+        }
+
+        @media (min-width: 900px) {
+            .left-panel {
+                display: flex;
+            }
+        }
+
+        .lp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            background: var(--brand-glow);
+            border: 1px solid var(--bdb);
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--brand-400);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+            width: fit-content;
+        }
+
+        .lp-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--brand-400);
+            box-shadow: 0 0 8px var(--brand-500);
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        .lp-title {
             font-size: 48px;
-            margin-bottom: 12px;
-        }
-
-        .login-header h1 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .login-header p {
-            font-size: 13px;
-            color: var(--gray-400);
-        }
-
-        .login-body {
-            padding: 32px;
-        }
-
-        .login-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--gray-800);
-            margin-bottom: 4px;
-        }
-
-        .login-subtitle {
-            font-size: 13px;
-            color: var(--gray-500);
-            margin-bottom: 24px;
-        }
-
-        .form-group {
+            font-weight: 800;
+            color: var(--text1);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
             margin-bottom: 18px;
         }
 
-            .form-group label {
-                display: block;
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--gray-600);
-                margin-bottom: 6px;
-                text-transform: uppercase;
-                letter-spacing: 0.3px;
+            .lp-title span {
+                background: linear-gradient(135deg, var(--brand-400), var(--brand-600));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
             }
 
-            .form-group input {
-                width: 100%;
-                padding: 14px 16px;
-                border: 2px solid var(--gray-200);
-                border-radius: 8px;
-                font-size: 15px;
-                font-family: inherit;
-                color: var(--gray-800);
-                transition: border-color 0.2s, box-shadow 0.2s;
-            }
-
-                .form-group input:focus {
-                    outline: none;
-                    border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
-                }
-
-                .form-group input::placeholder {
-                    color: var(--gray-400);
-                }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: var(--white);
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 8px;
+        .lp-desc {
+            font-size: 15px;
+            color: var(--text3);
+            line-height: 1.7;
+            max-width: 360px;
+            margin-bottom: 44px;
         }
 
-            .btn-login:hover {
-                background: var(--primary-hover);
-            }
+        /* Feature list */
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-            .btn-login:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-
-        .error-msg {
-            background: #fee2e2;
-            color: var(--danger);
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             padding: 12px 16px;
-            border-radius: 8px;
+            background: var(--s2);
+            border: 1px solid var(--bds);
+            border-radius: var(--rmd);
+            transition: border-color 180ms ease;
+        }
+
+            .feature:hover {
+                border-color: var(--bd);
+            }
+
+        .feature-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--r);
+            background: var(--brand-glow);
+            border: 1px solid var(--bdb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
             font-size: 13px;
             font-weight: 500;
-            margin-bottom: 18px;
+            color: var(--text2);
+        }
+
+        /* ===== RIGHT PANEL — FORM ===== */
+        .right-panel {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 32px 28px;
+            background: var(--s1);
+            border-left: 1px solid var(--bd);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 900px) {
+            .right-panel {
+                padding: 48px 44px;
+            }
+        }
+
+        /* Logo area */
+        .rp-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 36px;
+        }
+
+        .logo-box {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--brand-600), var(--brand-900));
+            border-radius: var(--rmd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 0 20px var(--brand-glow), 0 4px 8px rgba(0,0,0,0.4);
+            border: 1px solid var(--bdb);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text1);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text3);
+            margin-top: 1px;
+        }
+
+        /* Form titles */
+        .rp-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text1);
+            letter-spacing: -0.03em;
+            margin-bottom: 4px;
+        }
+
+        .rp-subtitle {
+            font-size: 13px;
+            color: var(--text3);
+            margin-bottom: 28px;
+        }
+
+        /* Error */
+        .error-msg {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: var(--danger-t);
+            padding: 11px 14px;
+            border-radius: var(--r);
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 20px;
             display: none;
-            text-align: center;
+            align-items: center;
+            gap: 8px;
         }
 
             .error-msg.active {
-                display: block;
+                display: flex;
             }
 
-        .login-footer {
+        /* Form groups */
+        .fg {
+            margin-bottom: 16px;
+        }
+
+            .fg label {
+                display: block;
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 7px;
+            }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0.35;
+        }
+
+        .fg input {
+            width: 100%;
+            padding: 10px 12px 10px 37px;
+            border: 1px solid var(--bd);
+            border-radius: var(--r);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text1);
+            background: var(--s3);
+            transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+            outline: none;
+        }
+
+            .fg input:hover {
+                border-color: rgba(255,255,255,0.14);
+            }
+
+            .fg input:focus {
+                border-color: var(--brand-500);
+                background: var(--s4);
+                box-shadow: 0 0 0 3px var(--brand-glow);
+            }
+
+            .fg input::placeholder {
+                color: var(--text3);
+            }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--brand-600);
+            color: #fff;
+            border: 1px solid var(--brand-500);
+            border-radius: var(--r);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 180ms ease;
+            margin-top: 6px;
+            letter-spacing: 0.01em;
+            box-shadow: var(--brand-glow) 0 4px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn-submit:hover {
+                background: var(--brand-500);
+                border-color: var(--brand-400);
+                box-shadow: var(--brand-glow) 0 8px 32px;
+                transform: translateY(-1px);
+            }
+
+            .btn-submit:active {
+                transform: translateY(0);
+            }
+
+            .btn-submit:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+        /* Divider */
+        .rp-footer {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--bds);
             text-align: center;
-            padding: 0 32px 24px;
-            font-size: 12px;
-            color: var(--gray-400);
+            font-size: 11px;
+            color: var(--text3);
+            letter-spacing: 0.02em;
+        }
+
+        /* Version badge */
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: var(--s3);
+            border: 1px solid var(--bds);
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text3);
+            letter-spacing: 0.04em;
+        }
+
+        .v-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--brand-500);
+            box-shadow: 0 0 6px var(--brand-500);
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <div class="login-header">
-            <div class="login-logo">👁️</div>
-            <h1>DOBLE GEMINIS, S.A. DE C.V.</h1>
-            <p>Centro Panamericano de Ojos</p>
+    <!-- Fondo -->
+    <div class="bg">
+        <div class="bg-orb2"></div>
+    </div>
+
+    <div class="wrapper">
+
+        <!-- Panel izquierdo — solo desktop -->
+        <div class="left-panel">
+            <div class="lp-badge">
+                <div class="lp-badge-dot"></div>
+                Sistema IOT activo
+            </div>
+
+            <div class="lp-title">
+                Control de<br><span>Parqueo</span><br>Inteligente
+            </div>
+
+            <div class="lp-desc">
+                Plataforma de gestión en tiempo real para parqueos hospitalarios.
+                Barreras, visitantes, pagos y reportes desde un solo lugar.
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🚗</div>
+                    <div class="feature-text">Control de acceso vehicular en tiempo real</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-text">Bitácora de médicos, visitantes y proveedores</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">Reportes de venta por efectivo y tarjeta</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-text">Gestión de barreras automáticas IOT</div>
+                </div>
+            </div>
         </div>
 
-        <div class="login-body">
-            <div class="login-title">Iniciar Sesión</div>
-            <div class="login-subtitle">Control de Ingreso de Visitantes</div>
+        <!-- Panel derecho — formulario -->
+        <div class="right-panel">
 
-            <div class="error-msg" id="errorMsg"></div>
+            <div class="rp-logo">
+                <div class="logo-box">👁️</div>
+                <div class="logo-text">
+                    <div class="logo-name">Doble Geminis</div>
+                    <div class="logo-sub">Centro Panamericano de Ojos</div>
+                </div>
+            </div>
+
+            <div class="rp-title">Bienvenido</div>
+            <div class="rp-subtitle">Ingrese sus credenciales para acceder</div>
+
+            <div class="error-msg" id="errorMsg">
+                <span>⚠️</span>
+                <span id="errorText"></span>
+            </div>
 
             <form id="formLogin" onsubmit="hacerLogin(event)">
-                <div class="form-group">
-                    <label for="username">👤 Usuario</label>
-                    <input type="text" id="username" placeholder="Ingrese su usuario" autocomplete="username" required autofocus>
+                <div class="fg">
+                    <label for="username">Usuario</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="username"
+                               placeholder="Nombre de usuario"
+                               autocomplete="username" required autofocus>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">🔒 Contraseña</label>
-                    <input type="password" id="password" placeholder="Ingrese su contraseña" autocomplete="current-password" required>
+                <div class="fg">
+                    <label for="password">Contraseña</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="password"
+                               placeholder="••••••••"
+                               autocomplete="current-password" required>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-login" id="btnLogin">
-                    Ingresar
+                <button type="submit" class="btn-submit" id="btnLogin">
+                    Iniciar sesión
                 </button>
             </form>
+
+            <div class="rp-footer">
+                <div class="version-badge">
+                    <div class="v-dot"></div>
+                    Datapark IOT v2.0
+                </div>
+            </div>
         </div>
 
-        <div class="login-footer">
-            Sistema de Control de Parqueo — IOT
-        </div>
     </div>
 
     <script>
-        // Verificar si ya tiene sesión activa
-        const operador = sessionStorage.getItem('operador');
-        if (operador) {
+        if (sessionStorage.getItem('operador')) {
             window.location.href = '/visitas/index.html';
         }
 
-        async function hacerLogin(event) {
-            event.preventDefault();
+        async function hacerLogin(e) {
+            e.preventDefault();
 
-            const btnLogin = document.getElementById('btnLogin');
+            const btn = document.getElementById('btnLogin');
             const errorMsg = document.getElementById('errorMsg');
+            const errorTxt = document.getElementById('errorText');
 
-            btnLogin.disabled = true;
-            btnLogin.textContent = '⏳ Verificando...';
+            btn.disabled = true;
+            btn.textContent = '⏳ Verificando...';
             errorMsg.classList.remove('active');
 
             const username = document.getElementById('username').value.trim();
@@ -235,32 +568,27 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-
                 const data = await res.json();
 
                 if (data.exitoso && data.data) {
-                    // Guardar datos del operador en sessionStorage
                     sessionStorage.setItem('operador', JSON.stringify(data.data));
-
-                    // Redirigir al portal
                     window.location.href = '/visitas/index.html';
                 } else {
-                    errorMsg.textContent = data.mensaje || 'Usuario o contraseña incorrectos';
+                    errorTxt.textContent = data.mensaje || 'Usuario o contraseña incorrectos';
                     errorMsg.classList.add('active');
                     document.getElementById('password').value = '';
                     document.getElementById('password').focus();
                 }
-            } catch (err) {
-                errorMsg.textContent = 'Error de conexión al servidor';
+            } catch {
+                errorTxt.textContent = 'Error de conexión al servidor';
                 errorMsg.classList.add('active');
             } finally {
-                btnLogin.disabled = false;
-                btnLogin.textContent = 'Ingresar';
+                btn.disabled = false;
+                btn.textContent = 'Iniciar sesión';
             }
         }
 
-        // Enter en password hace submit
-        document.getElementById('password').addEventListener('keypress', (e) => {
+        document.getElementById('password').addEventListener('keypress', e => {
             if (e.key === 'Enter') document.getElementById('formLogin').requestSubmit();
         });
     </script>
