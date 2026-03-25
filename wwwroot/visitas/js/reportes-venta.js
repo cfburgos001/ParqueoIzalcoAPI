@@ -250,9 +250,9 @@ function calcularTotales(datos) {
     datos.forEach(r => {
         const monto = parseFloat(r['Monto'] ?? r['monto'] ?? 0);
         const opType = parseInt(r['OperationType'] ?? r['operationtype'] ?? 0);
-        const pagado = r['bitPaid'] == 1 || r['bitpaid'] == 1;
 
-        if (!isNaN(monto) && pagado) {
+        // Sumar si tiene monto y tiene tipo de operación válido
+        if (!isNaN(monto) && monto > 0 && opType > 0) {
             totalGeneral += monto;
             if (opType === 1) { totalEfectivo += monto; countEfectivo++; }
             else if (opType === 2) { totalTarjeta += monto; countTarjeta++; }

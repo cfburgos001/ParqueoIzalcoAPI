@@ -652,7 +652,7 @@ namespace DataparkBarreraAPI.Services
             "bitPaid", "Monto", "FechaPago", "strRateKey", "TiempoEstancia",
             "IdDispositivoEntrada", "IdDispositivoSalida", "NombreOperador",
             "UsuarioRegistro", "IdOperador", "bitEntry", "bitExit",
-            "IdEntryDevice", "IdExitDevice", "bitCopy"
+            "IdEntryDevice", "IdExitDevice", "bitCopy", "OperationType"
         };
 
         private static readonly HashSet<string> CamposFechaPermitidos = new(StringComparer.OrdinalIgnoreCase)

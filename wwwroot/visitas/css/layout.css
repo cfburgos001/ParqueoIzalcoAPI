@@ -238,6 +238,20 @@ body.role-ADMINISTRADOR button.admin-only {
 body.role-ADMINISTRADOR a.admin-only {
     display: flex !important;
 }
+/* CAJA + ADMINISTRADOR pueden ver reportes de venta */
+.caja-admin {
+    display: none !important;
+}
+
+body.role-ADMINISTRADOR .caja-admin,
+body.role-CAJA .caja-admin {
+    display: flex !important;
+}
+
+body.role-ADMINISTRADOR a.caja-admin,
+body.role-CAJA a.caja-admin {
+    display: flex !important;
+}
 
 /* ===== COLUMNAS SELECTOR ===== */
 .columnas-section {
