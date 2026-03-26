@@ -41,9 +41,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 builder.Services.AddSingleton<IBarreraService, BarreraService>();
 builder.Services.AddSingleton<IPagoService, PagoService>();
-builder.Services.AddSingleton<IVisitasService, VisitasService>();  // ← NUEVO: Servicio de visitas
+builder.Services.AddSingleton<IVisitasService, VisitasService>();  
 builder.Services.AddSingleton<ITicketsService, TicketsService>();
-
+builder.Services.AddSingleton<ITarifasService, TarifasService>();
 // ===== CONSTRUCCIÓN DE LA APLICACIÓN =====
 var app = builder.Build();
 

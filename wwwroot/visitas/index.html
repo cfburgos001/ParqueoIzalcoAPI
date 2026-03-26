@@ -34,6 +34,10 @@
                 <span class="nav-icon">🎫</span>
                 <span class="nav-text">Cerrar Tickets</span>
             </a>
+            <a href="#" class="nav-item admin-only" data-page="tarifas" onclick="navegarA('tarifas', this)">
+                <span class="nav-icon">💲</span>
+                <span class="nav-text">Tarifas</span>
+            </a>
             <a href="#" class="nav-item caja-admin" data-page="reportes-venta" onclick="navegarA('reportes-venta', this)">
                 <span class="nav-icon">📊</span>
                 <span class="nav-text">Reportes de Venta</span>
@@ -483,7 +487,67 @@
                 </div>
             </section>
         </main>
+
+        <!-- ══════════════════════════════════════════════════════════
+        PÁGINA: TARIFAS (solo ADMINISTRADOR)
+    ══════════════════════════════════════════════════════════ -->
+        <main class="content" id="pageTarifas" style="display:none;">
+            <section class="form-section">
+
+                <div class="section-header">
+                    <h2>💲 Gestión de Tarifas</h2>
+                    <button class="btn btn-sm btn-secondary" onclick="cargarTarifas()">🔄 Actualizar</button>
+                </div>
+
+                <!-- Hint de uso -->
+                <div class="tar-inline-hint">
+                    <span>💡</span>
+                    <span>
+                        <strong>Edición rápida:</strong> doble clic en cualquier precio para editarlo inline,
+                        o usa <strong>✏️</strong> para editar toda la fila, o <strong>⊞</strong> para el modal completo.
+                        El toggle activa/inactiva aplica al instante.
+                    </span>
+                </div>
+
+                <!-- Tabla -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="min-width:160px;">Tarifa</th>
+                                <th>1ª Hora</th>
+                                <th>2ª Hora</th>
+                                <th>Día completo</th>
+                                <th>Por hora</th>
+                                <th>Mínimo</th>
+                                <th>Máximo</th>
+                                <th>Estado</th>
+                                <th style="width:110px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyTarifas">
+                            <tr><td colspan="9" class="empty-row">Cargando…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Nota de solo lectura -->
+                <div style="margin-top:12px;font-size:11px;color:var(--text-tertiary);
+                display:flex;align-items:center;gap:6px;">
+                    <span>🔒</span>
+                    <span>
+                        El nombre de la tarifa y el código <code style="font-family:monospace;
+              background:var(--surface-3);padding:1px 5px;border-radius:4px;">strRateKey</code>
+                        son de solo lectura para proteger la integridad del sistema.
+                    </span>
+                </div>
+
+            </section>
+        </main>
+
     </div>
+
+    
 
     <!-- Modal Observación -->
     <div class="modal-overlay" id="modalObservacion" style="display:none;">
@@ -591,6 +655,96 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modalEditarTarifa" style="display:none;">
+        <div class="modal" style="max-width:580px;">
+
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span id="tarModalIcon" style="font-size:22px;">🚗</span>
+                    <div>
+                        <div id="tarModalNombre"
+                             style="font-size:15px;font-weight:700;color:var(--text-primary);"></div>
+                        <div id="tarModalKey"
+                             style="font-size:11px;color:var(--text-tertiary);
+                                font-family:monospace;margin-top:1px;"></div>
+                    </div>
+                </div>
+                <button class="btn-close" onclick="cerrarModalTarifa()">✕</button>
+            </div>
+
+            <input type="hidden" id="tarModalId">
+
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:0;">
+
+                <!-- Tarifas escalonadas -->
+                <div class="tar-modal-section">
+                    <div class="tar-modal-section-title">📊 Tarifas escalonadas</div>
+                    <div class="tar-modal-grid">
+                        <div class="form-group">
+                            <label for="tarM_precio1Hora">1ª Hora ($)</label>
+                            <input type="number" id="tarM_precio1Hora" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarM_precio2Horas">2ª Hora ($)</label>
+                            <input type="number" id="tarM_precio2Horas" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarM_precioDiaCompleto">Día completo ($)</label>
+                            <input type="number" id="tarM_precioDiaCompleto" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Otros precios -->
+                <div class="tar-modal-section">
+                    <div class="tar-modal-section-title">💰 Otros precios</div>
+                    <div class="tar-modal-grid">
+                        <div class="form-group">
+                            <label for="tarM_precioPorHora">Por hora ($)</label>
+                            <input type="number" id="tarM_precioPorHora" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarM_precioMinimo">Mínimo ($)</label>
+                            <input type="number" id="tarM_precioMinimo" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarM_precioMax">Máximo ($)</label>
+                            <input type="number" id="tarM_precioMax" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="tar-modal-section">
+                    <div class="tar-modal-section-title">⚙️ Estado</div>
+                    <div class="tar-toggle-row">
+                        <div>
+                            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">
+                                Tarifa activa
+                            </div>
+                            <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">
+                                Las tarifas inactivas no aparecen disponibles en la PayStation.
+                            </div>
+                        </div>
+                        <label class="tar-toggle">
+                            <input type="checkbox" id="tarM_activa"
+                                   onchange="actualizarLabelActiva(this)">
+                            <span class="tar-toggle-slider"></span>
+                        </label>
+                        <span id="tarM_activa_label" class="tar-tog-label tar-tog--on">● Activa</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalTarifa()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarModal" onclick="guardarModal()">
+                    💾 Guardar cambios
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast -->
     <div class="toast-container" id="toastContainer"></div>
@@ -598,5 +752,6 @@
     <script src="/visitas/js/visitas.js"></script>
     <script src="/visitas/js/reportes-venta.js"></script>
     <script src="/visitas/js/cerrar-tickets.js"></script>
+    <script src="/visitas/js/tarifas.js"></script>
 </body>
 </html>

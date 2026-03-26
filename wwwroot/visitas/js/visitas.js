@@ -1047,6 +1047,10 @@ function navegarA(pagina, elemento) {
             document.getElementById('pageCerrarTickets').style.display = '';
             document.getElementById('pageTitle').textContent = '🎫 Cerrar Tickets';
             cargarTicketsAntiguos();
+        } else if (pagina === 'tarifas') {
+            document.getElementById('pageTarifas').style.display = '';
+            document.getElementById('pageTitle').textContent = '💲 Tarifas';
+            cargarTarifas();
         }
 
     }
