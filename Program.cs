@@ -15,7 +15,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Datapark Barrera API",
+        Title = "IOT API",
         Version = "v1",
         Description = "API para control de barrera de parqueo - Sistema IOT",
         Contact = new OpenApiContact
