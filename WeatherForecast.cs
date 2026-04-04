@@ -1,4 +1,4 @@
-namespace DataparkBarreraAPI
+namespace ParqueoIzalcoAPI
 {
     public class WeatherForecast
     {

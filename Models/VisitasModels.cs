@@ -1,4 +1,4 @@
-﻿namespace DataparkBarreraAPI.Models
+﻿namespace ParqueoIzalcoAPI.Models
 {
     // =============================================
     // MODELOS PARA CONTROL DE VISITANTES

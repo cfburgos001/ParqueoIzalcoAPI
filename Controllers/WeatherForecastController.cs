@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace DataparkBarreraAPI.Controllers
+namespace ParqueoIzalcoAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]

@@ -1,0 +1,6 @@
+@ParqueoIzalcoAPI_HostAddress = http://localhost:5225
+
+GET {{ParqueoIzalcoAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

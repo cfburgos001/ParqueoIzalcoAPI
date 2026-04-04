@@ -1,9 +1,9 @@
-﻿using DataparkBarreraAPI.Models;
-using DataparkBarreraAPI.Models.DataparkBarreraAPI.Models;
-using DataparkBarreraAPI.Services;
+﻿using ParqueoIzalcoAPI.Models;
+using ParqueoIzalcoAPI.Models.ParqueoIzalcoAPI.Models;
+using ParqueoIzalcoAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DataparkBarreraAPI.Controllers
+namespace ParqueoIzalcoAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

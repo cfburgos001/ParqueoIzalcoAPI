@@ -1,4 +1,4 @@
-﻿using DataparkBarreraAPI.Services;
+﻿using ParqueoIzalcoAPI.Services;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 

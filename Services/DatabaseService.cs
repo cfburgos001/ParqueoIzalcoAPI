@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using Microsoft.Data.SqlClient;
 
-namespace DataparkBarreraAPI.Services
+namespace ParqueoIzalcoAPI.Services
 {
     public interface IDatabaseService
     {

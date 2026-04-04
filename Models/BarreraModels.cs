@@ -1,4 +1,4 @@
-﻿namespace DataparkBarreraAPI.Models
+﻿namespace ParqueoIzalcoAPI.Models
 {
     /// <summary>
     /// Modelo de la barrera
@@ -238,7 +238,7 @@
     }
 
 
-    namespace DataparkBarreraAPI.Models
+    namespace ParqueoIzalcoAPI.Models
     {
         // =============================================
         // MODELOS PARA CIERRE DE TICKETS ANTIGUOS

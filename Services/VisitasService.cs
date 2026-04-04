@@ -1,8 +1,8 @@
-﻿using DataparkBarreraAPI.Models;
+﻿using ParqueoIzalcoAPI.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace DataparkBarreraAPI.Services
+namespace ParqueoIzalcoAPI.Services
 {
     public interface IVisitasService
     {

@@ -1,9 +1,9 @@
-﻿using DataparkBarreraAPI.Models;
-using DataparkBarreraAPI.Models.DataparkBarreraAPI.Models;
+﻿using ParqueoIzalcoAPI.Models;
+using ParqueoIzalcoAPI.Models.ParqueoIzalcoAPI.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
-namespace DataparkBarreraAPI.Services
+namespace ParqueoIzalcoAPI.Services
 {
     public interface ITicketsService
     {
