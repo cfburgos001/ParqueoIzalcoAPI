@@ -358,6 +358,13 @@ function descargarExcelVenta() {
 
     xml += '<Worksheet ss:Name="Reporte Venta"><Table>\n';
 
+    // ← FILAS DE TÍTULO DE EMPRESA AGREGADAS (5b)
+    xml += '<Row ss:Height="22"><Cell ss:MergeAcross="15" ss:StyleID="h">';
+    xml += `<Data ss:Type="String">REPORTE DE VENTA — ${getSitioRazonSocial()}</Data></Cell></Row>\n`;
+    xml += '<Row ss:Height="16"><Cell ss:MergeAcross="15">';
+    xml += `<Data ss:Type="String">${getSitioFooter()}</Data></Cell></Row>\n`;
+    xml += '<Row></Row>\n'; // fila vacía separadora
+
     // Headers
     xml += '<Row>';
     columnasExcel.forEach(c => {
@@ -448,10 +455,10 @@ function descargarPDFVenta() {
         .footer { margin-top:15px; font-size:9px; color:#999; text-align:right }
     </style></head>
     <body>
-        <h1>REPORTE DE VENTA — DOBLE GEMINIS S.A. DE C.V.</h1>
+        <h1>REPORTE DE VENTA — ${getSitioRazonSocial()}</h1>
         <h2>Generado: ${new Date().toLocaleString('es-GT')} | ${datosVentaActual.length} registros</h2>
 
-        <table>
+        <table> 
             <thead><tr>
                 ${columnasConOp.map(c => {
         const col = TODAS_COLUMNAS.find(tc => tc.key === c);
@@ -486,7 +493,7 @@ function descargarPDFVenta() {
             </tr>
         </table>
 
-        <div class="footer">Centro Panamericano de Ojos — Sistema de Control de Parqueo</div>
+        <div class="footer">${getSitioFooter()} — Sistema de Control de Parqueo</div>
         <script>window.onload=()=>window.print()<\/script>
     </body></html>`;
 

@@ -39,6 +39,7 @@ builder.Services.AddCors(options =>
 
 // Registrar servicios personalizados
 builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
+builder.Services.AddSingleton<ISitioService, SitioService>();
 builder.Services.AddSingleton<IBarreraService, BarreraService>();
 builder.Services.AddSingleton<IPagoService, PagoService>();
 builder.Services.AddSingleton<IVisitasService, VisitasService>();
@@ -47,6 +48,14 @@ builder.Services.AddSingleton<ITarifasService, TarifasService>();
 builder.Services.AddSingleton<IVehiculosService, VehiculosService>();
 // ===== CONSTRUCCIÓN DE LA APLICACIÓN =====
 var app = builder.Build();
+
+// CARGAR CONFIG DEL SITIO AL INICIAR
+using (var scope = app.Services.CreateScope())
+{
+    var sitioService = scope.ServiceProvider.GetRequiredService<ISitioService>();
+    await sitioService.CargarDesdeDBAsync();
+}
+
 
 // Configurar el pipeline HTTP
 app.UseSwagger();

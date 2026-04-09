@@ -46,6 +46,7 @@ let dashboardIntervalId = null;
 document.addEventListener('DOMContentLoaded', () => {
     if (!verificarSesion()) return;
 
+    cargarConfigSitio();
     cargarCatalogos();
     cargarVisitasHoy();
     actualizarReloj();
@@ -624,14 +625,14 @@ async function descargarExcel() {
     // Anchos de columna
     xml += '<Column ss:Width="90"/><Column ss:Width="200"/><Column ss:Width="100"/><Column ss:Width="90"/><Column ss:Width="80"/><Column ss:Width="80"/><Column ss:Width="70"/><Column ss:Width="150"/><Column ss:Width="200"/>\n';
 
-    // Título empresa
+    // Título empresa (6b)
     xml += '<Row ss:Height="25">';
-    xml += '<Cell ss:MergeAcross="8" ss:StyleID="titulo"><Data ss:Type="String">DOBLE GEMINIS, S.A. DE C.V.</Data></Cell>';
+    xml += `<Cell ss:MergeAcross="8" ss:StyleID="titulo"><Data ss:Type="String">${getSitioRazonSocial()}</Data></Cell>`;
     xml += '</Row>\n';
 
-    // Subtítulo
+    // Subtítulo (6b)
     xml += '<Row ss:Height="20">';
-    xml += '<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">CONTROL DE PARQUEO PARA MÉDICOS, VISITANTES Y PROVEEDORES</Data></Cell>';
+    xml += `<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">${sitioConfig?.slogan ?? 'Control de Parqueo para Visitantes'}</Data></Cell>`;
     xml += '</Row>\n';
 
     // Período
@@ -740,8 +741,8 @@ async function descargarPDF() {
     </head>
     <body>
         <div class="header-report">
-            <h1>DOBLE GEMINIS, S.A. DE C.V.</h1>
-            <h2>CONTROL DE PARQUEO PARA MÉDICOS QUE NOS VISITAN PARA REALIZAR<br>PROCEDIMIENTOS EN SALA DE OPERACIONES Y UNIDAD DE DIAGNÓSTICO</h2>
+            <h1>${getSitioRazonSocial()}</h1>
+            <h2>${sitioConfig?.slogan ?? 'Control de Parqueo para Visitantes'}</h2>
             <p>${periodoTexto} &nbsp;|&nbsp; Total: ${datos.length} registros</p>
         </div>
 
@@ -785,7 +786,7 @@ async function descargarPDF() {
         </table>
 
         <div class="footer-report">
-            <span>Centro Panamericano de Ojos — Sistema de Control de Parqueo</span>
+            <span>${getSitioFooter()} — Sistema de Control de Parqueo</span>
             <span>Generado: ${new Date().toLocaleString('es-GT')}</span>
         </div>
 
@@ -814,8 +815,8 @@ function escapeXml(str) {
 // DASHBOARD — KPIs + GRÁFICOS
 // =============================================
 let _chartSemanal = null;
-let _chartEstado  = null;
-let _chartPagos   = null;
+let _chartEstado = null;
+let _chartPagos = null;
 
 async function cargarDashboard() {
     const loading = document.getElementById('dashLoading');
@@ -838,18 +839,18 @@ async function cargarDashboard() {
 
         const d = data.data;
 
-        document.getElementById('kpiDentro').textContent     = d.vehiculosDentroHoy ?? 0;
-        document.getElementById('kpiHoy').textContent        = d.totalVehiculosHoy ?? 0;
-        document.getElementById('kpiSemana').textContent     = d.vehiculosDentroSemana ?? 0;
-        document.getElementById('kpiTiempo').textContent     = formatearTiempo(d.tiempoPromedioEstanciaMin);
-        document.getElementById('kpiMonto').textContent      = formatearMonto(d.montoPromedioCobrado);
+        document.getElementById('kpiDentro').textContent = d.vehiculosDentroHoy ?? 0;
+        document.getElementById('kpiHoy').textContent = d.totalVehiculosHoy ?? 0;
+        document.getElementById('kpiSemana').textContent = d.vehiculosDentroSemana ?? 0;
+        document.getElementById('kpiTiempo').textContent = formatearTiempo(d.tiempoPromedioEstanciaMin);
+        document.getElementById('kpiMonto').textContent = formatearMonto(d.montoPromedioCobrado);
         document.getElementById('kpiMontoTotal').textContent = formatearMonto(d.montoTotalDia);
 
         // Actualizar stats del header
         const statDentro = document.getElementById('statDentro');
-        const statHoy    = document.getElementById('statHoy');
+        const statHoy = document.getElementById('statHoy');
         if (statDentro) statDentro.textContent = `${d.vehiculosDentroHoy ?? 0} Dentro`;
-        if (statHoy)    statHoy.textContent    = `${d.totalVehiculosHoy ?? 0} Hoy`;
+        if (statHoy) statHoy.textContent = `${d.totalVehiculosHoy ?? 0} Hoy`;
 
         renderizarGraficos(d);
 
@@ -870,9 +871,9 @@ async function cargarDashboard() {
 }
 
 function renderizarGraficos(d) {
-    const semana    = d.vehiculosPorDiaSemana ?? [];
+    const semana = d.vehiculosPorDiaSemana ?? [];
     const estadoHoy = d.estadoHoy ?? { dentro: 0, salio: 0 };
-    const pagoHoy   = d.pagoHoy   ?? { pagados: 0, noPagados: 0 };
+    const pagoHoy = d.pagoHoy ?? { pagados: 0, noPagados: 0 };
 
     // --- Gráfico de barras: vehículos por día de la semana ---
     const ctxSemanal = document.getElementById('chartSemanal');
@@ -919,7 +920,7 @@ function renderizarGraficos(d) {
     const ctxEstado = document.getElementById('chartEstado');
     if (ctxEstado) {
         const labelsE = ['Dentro', 'Salió'];
-        const dataE   = [estadoHoy.dentro, estadoHoy.salio];
+        const dataE = [estadoHoy.dentro, estadoHoy.salio];
         if (_chartEstado) {
             _chartEstado.data.datasets[0].data = dataE;
             _chartEstado.update();
@@ -952,7 +953,7 @@ function renderizarGraficos(d) {
     const ctxPagos = document.getElementById('chartPagos');
     if (ctxPagos) {
         const labelsP = ['Pagados', 'No pagados'];
-        const dataP   = [pagoHoy.pagados, pagoHoy.noPagados];
+        const dataP = [pagoHoy.pagados, pagoHoy.noPagados];
         if (_chartPagos) {
             _chartPagos.data.datasets[0].data = dataP;
             _chartPagos.update();
