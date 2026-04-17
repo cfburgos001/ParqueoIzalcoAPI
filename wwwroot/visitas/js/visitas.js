@@ -1,5 +1,5 @@
 ﻿// =============================================
-// CONTROL DE INGRESO - CENTRO PANAMERICANO DE OJOS
+// CONTROL DE INGRESO - SISTEMA DE PARQUEO
 // Lógica del frontend
 // =============================================
 
@@ -10,6 +10,7 @@ let areasDestino = [];
 let visitasHoy = [];
 let filtroActual = 'TODOS';
 let debounceTimer = null;
+let lastTableHTML = ''; // Anti-Blinking / Anti-Parpadeo
 
 // ===== PROTECCIÓN DE SESIÓN + PERMISOS =====
 function verificarSesion() {
@@ -20,10 +21,8 @@ function verificarSesion() {
     }
     operadorActual = JSON.parse(datos);
 
-    // Aplicar rol al body para CSS de permisos
     document.body.classList.add('role-' + operadorActual.tipoUsuario);
 
-    // Mostrar info en sidebar
     const sidebarName = document.getElementById('sidebarUserName');
     const sidebarRole = document.getElementById('sidebarUserRole');
     if (sidebarName) sidebarName.textContent = operadorActual.nombreCompleto;
@@ -32,11 +31,17 @@ function verificarSesion() {
     return true;
 }
 
+function abrirModalCerrarSesion() {
+    document.getElementById('modalCerrarSesion').style.display = 'flex';
+}
+
+function confirmarCerrarSesion() {
+    sessionStorage.removeItem('operador');
+    window.location.href = '/visitas/login.html';
+}
+
 function cerrarSesion() {
-    if (confirm('¿Desea cerrar sesión?')) {
-        sessionStorage.removeItem('operador');
-        window.location.href = '/visitas/login.html';
-    }
+    abrirModalCerrarSesion();
 }
 
 // ===== INICIALIZACIÓN =====
@@ -53,16 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(actualizarReloj, 1000);
     setInterval(cargarVisitasHoy, 30000);
 
-    // Navegar a Inicio por defecto
     const navInicio = document.querySelector('.nav-item[data-page="inicio"]');
     navegarA('inicio', navInicio);
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-container')) {
-            document.getElementById('autocompleteList').classList.remove('active');
+            const autoList = document.getElementById('autocompleteList');
+            if (autoList) autoList.classList.remove('active');
         }
     });
 });
+
 // ===== RELOJ =====
 function actualizarReloj() {
     const now = new Date();
@@ -89,19 +95,23 @@ async function cargarCatalogos() {
         if (dataTipos.exitoso) {
             tiposVisitante = dataTipos.data;
             const select = document.getElementById('tipoVisitante');
-            select.innerHTML = '<option value="">Seleccione...</option>';
-            tiposVisitante.forEach(t => {
-                select.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
-            });
+            if (select) {
+                select.innerHTML = '<option value="">Seleccione...</option>';
+                tiposVisitante.forEach(t => {
+                    select.innerHTML += `<option value="${t.id}">${t.nombre}</option>`;
+                });
+            }
         }
 
         if (dataAreas.exitoso) {
             areasDestino = dataAreas.data;
             const select = document.getElementById('areaDestino');
-            select.innerHTML = '<option value="">Seleccione...</option>';
-            areasDestino.forEach(a => {
-                select.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
-            });
+            if (select) {
+                select.innerHTML = '<option value="">Seleccione...</option>';
+                areasDestino.forEach(a => {
+                    select.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                });
+            }
         }
     } catch (err) {
         console.error('Error al cargar catálogos:', err);
@@ -118,7 +128,6 @@ function buscarVisitante(termino) {
         return;
     }
 
-    // Limpiar selección previa cuando el usuario escribe
     document.getElementById('visitanteId').value = '';
 
     debounceTimer = setTimeout(async () => {
@@ -134,7 +143,7 @@ function buscarVisitante(termino) {
                         <div>
                             <div class="item-name">${v.nombreCompleto}</div>
                             <div class="item-detail">
-                                ${v.placaFrecuente ? '🚗 ' + v.placaFrecuente : ''}
+                                ${v.placaFrecuente ? 'Vehículo: ' + v.placaFrecuente : ''}
                                 ${v.especialidad ? ' · ' + v.especialidad : ''}
                                 ${v.empresa ? ' · ' + v.empresa : ''}
                             </div>
@@ -146,7 +155,7 @@ function buscarVisitante(termino) {
             } else {
                 lista.innerHTML = `
                     <div class="autocomplete-item" style="color: var(--gray-400); cursor: default; justify-content: center;">
-                        No encontrado — se creará como nuevo visitante
+                        No encontrado — se creará como nuevo registro
                     </div>`;
                 lista.classList.add('active');
             }
@@ -178,19 +187,17 @@ async function registrarEntrada() {
         const idAreaDestino = document.getElementById('areaDestino').value;
         const observacion = document.getElementById('observacion').value.trim();
 
-        // Validaciones
         if (!nombreVisitante) {
-            mostrarToast('El nombre del visitante es requerido', 'error');
+            mostrarToast('El nombre o identificador es requerido', 'error');
             registrando = false;
             return;
         }
         if (!idTipoVisitante) {
-            mostrarToast('Seleccione el tipo de visitante', 'error');
+            mostrarToast('Seleccione la clasificación del visitante', 'error');
             registrando = false;
             return;
         }
 
-        // Si no se seleccionó un visitante existente, crear uno nuevo
         let visitanteId = idVisitante ? parseInt(idVisitante) : null;
 
         if (!visitanteId) {
@@ -209,7 +216,6 @@ async function registrarEntrada() {
             }
         }
 
-        // Registrar la entrada
         const body = {
             idVisitante: visitanteId,
             nombreVisitante: nombreVisitante,
@@ -230,7 +236,7 @@ async function registrarEntrada() {
         const data = await res.json();
 
         if (data.exitoso) {
-            mostrarToast(`✅ ${nombreVisitante} — Entrada registrada`, 'success');
+            mostrarToast(`Entrada registrada para ${nombreVisitante}`, 'success');
             limpiarFormulario();
             cargarVisitasHoy();
         } else {
@@ -253,7 +259,7 @@ async function registrarSalida(id, nombre) {
         const data = await res.json();
 
         if (data.exitoso) {
-            mostrarToast(`🔴 ${nombre} — Salida registrada`, 'success');
+            mostrarToast(`Salida registrada para ${nombre}`, 'success');
             cargarVisitasHoy();
         } else {
             mostrarToast(data.mensaje || 'Error al registrar salida', 'error');
@@ -275,13 +281,13 @@ async function cargarVisitasHoy() {
         const dataVisitas = await resVisitas.json();
         const dataStats = await resEstadisticas.json();
 
-        // Actualizar estadísticas
         if (dataStats.exitoso && dataStats.data) {
-            document.getElementById('statDentro').textContent = dataStats.data.visitantesDentro || 0;
-            document.getElementById('statHoy').textContent = dataStats.data.totalVisitas || 0;
+            const statDentro = document.getElementById('statDentro');
+            const statHoy = document.getElementById('statHoy');
+            if (statDentro) statDentro.textContent = `${dataStats.data.visitantesDentro || 0} Dentro`;
+            if (statHoy) statHoy.textContent = `${dataStats.data.totalVisitas || 0} Hoy`;
         }
 
-        // Actualizar tabla
         if (dataVisitas.exitoso) {
             visitasHoy = dataVisitas.data || [];
             renderizarTabla();
@@ -291,22 +297,27 @@ async function cargarVisitasHoy() {
     }
 }
 
-// ===== RENDERIZAR TABLA =====
+// ===== RENDERIZAR TABLA CON ANTI-PARPADEO Y LUCIDE =====
 function renderizarTabla() {
     const tbody = document.getElementById('tbodyVisitas');
+    if (!tbody) return;
+
     let visitas = visitasHoy;
 
-    // Aplicar filtro
     if (filtroActual !== 'TODOS') {
         visitas = visitas.filter(v => v.estado === filtroActual);
     }
 
     if (visitas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="empty-row">No hay visitas${filtroActual !== 'TODOS' ? ' con este filtro' : ' registradas hoy'}</td></tr>`;
+        const newHTML = `<tr><td colspan="10" class="empty-row">No hay registros hoy</td></tr>`;
+        if (lastTableHTML !== newHTML) {
+            lastTableHTML = newHTML;
+            tbody.innerHTML = newHTML;
+        }
         return;
     }
 
-    tbody.innerHTML = visitas.map(v => {
+    const newHTML = visitas.map(v => {
         const horaEntrada = new Date(v.horaEntrada).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
         const horaSalida = v.horaSalida
             ? new Date(v.horaSalida).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })
@@ -319,7 +330,8 @@ function renderizarTabla() {
 
         const esDentro = v.estado === 'DENTRO';
         const badgeClass = esDentro ? 'badge-dentro' : 'badge-salio';
-        const badgeText = esDentro ? '🟢 Dentro' : '🔴 Salió';
+        // Quitamos los emojis y usamos puntos CSS sencillos
+        const badgeText = esDentro ? '● Dentro' : '● Salió';
 
         const nombreEscapado = (v.nombreVisitante || '').replace(/'/g, "\\'");
 
@@ -327,23 +339,32 @@ function renderizarTabla() {
             <tr>
                 <td><strong>${horaEntrada}</strong></td>
                 <td>${v.nombreVisitante || ''}</td>
-                <td>${v.tipoVisitante || ''}</td>
+                <td><span style="font-size: 11px; background: rgba(59,130,246,0.1); color: var(--brand-600); padding: 2px 6px; border-radius: 4px;">${v.tipoVisitante || ''}</span></td>
                 <td>${v.placa || '—'}</td>
                 <td>${v.areaDestino || '—'}</td>
                 <td>${horaSalida}</td>
                 <td>${tiempo}</td>
                 <td>${v.observacion || '—'}
-                    <button class="btn-table btn-obs" onclick="abrirModalObservacion(${v.id}, '${(v.observacion || '').replace(/'/g, "\\'")}')">✏️</button>
+                    <button class="btn-table btn-obs" style="background: none; border: none; cursor: pointer; color: var(--text-tertiary);" onclick="abrirModalObservacion(${v.id}, '${(v.observacion || '').replace(/'/g, "\\'")}')" title="Editar detalle">
+                        <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                    </button>
                 </td>
-                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                <td><span class="badge ${badgeClass}" style="border: 1px solid transparent;">${badgeText}</span></td>
                 <td>
                     ${esDentro
-                ? `<button class="btn-table btn-salida" onclick="registrarSalida(${v.id}, '${nombreEscapado}')">🚪 Salida</button>`
+                ? `<button class="btn-table btn-salida" onclick="registrarSalida(${v.id}, '${nombreEscapado}')" style="display:flex; align-items:center; gap:4px; font-weight:600;"><i data-lucide="log-out" style="width:14px; height:14px;"></i> Salida</button>`
                 : '—'}
                 </td>
             </tr>
         `;
     }).join('');
+
+    // MAGIA ANTI-PARPADEO
+    if (lastTableHTML !== newHTML) {
+        lastTableHTML = newHTML;
+        tbody.innerHTML = newHTML;
+        if (window.lucide) lucide.createIcons({ root: tbody });
+    }
 }
 
 // ===== FILTRAR TABLA =====
@@ -380,7 +401,7 @@ async function guardarObservacion() {
         const data = await res.json();
 
         if (data.exitoso) {
-            mostrarToast('Observación actualizada', 'success');
+            mostrarToast('Detalle actualizado exitosamente', 'success');
             cerrarModalObservacion();
             cargarVisitasHoy();
         } else {
@@ -403,13 +424,11 @@ function mostrarFormAdmin() {
 }
 
 async function cargarListaAdmin() {
-    // Listar tipos de visitante
     const ulTipos = document.getElementById('listaTiposVisitante');
-    ulTipos.innerHTML = tiposVisitante.map(t => `<li>${t.nombre}</li>`).join('');
+    if (ulTipos) ulTipos.innerHTML = tiposVisitante.map(t => `<li>${t.nombre}</li>`).join('');
 
-    // Listar áreas destino
     const ulAreas = document.getElementById('listaAreasDestino');
-    ulAreas.innerHTML = areasDestino.map(a => `<li>${a.nombre}</li>`).join('');
+    if (ulAreas) ulAreas.innerHTML = areasDestino.map(a => `<li>${a.nombre}</li>`).join('');
 }
 
 async function crearTipoVisitante() {
@@ -426,7 +445,7 @@ async function crearTipoVisitante() {
         const data = await res.json();
 
         if (data.exitoso) {
-            mostrarToast(`Tipo "${nombre}" creado`, 'success');
+            mostrarToast(`Clasificación "${nombre}" creada`, 'success');
             input.value = '';
             await cargarCatalogos();
             cargarListaAdmin();
@@ -472,12 +491,14 @@ function limpiarFormulario() {
     document.getElementById('placaVisitante').value = '';
     document.getElementById('areaDestino').selectedIndex = 0;
     document.getElementById('observacion').value = '';
-    document.getElementById('autocompleteList').classList.remove('active');
+    const autoList = document.getElementById('autocompleteList');
+    if (autoList) autoList.classList.remove('active');
     document.getElementById('nombreVisitante').focus();
 }
 
 function mostrarToast(mensaje, tipo = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${tipo}`;
     toast.textContent = mensaje;
@@ -496,16 +517,13 @@ function mostrarToast(mensaje, tipo = 'success') {
 // REPORTES - EXCEL Y PDF
 // =============================================
 
-// Inicializar fechas del reporte
 document.addEventListener('DOMContentLoaded', () => {
-    // Poner fecha de hoy por defecto
     const hoy = new Date().toISOString().split('T')[0];
     const inputInicio = document.getElementById('reporteFechaInicio');
     const inputFin = document.getElementById('reporteFechaFin');
     if (inputInicio) inputInicio.value = hoy;
     if (inputFin) inputFin.value = hoy;
 
-    // Llenar select de tipos en reportes
     setTimeout(() => {
         const selectTipo = document.getElementById('reporteTipo');
         if (selectTipo && tiposVisitante.length > 0) {
@@ -517,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
 });
 
-// Buscar datos para el reporte
 async function buscarDatosReporte() {
     const fechaInicio = document.getElementById('reporteFechaInicio').value;
     const fechaFin = document.getElementById('reporteFechaFin').value;
@@ -545,7 +562,6 @@ async function buscarDatosReporte() {
         const data = await res.json();
 
         if (data.exitoso && data.data) {
-            // Mostrar vista previa
             mostrarVistaPrevia(data.data, fechaInicio, fechaFin);
             return data.data;
         } else {
@@ -564,6 +580,7 @@ function mostrarVistaPrevia(datos, fechaInicio, fechaFin) {
     const titulo = document.getElementById('reporteTitulo');
     const conteo = document.getElementById('reporteConteo');
     const tbody = document.getElementById('tbodyReporte');
+    if (!preview) return;
 
     titulo.textContent = `Bitácora: ${formatearFechaCorta(fechaInicio)}${fechaFin && fechaFin !== fechaInicio ? ' al ' + formatearFechaCorta(fechaFin) : ''}`;
     conteo.textContent = `${datos.length} registros`;
@@ -604,13 +621,11 @@ async function descargarExcel() {
     const fechaInicio = document.getElementById('reporteFechaInicio').value;
     const fechaFin = document.getElementById('reporteFechaFin').value || fechaInicio;
 
-    // Construir contenido XML para Excel
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<?mso-application progid="Excel.Sheet"?>\n';
     xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
     xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
 
-    // Estilos
     xml += '<Styles>\n';
     xml += '  <Style ss:ID="titulo"><Font ss:Bold="1" ss:Size="14"/><Alignment ss:Horizontal="Center"/></Style>\n';
     xml += '  <Style ss:ID="subtitulo"><Font ss:Bold="1" ss:Size="11"/><Alignment ss:Horizontal="Center"/></Style>\n';
@@ -619,23 +634,19 @@ async function descargarExcel() {
     xml += '  <Style ss:ID="fecha"><NumberFormat ss:Format="dd/mm/yyyy"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E5E7EB"/></Borders></Style>\n';
     xml += '</Styles>\n';
 
-    xml += '<Worksheet ss:Name="Bitácora de Visitas">\n';
+    xml += '<Worksheet ss:Name="Bitácora de Accesos">\n';
     xml += '<Table>\n';
 
-    // Anchos de columna
     xml += '<Column ss:Width="90"/><Column ss:Width="200"/><Column ss:Width="100"/><Column ss:Width="90"/><Column ss:Width="80"/><Column ss:Width="80"/><Column ss:Width="70"/><Column ss:Width="150"/><Column ss:Width="200"/>\n';
 
-    // Título empresa (6b)
     xml += '<Row ss:Height="25">';
     xml += `<Cell ss:MergeAcross="8" ss:StyleID="titulo"><Data ss:Type="String">${getSitioRazonSocial()}</Data></Cell>`;
     xml += '</Row>\n';
 
-    // Subtítulo (6b)
     xml += '<Row ss:Height="20">';
-    xml += `<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">${sitioConfig?.slogan ?? 'Control de Parqueo para Visitantes'}</Data></Cell>`;
+    xml += `<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">${sitioConfig?.slogan ?? 'Control de Accesos y Vehículos'}</Data></Cell>`;
     xml += '</Row>\n';
 
-    // Período
     const periodoTexto = fechaInicio === fechaFin
         ? `Fecha: ${formatearFechaLarga(fechaInicio)}`
         : `Período: ${formatearFechaLarga(fechaInicio)} al ${formatearFechaLarga(fechaFin)}`;
@@ -644,18 +655,15 @@ async function descargarExcel() {
     xml += `<Cell ss:MergeAcross="8" ss:StyleID="subtitulo"><Data ss:Type="String">${periodoTexto}</Data></Cell>`;
     xml += '</Row>\n';
 
-    // Fila vacía
     xml += '<Row></Row>\n';
 
-    // Encabezados
     xml += '<Row>';
-    const headers = ['FECHA DE VISITA', 'NOMBRE', 'TIPO', 'PLACA #', 'ENTRADA', 'SALIDA', 'TIEMPO', 'ÁREA DESTINO', 'OBSERVACIÓN'];
+    const headers = ['FECHA DE ACCESO', 'NOMBRE / IDENTIFICADOR', 'CLASIFICACIÓN', 'PLACA #', 'ENTRADA', 'SALIDA', 'TIEMPO', 'ÁREA DESTINO', 'DETALLE'];
     headers.forEach(h => {
         xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${h}</Data></Cell>`;
     });
     xml += '</Row>\n';
 
-    // Datos
     datos.forEach(v => {
         const fecha = new Date(v.fechaVisita || v.horaEntrada).toLocaleDateString('es-GT');
         const entrada = new Date(v.horaEntrada).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
@@ -680,12 +688,11 @@ async function descargarExcel() {
 
     xml += '</Table>\n</Worksheet>\n</Workbook>';
 
-    // Descargar
     const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const nombreArchivo = `Bitacora_Visitas_${fechaInicio.replace(/-/g, '')}${fechaFin !== fechaInicio ? '_al_' + fechaFin.replace(/-/g, '') : ''}.xls`;
+    const nombreArchivo = `Bitacora_Accesos_${fechaInicio.replace(/-/g, '')}${fechaFin !== fechaInicio ? '_al_' + fechaFin.replace(/-/g, '') : ''}.xls`;
     descargarBlob(blob, nombreArchivo);
 
-    mostrarToast(`📗 Excel descargado: ${datos.length} registros`, 'success');
+    mostrarToast(`Excel descargado: ${datos.length} registros`, 'success');
 }
 
 // =============================================
@@ -702,13 +709,12 @@ async function descargarPDF() {
         ? `Fecha: ${formatearFechaLarga(fechaInicio)}`
         : `Período: ${formatearFechaLarga(fechaInicio)} al ${formatearFechaLarga(fechaFin)}`;
 
-    // Construir HTML para impresión/PDF
     const htmlContent = `
     <!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Bitácora de Visitas</title>
+        <title>Bitácora de Accesos</title>
         <style>
             @page { size: landscape; margin: 15mm; }
             body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; margin: 0; padding: 20px; }
@@ -724,7 +730,6 @@ async function descargarPDF() {
             }
             tbody td { padding: 7px 6px; border: 1px solid #e5e7eb; vertical-align: top; }
             tbody tr:nth-child(even) { background: #f9fafb; }
-            tbody tr:hover { background: #f3f4f6; }
             .footer-report {
                 margin-top: 20px; padding-top: 10px; border-top: 1px solid #e5e7eb;
                 font-size: 10px; color: #9ca3af; display: flex; justify-content: space-between;
@@ -733,31 +738,27 @@ async function descargarPDF() {
                 display: inline-block; padding: 2px 6px; border-radius: 10px;
                 font-size: 9px; font-weight: 600; background: #e8effc; color: #1a56db;
             }
-            @media print {
-                body { padding: 0; }
-                .no-print { display: none; }
-            }
         </style>
     </head>
     <body>
         <div class="header-report">
             <h1>${getSitioRazonSocial()}</h1>
-            <h2>${sitioConfig?.slogan ?? 'Control de Parqueo para Visitantes'}</h2>
+            <h2>${sitioConfig?.slogan ?? 'Sistema de Control de Parqueos'}</h2>
             <p>${periodoTexto} &nbsp;|&nbsp; Total: ${datos.length} registros</p>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>FECHA DE VISITA</th>
-                    <th>NOMBRE DE MÉDICO / VISITANTE</th>
-                    <th>TIPO</th>
+                    <th>FECHA DE ACCESO</th>
+                    <th>IDENTIFICADOR / VISITANTE</th>
+                    <th>CLASIFICACIÓN</th>
                     <th>PLACA #</th>
                     <th>ENTRADA</th>
                     <th>SALIDA</th>
                     <th>TIEMPO</th>
                     <th>ÁREA DESTINO</th>
-                    <th>OBSERVACIÓN</th>
+                    <th>DETALLE</th>
                 </tr>
             </thead>
             <tbody>
@@ -786,7 +787,7 @@ async function descargarPDF() {
         </table>
 
         <div class="footer-report">
-            <span>${getSitioFooter()} — Sistema de Control de Parqueo</span>
+            <span>${getSitioFooter()} — Plataforma IOT</span>
             <span>Generado: ${new Date().toLocaleString('es-GT')}</span>
         </div>
 
@@ -796,12 +797,11 @@ async function descargarPDF() {
     </body>
     </html>`;
 
-    // Abrir ventana de impresión (el usuario puede guardar como PDF)
     const ventana = window.open('', '_blank');
     ventana.document.write(htmlContent);
     ventana.document.close();
 
-    mostrarToast(`📕 PDF generado: ${datos.length} registros. Use "Guardar como PDF" en el diálogo de impresión.`, 'success');
+    mostrarToast(`PDF generado con éxito.`, 'success');
 }
 
 // =============================================
@@ -824,7 +824,7 @@ async function cargarDashboard() {
     const kpiGrid = document.getElementById('kpiGrid');
     const lastUpdate = document.getElementById('dashLastUpdate');
 
-    if (!loading) return; // página no visible todavía
+    if (!loading) return;
 
     loading.style.display = 'flex';
     if (errorEl) errorEl.style.display = 'none';
@@ -846,7 +846,6 @@ async function cargarDashboard() {
         document.getElementById('kpiMonto').textContent = formatearMonto(d.montoPromedioCobrado);
         document.getElementById('kpiMontoTotal').textContent = formatearMonto(d.montoTotalDia);
 
-        // Actualizar stats del header
         const statDentro = document.getElementById('statDentro');
         const statHoy = document.getElementById('statHoy');
         if (statDentro) statDentro.textContent = `${d.vehiculosDentroHoy ?? 0} Dentro`;
@@ -875,7 +874,6 @@ function renderizarGraficos(d) {
     const estadoHoy = d.estadoHoy ?? { dentro: 0, salio: 0 };
     const pagoHoy = d.pagoHoy ?? { pagados: 0, noPagados: 0 };
 
-    // --- Gráfico de barras: vehículos por día de la semana ---
     const ctxSemanal = document.getElementById('chartSemanal');
     if (ctxSemanal) {
         const labels = semana.map(x => x.label);
@@ -916,7 +914,6 @@ function renderizarGraficos(d) {
         }
     }
 
-    // --- Donut: Estado hoy ---
     const ctxEstado = document.getElementById('chartEstado');
     if (ctxEstado) {
         const labelsE = ['Dentro', 'Salió'];
@@ -949,10 +946,9 @@ function renderizarGraficos(d) {
         }
     }
 
-    // --- Donut: Pagados vs No pagados ---
     const ctxPagos = document.getElementById('chartPagos');
     if (ctxPagos) {
-        const labelsP = ['Pagados', 'No pagados'];
+        const labelsP = ['Pagados', 'Pendientes'];
         const dataP = [pagoHoy.pagados, pagoHoy.noPagados];
         if (_chartPagos) {
             _chartPagos.data.datasets[0].data = dataP;
@@ -997,8 +993,6 @@ function formatearMonto(monto) {
     return '$' + parseFloat(monto).toFixed(2);
 }
 
-
-
 function formatearFechaCorta(fechaStr) {
     const [y, m, d] = fechaStr.split('-');
     return `${d}/${m}/${y}`;
@@ -1025,38 +1019,42 @@ function navegarA(pagina, elemento) {
     document.querySelectorAll('.content').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
+    const pageTitle = document.getElementById('pageTitle');
+
     if (pagina === 'inicio') {
         document.getElementById('pageInicio').style.display = '';
-        document.getElementById('pageTitle').textContent = '🏠 Inicio';
-        // Iniciar auto-refresh del dashboard
+        pageTitle.innerHTML = '<i data-lucide="layout-dashboard"></i> Inicio';
         cargarDashboard();
         if (dashboardIntervalId) clearInterval(dashboardIntervalId);
         dashboardIntervalId = setInterval(cargarDashboard, DASHBOARD_INTERVAL_MS);
     } else {
-        // Detener auto-refresh cuando se sale de Inicio
         if (dashboardIntervalId) {
             clearInterval(dashboardIntervalId);
             dashboardIntervalId = null;
         }
         if (pagina === 'bitacora') {
             document.getElementById('pageBitacora').style.display = '';
-            document.getElementById('pageTitle').textContent = '📋 Bitácora de Visitas';
+            pageTitle.innerHTML = '<i data-lucide="clipboard-list"></i> Bitácora de Accesos';
         } else if (pagina === 'reportes-venta') {
             document.getElementById('pageReportesVenta').style.display = '';
-            document.getElementById('pageTitle').textContent = '📊 Reportes de Venta';
+            pageTitle.innerHTML = '<i data-lucide="bar-chart-3"></i> Reportes de Venta';
         } else if (pagina === 'cerrar-tickets') {
             document.getElementById('pageCerrarTickets').style.display = '';
-            document.getElementById('pageTitle').textContent = '🎫 Cerrar Tickets';
+            pageTitle.innerHTML = '<i data-lucide="ticket"></i> Cerrar Tickets';
             cargarTicketsAntiguos();
         } else if (pagina === 'tarifas') {
             document.getElementById('pageTarifas').style.display = '';
-            document.getElementById('pageTitle').textContent = '💲 Tarifas';
+            pageTitle.innerHTML = '<i data-lucide="circle-dollar-sign"></i> Tarifas';
             cargarTarifas();
         }
-
     }
 
     if (elemento) elemento.classList.add('active');
+
+    // Al inyectar íconos por código (.innerHTML), requerimos re-crearlos:
+    if (window.lucide) {
+        lucide.createIcons({ root: pageTitle });
+    }
 }
 
 function toggleSidebar() {

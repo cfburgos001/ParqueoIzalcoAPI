@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso — IOT</title>
+    <title>Acceso — Sistema de Parqueo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Librería de Iconos Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         * {
             margin: 0;
@@ -31,13 +35,13 @@
             --bdb: rgba(59,130,246,0.35);
             --text1: #f1f5f9;
             --text2: #94a3b8;
-            --text3: #475569;
+            --text3: #64748b;
             --danger: #ef4444;
             --danger-t: #f87171;
-            --r: 8px;
-            --rmd: 10px;
-            --rlg: 14px;
-            --rxl: 18px;
+            --r: 10px; /* Bordes más suaves */
+            --rmd: 12px;
+            --rlg: 16px;
+            --rxl: 20px;
         }
 
         html, body {
@@ -67,30 +71,32 @@
                 content: '';
                 position: absolute;
                 inset: 0;
-                background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+                background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
                 background-size: 32px 32px;
             }
 
-            /* Orbe azul */
+            /* Orbe azul superior */
             .bg::after {
                 content: '';
                 position: absolute;
-                width: 700px;
-                height: 700px;
-                top: -200px;
-                left: -200px;
-                background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%);
+                width: 800px;
+                height: 800px;
+                top: -250px;
+                left: -250px;
+                background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 60%);
                 border-radius: 50%;
+                filter: blur(40px);
             }
 
         .bg-orb2 {
             position: absolute;
-            width: 400px;
-            height: 400px;
-            bottom: -100px;
-            right: -100px;
+            width: 500px;
+            height: 500px;
+            bottom: -150px;
+            right: -150px;
             background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 65%);
             border-radius: 50%;
+            filter: blur(40px);
         }
 
         /* ===== LAYOUT ===== */
@@ -107,7 +113,7 @@
             display: none;
             flex-direction: column;
             justify-content: center;
-            padding: 60px 56px;
+            padding: 60px 64px;
             border-right: 1px solid var(--bd);
         }
 
@@ -121,8 +127,8 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 5px 12px;
-            background: var(--brand-glow);
+            padding: 6px 14px;
+            background: rgba(59,130,246,0.1);
             border: 1px solid var(--bdb);
             border-radius: 999px;
             font-size: 11px;
@@ -130,7 +136,7 @@
             color: var(--brand-400);
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
             width: fit-content;
         }
 
@@ -156,12 +162,12 @@
         }
 
         .lp-title {
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 800;
             color: var(--text1);
             line-height: 1.05;
             letter-spacing: -0.04em;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
             .lp-title span {
@@ -173,111 +179,116 @@
 
         .lp-desc {
             font-size: 15px;
-            color: var(--text3);
+            color: var(--text2);
             line-height: 1.7;
-            max-width: 360px;
-            margin-bottom: 44px;
+            max-width: 380px;
+            margin-bottom: 48px;
         }
 
         /* Feature list */
         .features {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
+            max-width: 400px;
         }
 
         .feature {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--s2);
+            gap: 14px;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.02);
             border: 1px solid var(--bds);
             border-radius: var(--rmd);
-            transition: border-color 180ms ease;
+            transition: all 200ms ease;
+            backdrop-filter: blur(10px);
         }
 
             .feature:hover {
-                border-color: var(--bd);
+                border-color: rgba(255,255,255,0.08);
+                background: rgba(255,255,255,0.04);
+                transform: translateX(4px);
             }
 
         .feature-icon {
-            width: 34px;
-            height: 34px;
+            width: 38px;
+            height: 38px;
             border-radius: var(--r);
-            background: var(--brand-glow);
-            border: 1px solid var(--bdb);
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            color: var(--brand-400);
             flex-shrink: 0;
         }
 
         .feature-text {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
-            color: var(--text2);
+            color: var(--text1);
         }
 
         /* ===== RIGHT PANEL — FORM ===== */
         .right-panel {
             width: 100%;
-            max-width: 440px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 32px 28px;
+            padding: 32px 32px;
             background: var(--s1);
             border-left: 1px solid var(--bd);
             flex-shrink: 0;
+            box-shadow: -20px 0 40px rgba(0,0,0,0.2);
         }
 
         @media (min-width: 900px) {
             .right-panel {
-                padding: 48px 44px;
+                padding: 48px 56px;
             }
         }
 
-        /* Logo area */
-        .rp-logo {
+        /* Logo area REDISEÑADA */
+        .rp-logo-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 36px;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         .logo-box {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--brand-600), var(--brand-900));
-            border-radius: var(--rmd);
+            width: 120px; /* Logo mucho más grande */
+            height: 120px;
+            background: var(--s2);
+            border-radius: var(--rlg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 0 20px var(--brand-glow), 0 4px 8px rgba(0,0,0,0.4);
-            border: 1px solid var(--bdb);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            border: 1px solid var(--bd);
+            overflow: hidden;
+            padding: 10px; /* Para que la imagen respire */
+            color: var(--brand-500);
         }
 
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* Ocultamos el logo-text genérico de antes, se llenará dinámicamente si no hay imagen */
         .logo-name {
-            font-size: 13px;
+            font-size: 20px;
             font-weight: 800;
             color: var(--text1);
-            letter-spacing: 0.04em;
+            letter-spacing: 0.02em;
             text-transform: uppercase;
             line-height: 1.2;
         }
 
         .logo-sub {
-            font-size: 10px;
+            font-size: 13px;
             color: var(--text3);
-            margin-top: 1px;
+            margin-top: 4px;
         }
 
         /* Form titles */
@@ -286,13 +297,13 @@
             font-weight: 800;
             color: var(--text1);
             letter-spacing: -0.03em;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .rp-subtitle {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text3);
-            margin-bottom: 28px;
+            margin-bottom: 32px;
         }
 
         /* Error */
@@ -300,14 +311,14 @@
             background: rgba(239,68,68,0.1);
             border: 1px solid rgba(239,68,68,0.2);
             color: var(--danger-t);
-            padding: 11px 14px;
+            padding: 12px 16px;
             border-radius: var(--r);
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: none;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
             .error-msg.active {
@@ -316,17 +327,17 @@
 
         /* Form groups */
         .fg {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
             .fg label {
                 display: block;
-                font-size: 10px;
+                font-size: 11px;
                 font-weight: 700;
-                color: var(--text3);
+                color: var(--text2);
                 text-transform: uppercase;
                 letter-spacing: 0.08em;
-                margin-bottom: 7px;
+                margin-bottom: 8px;
             }
 
         .input-wrapper {
@@ -335,35 +346,36 @@
 
         .input-icon {
             position: absolute;
-            left: 12px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 14px;
+            color: var(--text3);
             pointer-events: none;
-            opacity: 0.35;
+            display: flex;
         }
 
         .fg input {
             width: 100%;
-            padding: 10px 12px 10px 37px;
+            padding: 12px 14px 12px 42px;
             border: 1px solid var(--bd);
             border-radius: var(--r);
-            font-size: 14px;
+            font-size: 15px;
             font-family: inherit;
             color: var(--text1);
             background: var(--s3);
-            transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+            transition: all 200ms ease;
             outline: none;
         }
 
             .fg input:hover {
-                border-color: rgba(255,255,255,0.14);
+                border-color: rgba(255,255,255,0.15);
+                background: var(--s2);
             }
 
             .fg input:focus {
                 border-color: var(--brand-500);
                 background: var(--s4);
-                box-shadow: 0 0 0 3px var(--brand-glow);
+                box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
             }
 
             .fg input::placeholder {
@@ -373,73 +385,63 @@
         /* Submit */
         .btn-submit {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: var(--brand-600);
             color: #fff;
             border: 1px solid var(--brand-500);
             border-radius: var(--r);
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 600;
             font-family: inherit;
             cursor: pointer;
-            transition: all 180ms ease;
-            margin-top: 6px;
-            letter-spacing: 0.01em;
-            box-shadow: var(--brand-glow) 0 4px 20px;
-            position: relative;
-            overflow: hidden;
+            transition: all 200ms ease;
+            margin-top: 10px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
             .btn-submit:hover {
                 background: var(--brand-500);
                 border-color: var(--brand-400);
-                box-shadow: var(--brand-glow) 0 8px 32px;
+                box-shadow: 0 6px 20px rgba(59,130,246,0.4);
                 transform: translateY(-1px);
             }
 
             .btn-submit:active {
-                transform: translateY(0);
+                transform: translateY(1px);
+                box-shadow: none;
             }
 
             .btn-submit:disabled {
-                opacity: 0.4;
+                opacity: 0.5;
                 cursor: not-allowed;
                 transform: none;
                 box-shadow: none;
             }
 
-        /* Divider */
+        /* Footer */
         .rp-footer {
-            margin-top: 28px;
-            padding-top: 20px;
-            border-top: 1px solid var(--bds);
+            margin-top: auto;
+            padding-top: 32px;
             text-align: center;
-            font-size: 11px;
-            color: var(--text3);
-            letter-spacing: 0.02em;
         }
 
-        /* Version badge */
         .version-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            background: var(--s3);
+            gap: 6px;
+            padding: 5px 12px;
+            background: var(--s2);
             border: 1px solid var(--bds);
             border-radius: 999px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text3);
             letter-spacing: 0.04em;
-        }
-
-        .v-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: var(--brand-500);
-            box-shadow: 0 0 6px var(--brand-500);
         }
     </style>
 </head>
@@ -452,11 +454,11 @@
 
     <div class="wrapper">
 
-        <!-- Panel izquierdo — solo desktop -->
+        <!-- Panel izquierdo — desktop -->
         <div class="left-panel">
             <div class="lp-badge">
                 <div class="lp-badge-dot"></div>
-                Sistema IOT activo
+                Sistema IOT Activo
             </div>
 
             <div class="lp-title">
@@ -464,26 +466,26 @@
             </div>
 
             <div class="lp-desc">
-                Plataforma de gestión en tiempo real para parqueos hospitalarios.
-                Barreras, visitantes, pagos y reportes desde un solo lugar.
+                Plataforma de gestión en tiempo real para control de accesos.
+                Administración de barreras, vehículos, cobros y reportes centralizados.
             </div>
 
             <div class="features">
                 <div class="feature">
-                    <div class="feature-icon">🚗</div>
+                    <div class="feature-icon"><i data-lucide="car-front"></i></div>
                     <div class="feature-text">Control de acceso vehicular en tiempo real</div>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">📋</div>
-                    <div class="feature-text">Bitácora de médicos, visitantes y proveedores</div>
+                    <div class="feature-icon"><i data-lucide="users"></i></div>
+                    <div class="feature-text">Bitácora de proveedores y visitantes</div>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-text">Reportes de venta por efectivo y tarjeta</div>
+                    <div class="feature-icon"><i data-lucide="bar-chart-3"></i></div>
+                    <div class="feature-text">Reportes detallados de ingresos y flujo</div>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">🔒</div>
-                    <div class="feature-text">Gestión de barreras automáticas IOT</div>
+                    <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                    <div class="feature-text">Integración automatizada con barreras IOT</div>
                 </div>
             </div>
         </div>
@@ -491,19 +493,22 @@
         <!-- Panel derecho — formulario -->
         <div class="right-panel">
 
-            <div class="rp-logo">
-                <div class="logo-box">👁️</div>
+            <!-- Logo Contenedor Central -->
+            <div class="rp-logo-container">
+                <div class="logo-box">
+                    <i data-lucide="building-2" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+                </div>
                 <div class="logo-text">
-                    <div class="logo-name">Doble Geminis</div>
-                    <div class="logo-sub">Centro Panamericano de Ojos</div>
+                    <div class="logo-name" data-sitio-field="nombreComercial">Sistema Parqueo</div>
+                    <div class="logo-sub" data-sitio-field="slogan">Gestión Profesional</div>
                 </div>
             </div>
 
             <div class="rp-title">Bienvenido</div>
-            <div class="rp-subtitle">Ingrese sus credenciales para acceder</div>
+            <div class="rp-subtitle">Ingrese sus credenciales de operador</div>
 
             <div class="error-msg" id="errorMsg">
-                <span>⚠️</span>
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
                 <span id="errorText"></span>
             </div>
 
@@ -511,7 +516,7 @@
                 <div class="fg">
                     <label for="username">Usuario</label>
                     <div class="input-wrapper">
-                        <span class="input-icon">👤</span>
+                        <span class="input-icon"><i data-lucide="user" style="width: 18px; height: 18px;"></i></span>
                         <input type="text" id="username"
                                placeholder="Nombre de usuario"
                                autocomplete="username" required autofocus>
@@ -521,7 +526,7 @@
                 <div class="fg">
                     <label for="password">Contraseña</label>
                     <div class="input-wrapper">
-                        <span class="input-icon">🔒</span>
+                        <span class="input-icon"><i data-lucide="lock" style="width: 18px; height: 18px;"></i></span>
                         <input type="password" id="password"
                                placeholder="••••••••"
                                autocomplete="current-password" required>
@@ -529,19 +534,25 @@
                 </div>
 
                 <button type="submit" class="btn-submit" id="btnLogin">
-                    Iniciar sesión
+                    <span>Iniciar sesión</span>
+                    <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
                 </button>
             </form>
 
             <div class="rp-footer">
                 <div class="version-badge">
-                    <div class="v-dot"></div>
-                    IOT v2.0
+                    <div class="lp-badge-dot" style="width: 4px; height: 4px;"></div>
+                    IOT Platform
                 </div>
             </div>
         </div>
 
     </div>
+
+    <!-- Inicializar iconos Lucide -->
+    <script>
+        lucide.createIcons();
+    </script>
 
     <script src="/visitas/js/site-config.js"></script>
     <script>
@@ -558,8 +569,11 @@
             const errorMsg = document.getElementById('errorMsg');
             const errorTxt = document.getElementById('errorText');
 
+            // Para el botón dinámico (con icono)
+            const btnSpan = btn.querySelector('span');
+
             btn.disabled = true;
-            btn.textContent = '⏳ Verificando...';
+            btnSpan.textContent = 'Verificando...';
             errorMsg.classList.remove('active');
 
             const username = document.getElementById('username').value.trim();
@@ -587,7 +601,7 @@
                 errorMsg.classList.add('active');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Iniciar sesión';
+                btnSpan.textContent = 'Iniciar sesión';
             }
         }
 

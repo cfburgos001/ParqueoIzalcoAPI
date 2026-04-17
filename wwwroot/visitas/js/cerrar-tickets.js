@@ -13,7 +13,9 @@ async function cargarTicketsAntiguos() {
     const conteo = document.getElementById('ctConteo');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="10" class="empty-row">⏳ Cargando…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-row"><i data-lucide="loader" style="width:16px; animation: spin 2s linear infinite;"></i> Cargando…</td></tr>`;
+    if (window.lucide) lucide.createIcons({ root: tbody });
+
     ticketsSeleccionados = [];
     actualizarBotonMasivo();
 
@@ -23,7 +25,8 @@ async function cargarTicketsAntiguos() {
 
         if (!data.exitoso) {
             tbody.innerHTML = `<tr><td colspan="10" class="empty-row" style="color:var(--danger);">
-                ❌ Error al cargar: ${data.mensaje}</td></tr>`;
+                <i data-lucide="x-circle" style="width:16px;"></i> Error al cargar: ${data.mensaje}</td></tr>`;
+            if (window.lucide) lucide.createIcons({ root: tbody });
             return;
         }
 
@@ -32,7 +35,8 @@ async function cargarTicketsAntiguos() {
 
         if (ticketsAntiguosData.length === 0) {
             tbody.innerHTML = `<tr><td colspan="10" class="empty-row">
-                ✅ No hay tickets antiguos pendientes</td></tr>`;
+                <i data-lucide="check-circle" style="width:16px; color:var(--success);"></i> No hay tickets antiguos pendientes</td></tr>`;
+            if (window.lucide) lucide.createIcons({ root: tbody });
             return;
         }
 
@@ -40,7 +44,8 @@ async function cargarTicketsAntiguos() {
 
     } catch (err) {
         tbody.innerHTML = `<tr><td colspan="10" class="empty-row" style="color:var(--danger);">
-            ❌ Error de conexión</td></tr>`;
+            <i data-lucide="wifi-off" style="width:16px;"></i> Error de conexión</td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
         mostrarToast('Error al cargar tickets antiguos', 'error');
     }
 }
@@ -63,8 +68,11 @@ function renderizarTablaTickets() {
                 : 'color:var(--gray-700);';
 
         const rateLabel = {
-            'A': '🚗 Auto', 'M': '🏍️ Moto', 'C': '🚚 Carga',
-            'X': '🔄 Reingreso', 'Z': '🎁 Cortesía'
+            'A': '<i data-lucide="car" style="width:14px; display:inline-block; vertical-align:middle;"></i> Auto',
+            'M': '<i data-lucide="bike" style="width:14px; display:inline-block; vertical-align:middle;"></i> Moto',
+            'C': '<i data-lucide="truck" style="width:14px; display:inline-block; vertical-align:middle;"></i> Carga',
+            'X': '<i data-lucide="refresh-ccw" style="width:14px; display:inline-block; vertical-align:middle;"></i> Reingreso',
+            'Z': '<i data-lucide="gift" style="width:14px; display:inline-block; vertical-align:middle;"></i> Cortesía'
         }[t.strRateKey] || (t.strRateKey || '—');
 
         return `
@@ -81,7 +89,7 @@ function renderizarTablaTickets() {
             </td>
             <td>${fechaStr}</td>
             <td><span style="${diasColor}">${t.diasAdentro} día${t.diasAdentro !== 1 ? 's' : ''}</span></td>
-            <td><span class="badge" style="background:#e8effc;color:#1a56db;">${rateLabel}</span></td>
+            <td><span class="badge" style="background:#e8effc;color:#1a56db; display:flex; align-items:center; gap:4px;">${rateLabel}</span></td>
             <td style="font-size:12px;">${t.nombreOperador || '—'}</td>
             <td style="font-size:12px;color:var(--gray-500);">${t.idDispositivoEntrada || '—'}</td>
             <td>
@@ -93,13 +101,15 @@ function renderizarTablaTickets() {
                        onfocus="this.select()">
             </td>
             <td>
-                <button class="btn btn-sm btn-primary"
+                <button class="btn btn-sm btn-primary" style="display:flex; align-items:center; gap:4px;"
                         onclick="abrirModalIndividual(${t.id})">
-                    🎫 Cerrar
+                    <i data-lucide="ticket" style="width:14px;"></i> Cerrar
                 </button>
             </td>
         </tr>`;
     }).join('');
+
+    if (window.lucide) lucide.createIcons({ root: tbody });
 }
 
 // ===== SELECCIÓN =====
@@ -112,7 +122,6 @@ function toggleTicketSeleccion(id, checked) {
     }
     actualizarBotonMasivo();
 
-    // Sincronizar checkbox "seleccionar todos"
     const checkAll = document.getElementById('ctCheckAll');
     if (checkAll) {
         checkAll.checked = ticketsSeleccionados.length === ticketsAntiguosData.length;
@@ -155,7 +164,6 @@ function abrirModalIndividual(id) {
         `${ticket.diasAdentro} día${ticket.diasAdentro !== 1 ? 's' : ''} dentro`;
     document.getElementById('ctModalCodigo').textContent = ticket.codigoBarras || '—';
 
-    // Prellenar con el monto de la fila si ya fue ingresado
     const montoEnFila = document.getElementById(`ctMonto_${id}`)?.value;
     document.getElementById('ctModalMonto').value = montoEnFila || '';
 
@@ -180,7 +188,8 @@ async function confirmarCierreTicket() {
 
     const btn = document.querySelector('#modalCerrarTicket .btn-primary');
     btn.disabled = true;
-    btn.textContent = '⏳ Cerrando…';
+    btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;"></i> Cerrando…';
+    if (window.lucide) lucide.createIcons({ root: btn });
 
     try {
         const res = await fetch(`${API_TICKETS}/cerrar`, {
@@ -195,7 +204,6 @@ async function confirmarCierreTicket() {
         });
 
         const data = await res.json();
-
         cerrarModalTicket();
 
         if (data.exitoso && data.data) {
@@ -221,7 +229,7 @@ async function confirmarCierreTicket() {
         mostrarToast('Error de conexión', 'error');
     } finally {
         btn.disabled = false;
-        btn.textContent = '✅ Confirmar cierre';
+        btn.textContent = 'Confirmar cierre';
     }
 }
 
@@ -292,7 +300,8 @@ async function confirmarCierreMasivo() {
 
     const btn = document.querySelector('#modalCerrarMasivo .btn-primary');
     btn.disabled = true;
-    btn.innerHTML = '⏳ Cerrando…';
+    btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;"></i> Cerrando…';
+    if (window.lucide) lucide.createIcons({ root: btn });
 
     try {
         const res = await fetch(`${API_TICKETS}/cerrar-masivo`, {
@@ -323,7 +332,7 @@ async function confirmarCierreMasivo() {
         mostrarToast('Error de conexión', 'error');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `✅ Cerrar todos (<span id="ctMasivoCount">${ticketsSeleccionados.length}</span>)`;
+        btn.innerHTML = `Cerrar todos (<span id="ctMasivoCount">${ticketsSeleccionados.length}</span>)`;
     }
 }
 
@@ -336,9 +345,9 @@ function mostrarResumenCierre(resultados, exitosos, fallidos) {
     if (!modal) return;
 
     const total = exitosos + fallidos;
-    titulo.textContent = fallidos === 0
-        ? `✅ ${exitosos} ticket${exitosos !== 1 ? 's' : ''} cerrado${exitosos !== 1 ? 's' : ''}`
-        : `⚠️ ${exitosos}/${total} tickets cerrados`;
+    titulo.innerHTML = fallidos === 0
+        ? `<i data-lucide="check-circle" style="color:var(--success); width:20px; display:inline-block; vertical-align:middle;"></i> ${exitosos} ticket${exitosos !== 1 ? 's' : ''} cerrado${exitosos !== 1 ? 's' : ''}`
+        : `<i data-lucide="alert-triangle" style="color:var(--warning); width:20px; display:inline-block; vertical-align:middle;"></i> ${exitosos}/${total} tickets cerrados`;
 
     const items = resultados.map(r => {
         if (r.exitoso) {
@@ -359,13 +368,12 @@ function mostrarResumenCierre(resultados, exitosos, fallidos) {
             </div>`;
         } else {
             return `<div style="padding:10px;border:1px solid #fecaca;border-radius:6px;
-                                background:#fef2f2;margin-bottom:6px;font-size:13px;color:#b91c1c;">
-                ❌ ${r.mensaje || 'Error desconocido'}
+                                background:#fef2f2;margin-bottom:6px;font-size:13px;color:#b91c1c; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="x-circle" style="width:16px;"></i> ${r.mensaje || 'Error desconocido'}
             </div>`;
         }
     }).join('');
 
-    // Calcular total cobrado
     const totalCobrado = resultados
         .filter(r => r.exitoso)
         .reduce((s, r) => s + parseFloat(r.monto || 0), 0);
@@ -378,6 +386,11 @@ function mostrarResumenCierre(resultados, exitosos, fallidos) {
             <span style="font-size:14px;font-weight:600;color:var(--gray-700);">Total cobrado:</span>
             <span style="font-size:20px;font-weight:700;color:var(--success);">$${totalCobrado.toFixed(2)}</span>
         </div>` : ''}`;
+
+    if (window.lucide) {
+        lucide.createIcons({ root: titulo });
+        lucide.createIcons({ root: body });
+    }
 
     modal.style.display = 'flex';
 }

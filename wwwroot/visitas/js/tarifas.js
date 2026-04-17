@@ -9,12 +9,12 @@ let tarifasData = [];
 let inlineEditId = null;   // qué fila está en modo edición inline
 
 const TARIFA_META = {
-    'A': { icon: '🚗', color: '#3b82f6' },
-    'M': { icon: '🏍️', color: '#8b5cf6' },
-    'C': { icon: '🚚', color: '#f59e0b' },
-    'Z': { icon: '🎁', color: '#10b981' },
-    'X': { icon: '🔄', color: '#64748b' },
-    'Y': { icon: '📋', color: '#475569' }
+    'A': { icon: 'car', color: '#3b82f6' },
+    'M': { icon: 'bike', color: '#8b5cf6' },
+    'C': { icon: 'truck', color: '#f59e0b' },
+    'Z': { icon: 'gift', color: '#10b981' },
+    'X': { icon: 'refresh-ccw', color: '#64748b' },
+    'Y': { icon: 'clipboard-list', color: '#475569' }
 };
 
 const CAMPOS_PRECIO = [
@@ -42,7 +42,9 @@ async function cargarTarifas() {
 
         if (!data.exitoso) {
             tbody.innerHTML = `<tr><td colspan="10" class="empty-row"
-                style="color:var(--danger-text);">❌ ${data.mensaje}</td></tr>`;
+                style="color:var(--danger-text); display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i data-lucide="alert-triangle" style="width:16px;"></i> ${data.mensaje}</td></tr>`;
+            if (window.lucide) lucide.createIcons({ root: tbody });
             return;
         }
 
@@ -51,7 +53,9 @@ async function cargarTarifas() {
 
     } catch {
         tbody.innerHTML = `<tr><td colspan="10" class="empty-row"
-            style="color:var(--danger-text);">❌ Error de conexión</td></tr>`;
+            style="color:var(--danger-text); display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i data-lucide="wifi-off" style="width:16px;"></i> Error de conexión</td></tr>`;
+        if (window.lucide) lucide.createIcons({ root: tbody });
     }
 }
 
@@ -61,12 +65,12 @@ function renderizarFilas() {
     if (!tbody) return;
 
     if (tarifasData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="empty-row">Sin tarifas</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="empty-row">Sin tarifas registradas</td></tr>`;
         return;
     }
 
     tbody.innerHTML = tarifasData.map(t => {
-        const meta = TARIFA_META[t.strRateKey] || { icon: '💲', color: '#94a3b8' };
+        const meta = TARIFA_META[t.strRateKey] || { icon: 'circle-dollar-sign', color: '#94a3b8' };
         const isEdit = inlineEditId === t.id;
 
         return `
@@ -75,7 +79,7 @@ function renderizarFilas() {
             <!-- Identificación -->
             <td>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:17px;">${meta.icon}</span>
+                    <span style="color:${meta.color};"><i data-lucide="${meta.icon}" style="width:20px; height:20px;"></i></span>
                     <div>
                         <div style="font-weight:700;font-size:13px;color:var(--text-primary);">
                             ${t.tipoTarifa}
@@ -122,20 +126,22 @@ function renderizarFilas() {
                 <div style="display:flex;gap:6px;align-items:center;">
                     ${isEdit
                 ? `<button class="btn btn-xs btn-success" onclick="guardarInline(${t.id})"
-                                   title="Guardar (Enter)">✓ Guardar</button>
+                                   title="Guardar (Enter)" style="display:flex; align-items:center; gap:4px;"><i data-lucide="check" style="width:12px;"></i> Guardar</button>
                            <button class="btn btn-xs btn-secondary" onclick="cancelarInline()"
-                                   title="Cancelar (Esc)">✕</button>`
+                                   title="Cancelar (Esc)" style="display:flex; align-items:center; gap:4px;"><i data-lucide="x" style="width:12px;"></i></button>`
                 : `<button class="btn btn-xs btn-secondary"
                                    onclick="activarEdicionInline(${t.id})"
-                                   title="Editar fila">✏️</button>
+                                   title="Editar fila" style="display:flex; align-items:center; gap:4px;"><i data-lucide="edit-3" style="width:14px;"></i></button>
                            <button class="btn btn-xs btn-primary"
                                    onclick="abrirModalTarifa(${t.id})"
-                                   title="Editar en modal">⊞</button>`
+                                   title="Editar en modal" style="display:flex; align-items:center; gap:4px;"><i data-lucide="maximize-2" style="width:14px;"></i></button>`
             }
                 </div>
             </td>
         </tr>`;
     }).join('');
+
+    if (window.lucide) lucide.createIcons({ root: tbody });
 }
 
 // ===== EDICIÓN INLINE =====
@@ -146,7 +152,6 @@ function activarEdicionInline(id) {
     inlineEditId = id;
     renderizarFilas();
 
-    // Focus en primer input
     setTimeout(() => {
         const first = document.getElementById(`ti_${id}_precio1Hora`);
         if (first) { first.focus(); first.select(); }
@@ -161,34 +166,31 @@ function cancelarInline() {
 function tarInlineKey(event, id) {
     if (event.key === 'Enter') guardarInline(id);
     if (event.key === 'Escape') cancelarInline();
-    // Tab pasa al siguiente input de la misma fila
 }
 
 async function guardarInline(id) {
     const t = tarifasData.find(x => x.id === id);
     if (!t) return;
 
-    // Leer valores de los inputs inline
     const request = buildRequest(id, t.activa);
     if (!request) return;
 
     const btn = document.querySelector(`#tarRow_${id} .btn-success`);
-    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:12px;"></i>'; lucide.createIcons({ root: btn }); }
 
     const exito = await enviarActualizacion(request);
 
     if (exito) {
-        // Actualizar datos locales
         CAMPOS_PRECIO.forEach(c => { t[c.key] = request[c.key]; });
         inlineEditId = null;
         renderizarFilas();
-        mostrarToast(`✅ ${t.tipoTarifa} actualizada`, 'success');
+        mostrarToast(`Tarifa ${t.tipoTarifa} actualizada`, 'success');
     } else {
-        if (btn) { btn.disabled = false; btn.textContent = '✓ Guardar'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="check" style="width:12px;"></i> Guardar'; lucide.createIcons({ root: btn }); }
     }
 }
 
-// Toggle activa desde la tabla (sin abrir modal)
+// Toggle activa desde la tabla
 async function toggleActiva(id, nuevoEstado) {
     const t = tarifasData.find(x => x.id === id);
     if (!t) return;
@@ -208,18 +210,16 @@ async function toggleActiva(id, nuevoEstado) {
 
     if (exito) {
         t.activa = nuevoEstado;
-        // Actualizar solo el label sin re-render completo
         const lbl = document.querySelector(`#tarRow_${id} .tar-activa-label`);
         if (lbl) {
             lbl.textContent = nuevoEstado ? 'Activa' : 'Inactiva';
             lbl.className = `tar-activa-label ${nuevoEstado ? 'tar-activa--on' : 'tar-activa--off'}`;
         }
         mostrarToast(
-            `${nuevoEstado ? '✅' : '⭕'} ${t.tipoTarifa} ${nuevoEstado ? 'activada' : 'desactivada'}`,
+            `Tarifa ${t.tipoTarifa} ${nuevoEstado ? 'activada' : 'desactivada'}`,
             nuevoEstado ? 'success' : 'warning'
         );
     } else {
-        // Revertir el toggle si falló
         const cb = document.getElementById(`tarActiva_${id}`);
         if (cb) cb.checked = !nuevoEstado;
     }
@@ -230,20 +230,21 @@ function abrirModalTarifa(id) {
     const t = tarifasData.find(x => x.id === id);
     if (!t) return;
 
-    const meta = TARIFA_META[t.strRateKey] || { icon: '💲', color: '#94a3b8' };
+    const meta = TARIFA_META[t.strRateKey] || { icon: 'circle-dollar-sign', color: '#94a3b8' };
 
-    document.getElementById('tarModalIcon').textContent = meta.icon;
+    const iconContainer = document.getElementById('tarModalIcon');
+    iconContainer.outerHTML = `<i data-lucide="${meta.icon}" id="tarModalIcon" style="width:22px; height:22px; color:${meta.color};"></i>`;
+    if (window.lucide) lucide.createIcons({ root: document.querySelector('.modal-header') });
+
     document.getElementById('tarModalNombre').textContent = t.tipoTarifa;
     document.getElementById('tarModalKey').textContent = `strRateKey: ${t.strRateKey}`;
     document.getElementById('tarModalId').value = t.id;
 
-    // Rellenar inputs del modal
     CAMPOS_PRECIO.forEach(c => {
         const el = document.getElementById(`tarM_${c.key}`);
         if (el) el.value = parseFloat(t[c.key]).toFixed(2);
     });
 
-    // Toggle activa
     const cb = document.getElementById('tarM_activa');
     if (cb) {
         cb.checked = t.activa;
@@ -261,7 +262,7 @@ function cerrarModalTarifa() {
 function actualizarLabelActiva(cb) {
     const lbl = document.getElementById('tarM_activa_label');
     if (!lbl) return;
-    lbl.textContent = cb.checked ? '● Activa' : '○ Inactiva';
+    lbl.textContent = cb.checked ? 'Activa' : 'Inactiva';
     lbl.className = `tar-tog-label ${cb.checked ? 'tar-tog--on' : 'tar-tog--off'}`;
 }
 
@@ -276,21 +277,22 @@ async function guardarModal() {
 
     const btn = document.getElementById('btnGuardarModal');
     btn.disabled = true;
-    btn.textContent = '⏳ Guardando…';
+    btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:16px;"></i> Guardando…';
+    if (window.lucide) lucide.createIcons({ root: btn });
 
     const exito = await enviarActualizacion(request);
 
     if (exito) {
-        // Actualizar datos locales
         CAMPOS_PRECIO.forEach(c => { t[c.key] = request[c.key]; });
         t.activa = activa;
         cerrarModalTarifa();
         renderizarFilas();
-        mostrarToast(`✅ ${t.tipoTarifa} actualizada correctamente`, 'success');
+        mostrarToast(`Tarifa ${t.tipoTarifa} actualizada correctamente`, 'success');
     }
 
     btn.disabled = false;
-    btn.textContent = '💾 Guardar cambios';
+    btn.innerHTML = '<i data-lucide="save" style="width:16px;"></i> Guardar';
+    if (window.lucide) lucide.createIcons({ root: btn });
 }
 
 // ===== HELPERS =====

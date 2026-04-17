@@ -9,7 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/visitas/css/visitas.css">
     <link rel="stylesheet" href="/visitas/css/layout.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="/visitas/js/site-config.js"></script>
 </head>
 <body>
@@ -17,43 +19,47 @@
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo" id="sidebarLogoBox">👁️</div>
-            <h1 class="sidebar-title" id="sidebarTitle">PARQUEO IOT</h1>
-            <p class="sidebar-subtitle" id="sidebarSubtitle">Sistema de Parqueo</p>
+            <div class="sidebar-logo" id="sidebarLogoBox">
+                <i data-lucide="building-2" style="width: 28px; height: 28px; color: var(--brand-500);"></i>
+            </div>
+            <h1 class="sidebar-title" id="sidebarTitle" data-sitio-field="nombreComercial">PARQUEO IOT</h1>
+            <p class="sidebar-subtitle" id="sidebarSubtitle" data-sitio-field="slogan">Sistema de Parqueo</p>
         </div>
 
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-page="inicio" onclick="navegarA('inicio', this)">
-                <span class="nav-icon">🏠</span>
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
                 <span class="nav-text">Inicio</span>
             </a>
             <a href="#" class="nav-item" data-page="bitacora" onclick="navegarA('bitacora', this)">
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">Bitácora de Visitas</span>
+                <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                <span class="nav-text">Bitácora de Accesos</span>
             </a>
             <a href="#" class="nav-item admin-only" data-page="cerrar-tickets" onclick="navegarA('cerrar-tickets', this)">
-                <span class="nav-icon">🎫</span>
+                <span class="nav-icon"><i data-lucide="ticket"></i></span>
                 <span class="nav-text">Cerrar Tickets</span>
             </a>
             <a href="#" class="nav-item admin-only" data-page="tarifas" onclick="navegarA('tarifas', this)">
-                <span class="nav-icon">💲</span>
+                <span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span>
                 <span class="nav-text">Tarifas</span>
             </a>
             <a href="#" class="nav-item caja-admin" data-page="reportes-venta" onclick="navegarA('reportes-venta', this)">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
                 <span class="nav-text">Reportes de Venta</span>
             </a>
         </nav>
 
         <div class="sidebar-footer">
             <div class="sidebar-user">
-                <span class="user-icon">👤</span>
+                <span class="user-icon"><i data-lucide="user-circle"></i></span>
                 <div class="user-info">
                     <span class="user-name" id="sidebarUserName">Usuario</span>
                     <span class="user-role" id="sidebarUserRole">Rol</span>
                 </div>
             </div>
-            <button class="btn-sidebar-logout" onclick="cerrarSesion()" title="Cerrar sesión">🚪 Salir</button>
+            <button class="btn-sidebar-logout" onclick="abrirModalCerrarSesion()" title="Cerrar sesión" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Salir
+            </button>
         </div>
     </aside>
 
@@ -61,8 +67,12 @@
     <div class="main-wrapper">
         <!-- HEADER -->
         <header class="top-header">
-            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">☰</button>
-            <h2 class="page-title" id="pageTitle">🏠 Inicio</h2>
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+            <h2 class="page-title" id="pageTitle" style="display:flex; align-items:center; gap:8px;">
+                <i data-lucide="layout-dashboard"></i> Inicio
+            </h2>
             <div class="header-right">
                 <div class="header-stats">
                     <span class="stat" id="statDentro">0 Dentro</span>
@@ -75,34 +85,33 @@
             </div>
         </header>
 
-        <!-- PÁGINA: INICIO (Dashboard — vista por defecto) -->
+        <!-- PÁGINA: INICIO (Dashboard) -->
         <main class="content" id="pageInicio" style="display:none;">
             <section class="dashboard-section">
                 <div class="dashboard-header">
-                    <h2>🏠 Panel de Control</h2>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="layout-dashboard"></i> Panel de Control</h2>
                     <div class="dashboard-meta">
                         <span id="dashLastUpdate" class="dash-last-update">—</span>
-                        <button class="btn btn-sm btn-secondary" onclick="cargarDashboard()">🔄 Actualizar</button>
+                        <button class="btn btn-sm btn-secondary" onclick="cargarDashboard()" style="display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Actualizar
+                        </button>
                     </div>
                 </div>
 
-                <!-- Estado: loading -->
                 <div id="dashLoading" class="dash-state dash-loading" style="display:none;">
                     <div class="dash-spinner"></div>
                     <span>Cargando datos…</span>
                 </div>
 
-                <!-- Estado: error -->
                 <div id="dashError" class="dash-state dash-error" style="display:none;">
-                    <span class="dash-error-icon">⚠️</span>
+                    <span class="dash-error-icon"><i data-lucide="alert-triangle"></i></span>
                     <span id="dashErrorMsg">No se pudo conectar al servidor.</span>
                     <button class="btn btn-sm btn-primary" onclick="cargarDashboard()">Reintentar</button>
                 </div>
 
-                <!-- KPI cards -->
                 <div class="kpi-grid" id="kpiGrid">
                     <div class="kpi-card kpi-dentro">
-                        <div class="kpi-icon">🚗</div>
+                        <div class="kpi-icon"><i data-lucide="car"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiDentro">—</div>
                             <div class="kpi-label">Vehículos Dentro</div>
@@ -110,15 +119,15 @@
                     </div>
 
                     <div class="kpi-card kpi-hoy">
-                        <div class="kpi-icon">📅</div>
+                        <div class="kpi-icon"><i data-lucide="calendar"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiHoy">—</div>
-                            <div class="kpi-label">Vehículos Hoy</div>
+                            <div class="kpi-label">Ingresos de Hoy</div>
                         </div>
                     </div>
 
                     <div class="kpi-card kpi-semana">
-                        <div class="kpi-icon">📆</div>
+                        <div class="kpi-icon"><i data-lucide="calendar-days"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiSemana">—</div>
                             <div class="kpi-label">Dentro esta semana</div>
@@ -126,81 +135,80 @@
                     </div>
 
                     <div class="kpi-card kpi-tiempo">
-                        <div class="kpi-icon">⏱️</div>
+                        <div class="kpi-icon"><i data-lucide="clock"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiTiempo">—</div>
-                            <div class="kpi-label">Tiempo Prom. Estancia</div>
+                            <div class="kpi-label">Tiempo Promedio</div>
                         </div>
                     </div>
 
                     <div class="kpi-card kpi-monto">
-                        <div class="kpi-icon">💰</div>
+                        <div class="kpi-icon"><i data-lucide="receipt"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiMonto">—</div>
-                            <div class="kpi-label">Monto Prom. Cobrado</div>
+                            <div class="kpi-label">Ticket Promedio</div>
                         </div>
                     </div>
 
                     <div class="kpi-card kpi-monto-total">
-                        <div class="kpi-icon">💵</div>
+                        <div class="kpi-icon"><i data-lucide="banknote"></i></div>
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiMontoTotal">—</div>
-                            <div class="kpi-label">Monto Total del Día</div>
+                            <div class="kpi-label">Ingreso Total del Día</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráficos -->
                 <div class="charts-grid" id="chartsGrid">
                     <div class="chart-card chart-full">
-                        <h3 class="chart-title">📊 Vehículos por día de la semana</h3>
+                        <h3 class="chart-title"><i data-lucide="bar-chart-2" style="width:16px; display:inline-block; vertical-align:middle;"></i> Flujo semanal</h3>
                         <div class="chart-wrapper">
                             <canvas id="chartSemanal"></canvas>
                         </div>
                     </div>
                     <div class="chart-card">
-                        <h3 class="chart-title">🍩 Estado hoy (Dentro vs Salió)</h3>
+                        <h3 class="chart-title"><i data-lucide="pie-chart" style="width:16px; display:inline-block; vertical-align:middle;"></i> Estado actual</h3>
                         <div class="chart-wrapper chart-wrapper-donut">
                             <canvas id="chartEstado"></canvas>
                         </div>
                     </div>
                     <div class="chart-card">
-                        <h3 class="chart-title">💳 Pagados vs No pagados (hoy)</h3>
+                        <h3 class="chart-title"><i data-lucide="credit-card" style="width:16px; display:inline-block; vertical-align:middle;"></i> Pagos del Día</h3>
                         <div class="chart-wrapper chart-wrapper-donut">
                             <canvas id="chartPagos"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <p class="dash-auto-info">🔁 Auto-actualiza cada 30 s</p>
+                <p class="dash-auto-info" style="display:flex; align-items:center; gap:4px;">
+                    <i data-lucide="refresh-cw" style="width:12px; height:12px;"></i> Auto-actualiza cada 30s
+                </p>
             </section>
         </main>
 
         <!-- PÁGINA: BITÁCORA -->
         <main class="content" id="pageBitacora" style="display:none;">
-            <!-- Aquí va todo el contenido actual de bitácora -->
-            <!-- (formulario registro entrada, tabla visitas hoy, sección reportes) -->
-            <!-- ESTE CONTENIDO SE MANTIENE IGUAL QUE ANTES -->
-            <!-- SECCIÓN: REGISTRO DE ENTRADA -->
             <section class="form-section">
                 <div class="section-header">
-                    <h2>📝 Registrar Entrada</h2>
-                    <button class="btn btn-primary btn-sm admin-only" onclick="mostrarFormAdmin()" id="btnAdmin">⚙️ Administrar</button>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="pen-line"></i> Registrar Entrada Manual</h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="mostrarFormAdmin()" id="btnAdmin" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="settings" style="width:14px; height:14px;"></i> Administrar
+                    </button>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group autocomplete-container">
-                        <label for="nombreVisitante">Nombre del visitante *</label>
+                        <label for="nombreVisitante">Nombre o Identificador *</label>
                         <input type="text" id="nombreVisitante" placeholder="Escriba el nombre..." oninput="buscarVisitante(this.value)" autocomplete="off">
                         <input type="hidden" id="visitanteId">
                         <div class="autocomplete-list" id="autocompleteList"></div>
                     </div>
                     <div class="form-group">
-                        <label for="tipoVisitante">Tipo *</label>
+                        <label for="tipoVisitante">Clasificación *</label>
                         <select id="tipoVisitante"></select>
                     </div>
                     <div class="form-group">
-                        <label for="placaVisitante">Placa #</label>
+                        <label for="placaVisitante">Placa Vehicular #</label>
                         <input type="text" id="placaVisitante" placeholder="EJ: P123ABC">
                     </div>
                     <div class="form-group">
@@ -208,25 +216,30 @@
                         <select id="areaDestino"></select>
                     </div>
                     <div class="form-group form-group-full">
-                        <label for="observacion">Observación</label>
+                        <label for="observacion">Detalle / Observación</label>
                         <input type="text" id="observacion" placeholder="Notas adicionales...">
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button class="btn btn-success" onclick="registrarEntrada()">✅ Registrar Entrada</button>
-                    <button class="btn btn-secondary" onclick="limpiarFormulario()">🔄 Limpiar</button>
+                    <button class="btn btn-success" onclick="registrarEntrada()" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="check-circle" style="width:16px; height:16px;"></i> Registrar Entrada
+                    </button>
+                    <button class="btn btn-secondary" onclick="limpiarFormulario()" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="eraser" style="width:16px; height:16px;"></i> Limpiar
+                    </button>
                 </div>
             </section>
 
-            <!-- SECCIÓN: VISITAS DE HOY -->
             <section class="table-section">
                 <div class="section-header">
-                    <h2>📋 Visitas de Hoy</h2>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="list"></i> Movimientos de Hoy</h2>
                     <div class="filter-btns">
                         <button class="btn btn-sm btn-filter active" onclick="filtrarVisitas('TODOS', this)">Todos</button>
-                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('DENTRO', this)">🟢 Dentro</button>
-                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('SALIO', this)">🔴 Salieron</button>
-                        <button class="btn btn-sm" onclick="cargarVisitasHoy()">🔄 Actualizar</button>
+                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('DENTRO', this)" style="color:#059669; border-color:#059669;">● Dentro</button>
+                        <button class="btn btn-sm btn-filter" onclick="filtrarVisitas('SALIO', this)" style="color:#dc2626; border-color:#dc2626;">● Salieron</button>
+                        <button class="btn btn-sm" onclick="cargarVisitasHoy()" style="display:flex; align-items:center; justify-content:center;">
+                            <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="table-container">
@@ -234,13 +247,13 @@
                         <thead>
                             <tr>
                                 <th>Hora Entrada</th>
-                                <th>Nombre</th>
-                                <th>Tipo</th>
+                                <th>Nombre / Identificador</th>
+                                <th>Clasificación</th>
                                 <th>Placa</th>
                                 <th>Área</th>
                                 <th>Hora Salida</th>
                                 <th>Tiempo</th>
-                                <th>Observación</th>
+                                <th>Detalle</th>
                                 <th>Estado</th>
                                 <th>Acción</th>
                             </tr>
@@ -250,10 +263,9 @@
                 </div>
             </section>
 
-            <!-- SECCIÓN: GENERAR BITÁCORA / REPORTE -->
             <section class="form-section" id="reporteSection">
                 <div class="section-header">
-                    <h2>📊 Generar Bitácora / Reporte</h2>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="file-spreadsheet"></i> Exportar Bitácora</h2>
                 </div>
                 <div class="reporte-grid">
                     <div class="form-group">
@@ -265,14 +277,18 @@
                         <input type="date" id="reporteFechaFin">
                     </div>
                     <div class="form-group">
-                        <label for="reporteTipo">Tipo Visitante</label>
+                        <label for="reporteTipo">Clasificación</label>
                         <select id="reporteTipo"><option value="">Todos</option></select>
                     </div>
                     <div class="form-group reporte-actions">
                         <label>&nbsp;</label>
                         <div class="reporte-btns">
-                            <button class="btn btn-success" onclick="descargarExcel()">📗 Descargar Excel</button>
-                            <button class="btn btn-danger" onclick="descargarPDF()">📕 Descargar PDF</button>
+                            <button class="btn btn-success" onclick="descargarExcel()" style="display:flex; align-items:center; gap:6px;">
+                                <i data-lucide="file-text" style="width:16px;"></i> Excel
+                            </button>
+                            <button class="btn btn-danger" onclick="descargarPDF()" style="display:flex; align-items:center; gap:6px;">
+                                <i data-lucide="file-pdf" style="width:16px;"></i> PDF
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -283,25 +299,24 @@
                     </div>
                     <div class="table-container">
                         <table id="tablaReporte">
-                            <thead><tr><th>Fecha</th><th>Nombre</th><th>Tipo</th><th>Placa</th><th>Entrada</th><th>Salida</th><th>Tiempo</th><th>Área</th><th>Observación</th></tr></thead>
+                            <thead><tr><th>Fecha</th><th>Nombre</th><th>Clasificación</th><th>Placa</th><th>Entrada</th><th>Salida</th><th>Tiempo</th><th>Área</th><th>Detalle</th></tr></thead>
                             <tbody id="tbodyReporte"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- SECCIÓN: ADMINISTRACIÓN (solo admin) -->
             <section class="form-section admin-only" id="adminSection" style="display:none;">
                 <div class="section-header">
-                    <h2>⚙️ Administración de Catálogos</h2>
-                    <button class="btn btn-secondary btn-sm" onclick="mostrarFormAdmin()">✕ Cerrar</button>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="settings"></i> Administración de Catálogos</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="mostrarFormAdmin()" style="display:flex; align-items:center; gap:6px;"><i data-lucide="x" style="width:14px;"></i> Cerrar</button>
                 </div>
                 <div class="admin-grid">
                     <div class="admin-col">
-                        <h3>Tipos de Visitante</h3>
+                        <h3>Clasificación de Visitantes</h3>
                         <div class="admin-input-group">
-                            <input type="text" id="nuevoTipoVisitante" placeholder="Nuevo tipo...">
-                            <button class="btn btn-success btn-sm" onclick="crearTipoVisitante()">+ Crear</button>
+                            <input type="text" id="nuevoTipoVisitante" placeholder="Nueva clasificación...">
+                            <button class="btn btn-success btn-sm" onclick="crearTipoVisitante()"><i data-lucide="plus" style="width:14px;"></i></button>
                         </div>
                         <ul id="listaTiposVisitante"></ul>
                     </div>
@@ -309,7 +324,7 @@
                         <h3>Áreas Destino</h3>
                         <div class="admin-input-group">
                             <input type="text" id="nuevaAreaDestino" placeholder="Nueva área...">
-                            <button class="btn btn-success btn-sm" onclick="crearAreaDestino()">+ Crear</button>
+                            <button class="btn btn-success btn-sm" onclick="crearAreaDestino()"><i data-lucide="plus" style="width:14px;"></i></button>
                         </div>
                         <ul id="listaAreasDestino"></ul>
                     </div>
@@ -317,14 +332,13 @@
             </section>
         </main>
 
-        <!-- PÁGINA: REPORTES DE VENTA (solo ADMINISTRADOR) -->
+        <!-- PÁGINA: REPORTES DE VENTA -->
         <main class="content" id="pageReportesVenta" style="display:none;">
             <section class="form-section">
                 <div class="section-header">
-                    <h2>📊 Reportes de Venta — IOT_Vehiculos</h2>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="bar-chart-3"></i> Reportes de Ingresos</h2>
                 </div>
 
-                <!-- Filtros -->
                 <div class="reporte-grid">
                     <div class="form-group">
                         <label for="rvCampoFecha">Buscar por</label>
@@ -354,7 +368,7 @@
 
                 <div class="reporte-grid" style="margin-top:0;">
                     <div class="form-group">
-                        <label for="rvPagado">Pago</label>
+                        <label for="rvPagado">Estado de Pago</label>
                         <select id="rvPagado">
                             <option value="">Todos</option>
                             <option value="true">Pagados</option>
@@ -375,19 +389,20 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="rvTop">Máximo registros</label>
+                        <label for="rvTop">Límite</label>
                         <input type="number" id="rvTop" value="500" min="1" max="5000">
                     </div>
                     <div class="form-group">
                         <label>&nbsp;</label>
-                        <button class="btn btn-primary" onclick="buscarReporteVenta()" style="width:100%;">🔍 Buscar</button>
+                        <button class="btn btn-primary" onclick="buscarReporteVenta()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px;">
+                            <i data-lucide="search" style="width:16px;"></i> Buscar
+                        </button>
                     </div>
                 </div>
 
-                <!-- Selector de columnas -->
                 <div class="columnas-section">
                     <div class="section-header">
-                        <h3>📑 Columnas a mostrar</h3>
+                        <h3 style="display:flex; align-items:center; gap:6px;"><i data-lucide="layout-list" style="width:16px;"></i> Columnas a mostrar</h3>
                         <div>
                             <button class="btn btn-sm btn-secondary" onclick="seleccionarTodasColumnas()">Todas</button>
                             <button class="btn btn-sm btn-secondary" onclick="deseleccionarTodasColumnas()">Ninguna</button>
@@ -395,13 +410,14 @@
                     </div>
                     <div class="columnas-grid" id="columnasGrid"></div>
 
-                    <!-- Favoritos -->
                     <div class="favoritos-section">
                         <div class="favoritos-header">
-                            <h4>⭐ Favoritos</h4>
+                            <h4 style="display:flex; align-items:center; gap:6px;"><i data-lucide="star" style="width:16px;"></i> Favoritos</h4>
                             <div class="favoritos-actions">
                                 <input type="text" id="nombreFavorito" placeholder="Nombre del favorito..." class="input-favorito">
-                                <button class="btn btn-sm btn-success" onclick="guardarFavorito()">💾 Guardar</button>
+                                <button class="btn btn-sm btn-success" onclick="guardarFavorito()" style="display:flex; align-items:center; gap:6px;">
+                                    <i data-lucide="save" style="width:14px;"></i> Guardar
+                                </button>
                             </div>
                         </div>
                         <div class="favoritos-list" id="favoritosList"></div>
@@ -409,14 +425,13 @@
                 </div>
             </section>
 
-            <!-- Resultados -->
             <section class="table-section" id="rvResultados" style="display:none;">
                 <div class="section-header">
                     <h2 id="rvTitulo">Resultados</h2>
                     <div>
                         <span class="badge badge-dentro" id="rvConteo">0</span>
-                        <button class="btn btn-sm btn-success" onclick="descargarExcelVenta()">📗 Excel</button>
-                        <button class="btn btn-sm btn-danger" onclick="descargarPDFVenta()">📕 PDF</button>
+                        <button class="btn btn-sm btn-success" onclick="descargarExcelVenta()" style="display:inline-flex; align-items:center; gap:4px;"><i data-lucide="file-text" style="width:14px;"></i> Excel</button>
+                        <button class="btn btn-sm btn-danger" onclick="descargarPDFVenta()" style="display:inline-flex; align-items:center; gap:4px;"><i data-lucide="file-pdf" style="width:14px;"></i> PDF</button>
                     </div>
                 </div>
                 <div class="table-container">
@@ -425,47 +440,37 @@
                         <tbody id="rvTbody"></tbody>
                     </table>
                 </div>
-
-                <!-- Resumen -->
                 <div class="resumen-venta" id="rvResumen"></div>
             </section>
         </main>
 
-        <!-- PÁGINA: CERRAR TICKETS ANTIGUOS (solo ADMINISTRADOR) -->
+        <!-- PÁGINA: CERRAR TICKETS ANTIGUOS -->
         <main class="content" id="pageCerrarTickets" style="display:none;">
             <section class="form-section">
                 <div class="section-header">
-                    <h2>🎫 Cerrar Tickets Antiguos</h2>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="ticket"></i> Cerrar Tickets Antiguos</h2>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <span class="badge badge-dentro" id="ctConteo" style="font-size:13px;">0 pendientes</span>
-                        <button class="btn btn-sm btn-secondary" onclick="cargarTicketsAntiguos()">🔄 Actualizar</button>
-                        <button class="btn btn-sm btn-primary" id="btnCerrarSeleccionados"
-                                onclick="abrirModalMasivo()" disabled>
-                            ✅ Cerrar seleccionados (<span id="ctSelCount">0</span>)
+                        <button class="btn btn-sm btn-secondary" onclick="cargarTicketsAntiguos()" style="display:flex; align-items:center; gap:4px;"><i data-lucide="refresh-cw" style="width:14px;"></i> Actualizar</button>
+                        <button class="btn btn-sm btn-primary" id="btnCerrarSeleccionados" onclick="abrirModalMasivo()" disabled style="display:flex; align-items:center; gap:4px;">
+                            <i data-lucide="check-square" style="width:14px;"></i> Cerrar seleccionados (<span id="ctSelCount">0</span>)
                         </button>
                     </div>
                 </div>
 
-                <!-- Info -->
-                <div style="padding:12px 16px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;
-                    font-size:13px;color:#92400e;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
-                    <span style="font-size:18px;flex-shrink:0;">⚠️</span>
+                <div style="padding:12px 16px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:13px;color:#92400e;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;">
+                    <i data-lucide="alert-triangle" style="flex-shrink:0;"></i>
                     <span>
                         Estos tickets llevan <strong>más de un día</strong> con estado DENTRO.
-                        Al cerrarlos se registrará la salida con la fecha y hora actuales,
-                        se marcará como pagado y se asignará el monto que ingrese manualmente.
+                        Al cerrarlos se registrará la salida con la fecha y hora actuales.
                     </span>
                 </div>
 
-                <!-- Tabla -->
                 <div class="table-container">
                     <table id="tablaTicketsAntiguos">
                         <thead>
                             <tr>
-                                <th style="width:40px;">
-                                    <input type="checkbox" id="ctCheckAll" onchange="toggleTodosTickets(this)"
-                                           title="Seleccionar todos">
-                                </th>
+                                <th style="width:40px;"><input type="checkbox" id="ctCheckAll" onchange="toggleTodosTickets(this)" title="Seleccionar todos"></th>
                                 <th>Placa</th>
                                 <th>Código Barras</th>
                                 <th>Fecha Entrada</th>
@@ -478,39 +483,26 @@
                             </tr>
                         </thead>
                         <tbody id="tbodyTicketsAntiguos">
-                            <tr>
-                                <td colspan="10" class="empty-row">
-                                    Cargando tickets…
-                                </td>
-                            </tr>
+                            <tr><td colspan="10" class="empty-row">Cargando tickets…</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
         </main>
 
-        <!-- ══════════════════════════════════════════════════════════
-        PÁGINA: TARIFAS (solo ADMINISTRADOR)
-    ══════════════════════════════════════════════════════════ -->
+        <!-- PÁGINA: TARIFAS -->
         <main class="content" id="pageTarifas" style="display:none;">
             <section class="form-section">
-
                 <div class="section-header">
-                    <h2>💲 Gestión de Tarifas</h2>
-                    <button class="btn btn-sm btn-secondary" onclick="cargarTarifas()">🔄 Actualizar</button>
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="circle-dollar-sign"></i> Gestión de Tarifas</h2>
+                    <button class="btn btn-sm btn-secondary" onclick="cargarTarifas()" style="display:flex; align-items:center; gap:4px;"><i data-lucide="refresh-cw" style="width:14px;"></i> Actualizar</button>
                 </div>
 
-                <!-- Hint de uso -->
                 <div class="tar-inline-hint">
-                    <span>💡</span>
-                    <span>
-                        <strong>Edición rápida:</strong> doble clic en cualquier precio para editarlo inline,
-                        o usa <strong>✏️</strong> para editar toda la fila, o <strong>⊞</strong> para el modal completo.
-                        El toggle activa/inactiva aplica al instante.
-                    </span>
+                    <i data-lucide="lightbulb" style="width:16px; color:#f59e0b;"></i>
+                    <span><strong>Edición rápida:</strong> doble clic en precios o usa el botón de editar.</span>
                 </div>
 
-                <!-- Tabla -->
                 <div class="table-container">
                     <table>
                         <thead>
@@ -531,118 +523,72 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Nota de solo lectura -->
-                <div style="margin-top:12px;font-size:11px;color:var(--text-tertiary);
-                display:flex;align-items:center;gap:6px;">
-                    <span>🔒</span>
-                    <span>
-                        El nombre de la tarifa y el código <code style="font-family:monospace;
-              background:var(--surface-3);padding:1px 5px;border-radius:4px;">strRateKey</code>
-                        son de solo lectura para proteger la integridad del sistema.
-                    </span>
-                </div>
-
             </section>
         </main>
 
     </div>
 
-    
-
-    <!-- Modal Observación -->
+    <!-- MODAL OBSERVACIÓN -->
     <div class="modal-overlay" id="modalObservacion" style="display:none;">
         <div class="modal-content">
-            <h3>✏️ Editar Observación</h3>
+            <h3 style="display:flex; align-items:center; gap:8px;"><i data-lucide="edit-3"></i> Editar Detalle</h3>
             <input type="hidden" id="modalObsId">
             <textarea id="modalObsTexto" rows="3" placeholder="Escriba la observación..."></textarea>
             <div class="modal-actions">
-                <button class="btn btn-success" onclick="guardarObservacion()">💾 Guardar</button>
+                <button class="btn btn-success" onclick="guardarObservacion()">Guardar Cambios</button>
                 <button class="btn btn-secondary" onclick="cerrarModalObservacion()">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-     MODAL: Confirmar cierre individual
-     ============================================================ -->
+    <!-- MODAL: Confirmar cierre individual -->
     <div class="modal-overlay" id="modalCerrarTicket" style="display:none;">
         <div class="modal" style="max-width:460px;">
             <div class="modal-header">
-                <h3>🎫 Cerrar Ticket</h3>
+                <h3 style="display:flex; align-items:center; gap:8px;"><i data-lucide="ticket"></i> Cerrar Ticket</h3>
                 <button class="btn-close" onclick="cerrarModalTicket()">✕</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="ctModalId">
                 <div style="background:var(--gray-50);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                        <div>
-                            <span style="color:var(--gray-500);">Placa:</span><br>
-                            <strong id="ctModalPlaca" style="font-size:16px;">—</strong>
-                        </div>
-                        <div>
-                            <span style="color:var(--gray-500);">Entrada:</span><br>
-                            <strong id="ctModalFechaEntrada">—</strong>
-                        </div>
-                        <div>
-                            <span style="color:var(--gray-500);">Días dentro:</span><br>
-                            <strong id="ctModalDias" style="color:var(--danger);">—</strong>
-                        </div>
-                        <div>
-                            <span style="color:var(--gray-500);">Código:</span><br>
-                            <span id="ctModalCodigo" style="font-size:11px;color:var(--gray-500);">—</span>
-                        </div>
+                        <div><span style="color:var(--gray-500);">Placa:</span><br><strong id="ctModalPlaca" style="font-size:16px;">—</strong></div>
+                        <div><span style="color:var(--gray-500);">Entrada:</span><br><strong id="ctModalFechaEntrada">—</strong></div>
+                        <div><span style="color:var(--gray-500);">Días dentro:</span><br><strong id="ctModalDias" style="color:var(--danger);">—</strong></div>
+                        <div><span style="color:var(--gray-500);">Código:</span><br><span id="ctModalCodigo" style="font-size:11px;color:var(--gray-500);">—</span></div>
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label for="ctModalMonto">💵 Monto a cobrar ($) *</label>
-                    <input type="number" id="ctModalMonto" min="0" step="0.01"
-                           placeholder="0.00" style="font-size:20px;font-weight:700;text-align:center;">
-                </div>
-
-                <div style="font-size:12px;color:var(--gray-500);margin-top:8px;
-                        background:var(--gray-50);padding:10px;border-radius:6px;">
-                    <strong>Se registrará:</strong><br>
-                    • FechaSalida = ahora &nbsp;|&nbsp; Estado = SALIO<br>
-                    • strRateKey = Y &nbsp;|&nbsp; IdDispositivoSalida = POS-PC<br>
-                    • bitPaid = 1 &nbsp;|&nbsp; bitExit = 1 &nbsp;|&nbsp; IdPayDevice = 0
+                    <label for="ctModalMonto">Monto a cobrar ($) *</label>
+                    <input type="number" id="ctModalMonto" min="0" step="0.01" placeholder="0.00" style="font-size:20px;font-weight:700;text-align:center;">
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModalTicket()">Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmarCierreTicket()">✅ Confirmar cierre</button>
+                <button class="btn btn-primary" onclick="confirmarCierreTicket()">Confirmar cierre</button>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-         MODAL: Cierre masivo — ingreso de montos por ticket
-         ============================================================ -->
+    <!-- MODAL: Cierre masivo -->
     <div class="modal-overlay" id="modalCerrarMasivo" style="display:none;">
         <div class="modal" style="max-width:600px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;">
             <div class="modal-header">
-                <h3>✅ Cerrar Tickets Seleccionados</h3>
+                <h3 style="display:flex; align-items:center; gap:8px;"><i data-lucide="check-square"></i> Cerrar Seleccionados</h3>
                 <button class="btn-close" onclick="cerrarModalMasivo()">✕</button>
             </div>
             <div class="modal-body" style="overflow-y:auto;flex:1;">
-                <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">
-                    Ingrese el monto para cada ticket. Los campos en <strong>$0.00</strong> se cerrarán sin cobro.
-                </p>
+                <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">Ingrese el monto para cada ticket. En $0.00 se cerrarán sin cobro.</p>
                 <div id="ctMasivoLista"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModalMasivo()">Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmarCierreMasivo()">
-                    ✅ Cerrar todos (<span id="ctMasivoCount">0</span>)
-                </button>
+                <button class="btn btn-primary" onclick="confirmarCierreMasivo()">Cerrar todos (<span id="ctMasivoCount">0</span>)</button>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-         MODAL: Resultado del cierre masivo
-         ============================================================ -->
+    <!-- MODAL: Resultado cierre masivo -->
     <div class="modal-overlay" id="modalResultadoCierre" style="display:none;">
         <div class="modal" style="max-width:500px;">
             <div class="modal-header">
@@ -650,99 +596,78 @@
                 <button class="btn-close" onclick="cerrarModalResultado()">✕</button>
             </div>
             <div class="modal-body" id="ctResumenBody"></div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="cerrarModalResultado()">Aceptar</button>
-            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="cerrarModalResultado()">Aceptar</button></div>
         </div>
     </div>
 
+    <!-- MODAL EDITAR TARIFA -->
     <div class="modal-overlay" id="modalEditarTarifa" style="display:none;">
         <div class="modal" style="max-width:580px;">
-
             <div class="modal-header">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <span id="tarModalIcon" style="font-size:22px;">🚗</span>
+                    <i data-lucide="car" id="tarModalIcon" style="width:22px; height:22px; color:var(--brand-500);"></i>
                     <div>
-                        <div id="tarModalNombre"
-                             style="font-size:15px;font-weight:700;color:var(--text-primary);"></div>
-                        <div id="tarModalKey"
-                             style="font-size:11px;color:var(--text-tertiary);
-                                font-family:monospace;margin-top:1px;"></div>
+                        <div id="tarModalNombre" style="font-size:15px;font-weight:700;color:var(--text-primary);"></div>
+                        <div id="tarModalKey" style="font-size:11px;color:var(--text-tertiary);font-family:monospace;margin-top:1px;"></div>
                     </div>
                 </div>
                 <button class="btn-close" onclick="cerrarModalTarifa()">✕</button>
             </div>
-
             <input type="hidden" id="tarModalId">
-
             <div class="modal-body" style="display:flex;flex-direction:column;gap:0;">
-
-                <!-- Tarifas escalonadas -->
                 <div class="tar-modal-section">
-                    <div class="tar-modal-section-title">📊 Tarifas escalonadas</div>
+                    <div class="tar-modal-section-title">Tarifas escalonadas</div>
                     <div class="tar-modal-grid">
-                        <div class="form-group">
-                            <label for="tarM_precio1Hora">1ª Hora ($)</label>
-                            <input type="number" id="tarM_precio1Hora" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="tarM_precio2Horas">2ª Hora ($)</label>
-                            <input type="number" id="tarM_precio2Horas" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="tarM_precioDiaCompleto">Día completo ($)</label>
-                            <input type="number" id="tarM_precioDiaCompleto" min="0" step="0.01" placeholder="0.00">
-                        </div>
+                        <div class="form-group"><label for="tarM_precio1Hora">1ª Hora ($)</label><input type="number" id="tarM_precio1Hora" min="0" step="0.01"></div>
+                        <div class="form-group"><label for="tarM_precio2Horas">2ª Hora ($)</label><input type="number" id="tarM_precio2Horas" min="0" step="0.01"></div>
+                        <div class="form-group"><label for="tarM_precioDiaCompleto">Día completo ($)</label><input type="number" id="tarM_precioDiaCompleto" min="0" step="0.01"></div>
                     </div>
                 </div>
-
-                <!-- Otros precios -->
                 <div class="tar-modal-section">
-                    <div class="tar-modal-section-title">💰 Otros precios</div>
+                    <div class="tar-modal-section-title">Otros precios</div>
                     <div class="tar-modal-grid">
-                        <div class="form-group">
-                            <label for="tarM_precioPorHora">Por hora ($)</label>
-                            <input type="number" id="tarM_precioPorHora" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="tarM_precioMinimo">Mínimo ($)</label>
-                            <input type="number" id="tarM_precioMinimo" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="form-group">
-                            <label for="tarM_precioMax">Máximo ($)</label>
-                            <input type="number" id="tarM_precioMax" min="0" step="0.01" placeholder="0.00">
-                        </div>
+                        <div class="form-group"><label for="tarM_precioPorHora">Por hora ($)</label><input type="number" id="tarM_precioPorHora" min="0" step="0.01"></div>
+                        <div class="form-group"><label for="tarM_precioMinimo">Mínimo ($)</label><input type="number" id="tarM_precioMinimo" min="0" step="0.01"></div>
+                        <div class="form-group"><label for="tarM_precioMax">Máximo ($)</label><input type="number" id="tarM_precioMax" min="0" step="0.01"></div>
                     </div>
                 </div>
-
-                <!-- Estado -->
                 <div class="tar-modal-section">
-                    <div class="tar-modal-section-title">⚙️ Estado</div>
+                    <div class="tar-modal-section-title">Estado</div>
                     <div class="tar-toggle-row">
                         <div>
-                            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">
-                                Tarifa activa
-                            </div>
-                            <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">
-                                Las tarifas inactivas no aparecen disponibles en la PayStation.
-                            </div>
+                            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">Tarifa activa</div>
+                            <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">Las inactivas no aparecen en la PayStation.</div>
                         </div>
                         <label class="tar-toggle">
-                            <input type="checkbox" id="tarM_activa"
-                                   onchange="actualizarLabelActiva(this)">
+                            <input type="checkbox" id="tarM_activa" onchange="actualizarLabelActiva(this)">
                             <span class="tar-toggle-slider"></span>
                         </label>
-                        <span id="tarM_activa_label" class="tar-tog-label tar-tog--on">● Activa</span>
+                        <span id="tarM_activa_label" class="tar-tog-label tar-tog--on">Activa</span>
                     </div>
                 </div>
-
             </div>
-
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModalTarifa()">Cancelar</button>
-                <button class="btn btn-primary" id="btnGuardarModal" onclick="guardarModal()">
-                    💾 Guardar cambios
+                <button class="btn btn-primary" id="btnGuardarModal" onclick="guardarModal()" style="display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="save" style="width:16px;"></i> Guardar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CERRAR SESIÓN -->
+    <div class="modal-overlay" id="modalCerrarSesion" style="display:none; z-index: 9999;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+            <div style="background: rgba(239,68,68,0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i data-lucide="log-out" style="color: #ef4444; width: 30px; height: 30px;"></i>
+            </div>
+            <h3 style="margin-bottom: 10px; font-size: 20px;">¿Desea cerrar su sesión?</h3>
+            <p style="color: var(--text-tertiary); margin-bottom: 24px; font-size: 14px;">
+                Tendrá que volver a ingresar sus credenciales para acceder al panel de control.
+            </p>
+            <div class="modal-actions" style="justify-content: center; gap: 12px; display: flex;">
+                <button class="btn btn-secondary" onclick="document.getElementById('modalCerrarSesion').style.display='none'" style="flex:1;">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmarCerrarSesion()" style="flex:1;">Sí, salir</button>
             </div>
         </div>
     </div>
@@ -750,6 +675,12 @@
     <!-- Toast -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script>
+        // Inicializar iconos de Lucide al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
     <script src="/visitas/js/visitas.js"></script>
     <script src="/visitas/js/reportes-venta.js"></script>
     <script src="/visitas/js/cerrar-tickets.js"></script>
