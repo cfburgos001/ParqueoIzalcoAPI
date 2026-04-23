@@ -1091,45 +1091,5 @@ tbody td {
         flex-direction: column;
         align-items: flex-start;
     }
-    /* =========================================
-   ESTILOS DE ÍCONOS (LUCIDE)
-   ========================================= */
 
-    /* Alinear iconos con el texto verticalmente */
-    .lucide {
-        vertical-align: middle;
-        display: inline-block;
-    }
-
-    /* Forzar que los iconos hereden el color del texto donde se encuentran */
-    .lucide, i[data-lucide] {
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
-    }
-
-    /* Animación genérica para iconos de carga (Spin) */
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    .spin, .lucide.spin {
-        animation: spin 1.5s linear infinite;
-    }
-
-    /* Asegurar que los botones con iconos usen flexbox para alineación perfecta */
-    button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
 }
