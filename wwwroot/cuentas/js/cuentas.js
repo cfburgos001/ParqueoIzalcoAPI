@@ -189,7 +189,13 @@ async function guardarCuenta() {
             });
         } else {
             // Crear
-            if (!codigo) { mostrarToast('El código único es requerido', 'error'); return; }
+            if (!codigo) {
+                mostrarToast('El código único es requerido', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar';
+                if (window.lucide) lucide.createIcons({ root: btn });
+                return;
+            }
             res = await fetch(API_CUENTAS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -387,7 +393,13 @@ async function guardarTarjeta() {
                 })
             });
         } else {
-            if (!numero) { mostrarToast('El número de tarjeta es requerido', 'error'); return; }
+            if (!numero) {
+                mostrarToast('El número de tarjeta es requerido', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar';
+                if (window.lucide) lucide.createIcons({ root: btn });
+                return;
+            }
             res = await fetch(API_TARJETAS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

@@ -160,13 +160,16 @@ namespace ParqueoIzalcoAPI.Services
         {
             try
             {
+                var placaNorm = string.IsNullOrWhiteSpace(request.PlacaVehiculo)
+                    ? null : request.PlacaVehiculo.Trim().ToUpperInvariant();
+
                 var parameters = new SqlParameter[]
                 {
                     new("@IdCuenta",      request.IdCuenta),
                     new("@NumeroTarjeta", request.NumeroTarjeta),
                     new("@NombreUsuario", request.NombreUsuario),
-                    new("@PlacaVehiculo", (object?)request.PlacaVehiculo ?? DBNull.Value),
-                    new("@Telefono",      (object?)request.Telefono      ?? DBNull.Value)
+                    new("@PlacaVehiculo", (object?)placaNorm    ?? DBNull.Value),
+                    new("@Telefono",      (object?)request.Telefono ?? DBNull.Value)
                 };
                 var dt = await _db.ExecuteQueryAsync(
                     "EXEC IOT_sp_CrearTarjeta @IdCuenta, @NumeroTarjeta, @NombreUsuario, @PlacaVehiculo, @Telefono",
@@ -184,12 +187,15 @@ namespace ParqueoIzalcoAPI.Services
         {
             try
             {
+                var placaNorm = string.IsNullOrWhiteSpace(request.PlacaVehiculo)
+                    ? null : request.PlacaVehiculo.Trim().ToUpperInvariant();
+
                 var parameters = new SqlParameter[]
                 {
                     new("@Id",            request.Id),
                     new("@NombreUsuario", request.NombreUsuario),
-                    new("@PlacaVehiculo", (object?)request.PlacaVehiculo ?? DBNull.Value),
-                    new("@Telefono",      (object?)request.Telefono      ?? DBNull.Value)
+                    new("@PlacaVehiculo", (object?)placaNorm ?? DBNull.Value),
+                    new("@Telefono",      (object?)request.Telefono ?? DBNull.Value)
                 };
                 var dt = await _db.ExecuteQueryAsync(
                     "EXEC IOT_sp_ActualizarTarjeta @Id, @NombreUsuario, @PlacaVehiculo, @Telefono",
@@ -356,7 +362,7 @@ namespace ParqueoIzalcoAPI.Services
             Activo           = Convert.ToBoolean(row["Activo"]),
             FechaCreacion    = Convert.ToDateTime(row["FechaCreacion"]),
             FechaModificacion= row.Table.Columns.Contains("FechaModificacion") && row["FechaModificacion"] != DBNull.Value
-                                   ? Convert.ToDateTime(row["FechaModificacion"]) : DateTime.MinValue,
+                                   ? Convert.ToDateTime(row["FechaModificacion"]) : (DateTime?)null,
             TotalTarjetas    = row.Table.Columns.Contains("TotalTarjetas") && row["TotalTarjetas"] != DBNull.Value
                                    ? Convert.ToInt32(row["TotalTarjetas"]) : 0
         };

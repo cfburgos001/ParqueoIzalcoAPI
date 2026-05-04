@@ -31,8 +31,8 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Validando acceso tarjeta {Tarjeta} en dispositivo {Disp}",
-                    request.NumeroTarjeta, request.IdDispositivo);
+                _logger.LogInformation("Validando acceso tarjeta en dispositivo {Disp}",
+                    request.IdDispositivo);
 
                 var resultado = await _accesoService.ValidarAccesoTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>
@@ -46,7 +46,7 @@ namespace ParqueoIzalcoAPI.Controllers
             {
                 _logger.LogError(ex, "Error al validar acceso");
                 return StatusCode(500, new ApiResponse<ValidacionAccesoResponse>
-                { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -64,8 +64,8 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Registrando entrada tarjeta {Tarjeta} en dispositivo {Disp}",
-                    request.NumeroTarjeta, request.IdDispositivo);
+                _logger.LogInformation("Registrando entrada tarjeta en dispositivo {Disp}",
+                    request.IdDispositivo);
 
                 var resultado = await _accesoService.RegistrarEntradaTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>
@@ -79,7 +79,7 @@ namespace ParqueoIzalcoAPI.Controllers
             {
                 _logger.LogError(ex, "Error al registrar entrada de tarjeta");
                 return StatusCode(500, new ApiResponse<ValidacionAccesoResponse>
-                { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -97,8 +97,8 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Registrando salida tarjeta {Tarjeta} en dispositivo {Disp}",
-                    request.NumeroTarjeta, request.IdDispositivo);
+                _logger.LogInformation("Registrando salida tarjeta en dispositivo {Disp}",
+                    request.IdDispositivo);
 
                 var resultado = await _accesoService.RegistrarSalidaTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>
@@ -112,7 +112,7 @@ namespace ParqueoIzalcoAPI.Controllers
             {
                 _logger.LogError(ex, "Error al registrar salida de tarjeta");
                 return StatusCode(500, new ApiResponse<ValidacionAccesoResponse>
-                { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
     }

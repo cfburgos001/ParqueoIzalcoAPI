@@ -37,8 +37,8 @@ namespace ParqueoIzalcoAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al validar acceso de tarjeta {Tarjeta}", request.NumeroTarjeta);
-                return new ValidacionAccesoResponse { Acceso = false, Mensaje = $"Error: {ex.Message}", MotivoRechazo = ex.Message };
+                _logger.LogError(ex, "Error al validar acceso de tarjeta");
+                return new ValidacionAccesoResponse { Acceso = false, Mensaje = "Error interno al procesar la solicitud", MotivoRechazo = "Error interno" };
             }
         }
 
@@ -57,8 +57,8 @@ namespace ParqueoIzalcoAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar entrada tarjeta {Tarjeta}", request.NumeroTarjeta);
-                return new ValidacionAccesoResponse { Acceso = false, Mensaje = $"Error: {ex.Message}", MotivoRechazo = ex.Message };
+                _logger.LogError(ex, "Error al registrar entrada tarjeta");
+                return new ValidacionAccesoResponse { Acceso = false, Mensaje = "Error interno al procesar la solicitud", MotivoRechazo = "Error interno" };
             }
         }
 
@@ -77,8 +77,8 @@ namespace ParqueoIzalcoAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar salida tarjeta {Tarjeta}", request.NumeroTarjeta);
-                return new ValidacionAccesoResponse { Acceso = false, Mensaje = $"Error: {ex.Message}", MotivoRechazo = ex.Message };
+                _logger.LogError(ex, "Error al registrar salida tarjeta");
+                return new ValidacionAccesoResponse { Acceso = false, Mensaje = "Error interno al procesar la solicitud", MotivoRechazo = "Error interno" };
             }
         }
 

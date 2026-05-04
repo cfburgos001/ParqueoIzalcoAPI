@@ -28,7 +28,7 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<TarjetaResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta y NombreUsuario son requeridos" });
 
-                _logger.LogInformation("Creando tarjeta {Numero} para cuenta {Cuenta}", request.NumeroTarjeta, request.IdCuenta);
+                _logger.LogInformation("Creando tarjeta para cuenta {Cuenta}", request.IdCuenta);
                 var resultado = await _cuentasService.CrearTarjetaAsync(request);
                 return resultado.Exitoso
                     ? Ok(new ApiResponse<TarjetaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })

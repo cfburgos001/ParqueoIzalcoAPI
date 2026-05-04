@@ -73,7 +73,7 @@ namespace ParqueoIzalcoAPI.Controllers
                 if (string.IsNullOrWhiteSpace(request?.CodigoUnico) || string.IsNullOrWhiteSpace(request.Nombre))
                     return BadRequest(new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = "CodigoUnico y Nombre son requeridos" });
 
-                _logger.LogInformation("Creando cuenta: {Codigo}", request.CodigoUnico);
+                _logger.LogInformation("Creando cuenta nueva");
                 var resultado = await _cuentasService.CrearCuentaAsync(request);
                 return resultado.Exitoso
                     ? Ok(new ApiResponse<CuentaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
