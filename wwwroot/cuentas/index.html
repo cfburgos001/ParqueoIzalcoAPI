@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas y Tarjetas — IOT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Reutilizamos el CSS del portal de visitas -->
+    <link rel="stylesheet" href="/visitas/css/visitas.css">
+    <link rel="stylesheet" href="/visitas/css/layout.css">
+    <link rel="stylesheet" href="/cuentas/css/cuentas.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i data-lucide="building-2" style="width:28px;height:28px;color:var(--brand-500);"></i>
+            </div>
+            <h1 class="sidebar-title">PARQUEO IOT</h1>
+            <p class="sidebar-subtitle">Cuentas &amp; Tarjetas</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-text">Portal Principal</span>
+            </a>
+            <a href="#" class="nav-item active" onclick="navegarSeccion('cuentas', this); return false;">
+                <span class="nav-icon"><i data-lucide="users"></i></span>
+                <span class="nav-text">Cuentas Corporativas</span>
+            </a>
+            <a href="#" class="nav-item" onclick="navegarSeccion('tarjetas', this); return false;">
+                <span class="nav-icon"><i data-lucide="credit-card"></i></span>
+                <span class="nav-text">Tarjetas</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-icon"><i data-lucide="user-circle"></i></span>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarUserName">Administrador</span>
+                    <span class="user-role">Acceso Level</span>
+                </div>
+            </div>
+            <a href="/visitas/login.html" class="btn-sidebar-logout" style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Salir
+            </a>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-wrapper">
+        <!-- HEADER -->
+        <header class="top-header">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+            <h2 class="page-title" id="pageTitle" style="display:flex;align-items:center;gap:8px;">
+                <i data-lucide="users"></i> Cuentas Corporativas
+            </h2>
+            <div class="header-right">
+                <div class="header-clock">
+                    <span id="fechaActual"></span>
+                    <span id="horaActual" class="hora"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════
+             SECCIÓN: CUENTAS
+        ═══════════════════════════════════════════════════════ -->
+        <main class="content" id="seccionCuentas">
+            <section class="form-section">
+                <div class="section-header">
+                    <h2 style="display:flex;align-items:center;gap:8px;">
+                        <i data-lucide="users"></i> Cuentas Corporativas
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="abrirModalNuevaCuenta()"
+                            style="display:flex;align-items:center;gap:6px;">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Nueva Cuenta
+                    </button>
+                </div>
+
+                <!-- Tabla de cuentas -->
+                <div class="table-wrapper">
+                    <table class="data-table" id="tablaCuentas">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Tarjetas</th>
+                                <th>Estado</th>
+                                <th>Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCuentas">
+                            <tr><td colspan="7" class="empty-row">Cargando…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Panel detalle cuenta (tarjetas, horarios, dispositivos) -->
+            <section class="form-section" id="panelDetalleCuenta" style="display:none; margin-top:24px;">
+                <div class="section-header">
+                    <h2 id="detalleCuentaTitulo" style="display:flex;align-items:center;gap:8px;">
+                        <i data-lucide="info"></i> Detalle de Cuenta
+                    </h2>
+                    <button class="btn btn-sm btn-secondary" onclick="cerrarDetalleCuenta()"
+                            style="display:flex;align-items:center;gap:6px;">
+                        <i data-lucide="x" style="width:14px;height:14px;"></i> Cerrar
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-bar" id="tabsBar">
+                    <button class="tab-btn tab-active" onclick="activarTab('tarjetas', this)">
+                        <i data-lucide="credit-card" style="width:14px;height:14px;"></i> Tarjetas
+                    </button>
+                    <button class="tab-btn" onclick="activarTab('horarios', this)">
+                        <i data-lucide="clock" style="width:14px;height:14px;"></i> Horarios
+                    </button>
+                    <button class="tab-btn" onclick="activarTab('dispositivos', this)">
+                        <i data-lucide="wifi" style="width:14px;height:14px;"></i> Dispositivos
+                    </button>
+                </div>
+
+                <!-- Tab: Tarjetas -->
+                <div id="tabTarjetas" class="tab-content">
+                    <div class="tab-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="abrirModalNuevaTarjeta()"
+                                style="display:flex;align-items:center;gap:6px;">
+                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Nueva Tarjeta
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>N° Tarjeta</th>
+                                    <th>Nombre Usuario</th>
+                                    <th>Placa</th>
+                                    <th>Teléfono</th>
+                                    <th>Estado</th>
+                                    <th>Último Uso</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyTarjetas">
+                                <tr><td colspan="7" class="empty-row">Seleccione una cuenta</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Horarios -->
+                <div id="tabHorarios" class="tab-content" style="display:none;">
+                    <div class="tab-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="abrirModalNuevoHorario()"
+                                style="display:flex;align-items:center;gap:6px;">
+                            <i data-lucide="plus" style="width:14px;height:14px;"></i> Agregar Horario
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Hora Inicio</th>
+                                    <th>Hora Fin</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyHorarios">
+                                <tr><td colspan="4" class="empty-row">Sin horarios</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Dispositivos -->
+                <div id="tabDispositivos" class="tab-content" style="display:none;">
+                    <div class="tab-toolbar">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="inputNuevoDispositivo" class="form-input"
+                                   placeholder="ID Dispositivo (ej. ENTRY1)" style="max-width:220px;">
+                            <button class="btn btn-primary btn-sm" onclick="asignarDispositivo()"
+                                    style="display:flex;align-items:center;gap:6px;">
+                                <i data-lucide="plus" style="width:14px;height:14px;"></i> Asignar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Dispositivo</th>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDispositivos">
+                                <tr><td colspan="4" class="empty-row">Sin dispositivos asignados</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ═══════════════════════════════════════════════════════
+             SECCIÓN: TODAS LAS TARJETAS
+        ═══════════════════════════════════════════════════════ -->
+        <main class="content" id="seccionTarjetas" style="display:none;">
+            <section class="form-section">
+                <div class="section-header">
+                    <h2 style="display:flex;align-items:center;gap:8px;">
+                        <i data-lucide="credit-card"></i> Todas las Tarjetas
+                    </h2>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <select id="filtroCuenta" class="form-input" style="max-width:200px;"
+                                onchange="filtrarTarjetasPorCuenta()">
+                            <option value="">Todas las cuentas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>N° Tarjeta</th>
+                                <th>Cuenta</th>
+                                <th>Nombre Usuario</th>
+                                <th>Placa</th>
+                                <th>Teléfono</th>
+                                <th>Estado</th>
+                                <th>Último Uso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyTodasTarjetas">
+                            <tr><td colspan="8" class="empty-row">Cargando…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MODAL: NUEVA / EDITAR CUENTA
+    ═══════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalCuenta" style="display:none;">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <h3 id="modalCuentaTitulo" style="display:flex;align-items:center;gap:8px;">
+                    <i data-lucide="users"></i> Nueva Cuenta
+                </h3>
+                <button class="modal-close" onclick="cerrarModalCuenta()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cuentaId">
+                <div class="form-group">
+                    <label class="form-label">Código Único *</label>
+                    <input type="text" id="cuentaCodigo" class="form-input"
+                           placeholder="EJ: EMP-001" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" id="cuentaNombre" class="form-input"
+                           placeholder="Nombre de la empresa o cuenta" maxlength="200">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea id="cuentaDescripcion" class="form-input" rows="3"
+                              placeholder="Descripción opcional…" maxlength="500" style="resize:vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalCuenta()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarCuenta" onclick="guardarCuenta()"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="save" style="width:16px;height:16px;"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MODAL: NUEVA / EDITAR TARJETA
+    ═══════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalTarjeta" style="display:none;">
+        <div class="modal" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 id="modalTarjetaTitulo" style="display:flex;align-items:center;gap:8px;">
+                    <i data-lucide="credit-card"></i> Nueva Tarjeta
+                </h3>
+                <button class="modal-close" onclick="cerrarModalTarjeta()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="tarjetaId">
+                <div class="form-group">
+                    <label class="form-label">N° Tarjeta / RFID *</label>
+                    <input type="text" id="tarjetaNumero" class="form-input"
+                           placeholder="ID RFID o número de tarjeta" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre Usuario *</label>
+                    <input type="text" id="tarjetaNombre" class="form-input"
+                           placeholder="Nombre del empleado o titular" maxlength="200">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Placa Vehículo</label>
+                    <input type="text" id="tarjetaPlaca" class="form-input"
+                           placeholder="EJ: P123-456" maxlength="50" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" id="tarjetaTelefono" class="form-input"
+                           placeholder="Teléfono de contacto" maxlength="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalTarjeta()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarTarjeta" onclick="guardarTarjeta()"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="save" style="width:16px;height:16px;"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MODAL: NUEVO HORARIO
+    ═══════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalHorario" style="display:none;">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 style="display:flex;align-items:center;gap:8px;">
+                    <i data-lucide="clock"></i> Agregar Horario de Acceso
+                </h3>
+                <button class="modal-close" onclick="cerrarModalHorario()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Día de la Semana *</label>
+                    <select id="horarioDia" class="form-input">
+                        <option value="2">Lunes</option>
+                        <option value="3">Martes</option>
+                        <option value="4">Miércoles</option>
+                        <option value="5">Jueves</option>
+                        <option value="6">Viernes</option>
+                        <option value="7">Sábado</option>
+                        <option value="1">Domingo</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex;gap:16px;">
+                    <div style="flex:1;">
+                        <label class="form-label">Hora Inicio *</label>
+                        <input type="time" id="horarioInicio" class="form-input" value="08:00">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label">Hora Fin *</label>
+                        <input type="time" id="horarioFin" class="form-input" value="18:00">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalHorario()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarHorario" onclick="guardarHorario()"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="save" style="width:16px;height:16px;"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+
+    <script src="/cuentas/js/cuentas.js"></script>
+    <script>
+        // Inicializar Lucide y reloj
+        lucide.createIcons();
+        setInterval(() => {
+            const now = new Date();
+            const fa = document.getElementById('fechaActual');
+            const ha = document.getElementById('horaActual');
+            if (fa) fa.textContent = now.toLocaleDateString('es-SV', { weekday: 'short', day: '2-digit', month: 'short' });
+            if (ha) ha.textContent = now.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' });
+        }, 1000);
+
+        // Recuperar usuario de sessionStorage (mismo que visitas)
+        const sessionUser = sessionStorage.getItem('nombreUsuario') || sessionStorage.getItem('usuario');
+        if (sessionUser) document.getElementById('sidebarUserName').textContent = sessionUser;
+    </script>
+</body>
+</html>

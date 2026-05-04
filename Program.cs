@@ -46,6 +46,8 @@ builder.Services.AddSingleton<IVisitasService, VisitasService>();
 builder.Services.AddSingleton<ITicketsService, TicketsService>();
 builder.Services.AddSingleton<ITarifasService, TarifasService>();
 builder.Services.AddSingleton<IVehiculosService, VehiculosService>();
+builder.Services.AddSingleton<ICuentasService, CuentasService>();
+builder.Services.AddSingleton<IAccesoService, AccesoService>();
 // ===== CONSTRUCCIÓN DE LA APLICACIÓN =====
 var app = builder.Build();
 
@@ -83,6 +85,7 @@ Console.WriteLine("════════════════════�
 Console.WriteLine($"🌐 Servidor: {urls}");
 Console.WriteLine($"📚 Swagger: {urls}/swagger");
 Console.WriteLine($"🌐 Portal Visitas: {urls}/visitas/index.html");
+Console.WriteLine($"🪪  Cuentas y Tarjetas: {urls}/cuentas/index.html");
 Console.WriteLine($"🗄️  Base de Datos: Datapark");
 Console.WriteLine("════════════════════════════════════════════════");
 
