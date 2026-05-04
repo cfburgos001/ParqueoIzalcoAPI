@@ -31,8 +31,7 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Validando acceso tarjeta en dispositivo {Disp}",
-                    request.IdDispositivo);
+                _logger.LogInformation("Validando acceso en dispositivo");
 
                 var resultado = await _accesoService.ValidarAccesoTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>
@@ -64,8 +63,7 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Registrando entrada tarjeta en dispositivo {Disp}",
-                    request.IdDispositivo);
+                _logger.LogInformation("Registrando entrada tarjeta en dispositivo");
 
                 var resultado = await _accesoService.RegistrarEntradaTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>
@@ -97,8 +95,7 @@ namespace ParqueoIzalcoAPI.Controllers
                     return BadRequest(new ApiResponse<ValidacionAccesoResponse>
                     { Exitoso = false, Mensaje = "NumeroTarjeta es requerido" });
 
-                _logger.LogInformation("Registrando salida tarjeta en dispositivo {Disp}",
-                    request.IdDispositivo);
+                _logger.LogInformation("Registrando salida tarjeta en dispositivo");
 
                 var resultado = await _accesoService.RegistrarSalidaTarjetaAsync(request);
                 return Ok(new ApiResponse<ValidacionAccesoResponse>

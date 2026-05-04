@@ -93,7 +93,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear cuenta");
-                return new CuentaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new CuentaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -114,7 +114,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar cuenta ID: {Id}", request.Id);
-                return new CuentaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new CuentaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -129,7 +129,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al toggle cuenta ID: {Id}", id);
-                return new CuentaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new CuentaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -179,7 +179,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear tarjeta");
-                return new TarjetaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new TarjetaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -205,7 +205,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar tarjeta ID: {Id}", request.Id);
-                return new TarjetaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new TarjetaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -220,7 +220,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al toggle tarjeta ID: {Id}", id);
-                return new TarjetaResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new TarjetaResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -263,7 +263,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al asignar dispositivo");
-                return new DispositivoResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new DispositivoResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -283,7 +283,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al quitar dispositivo");
-                return new DispositivoResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new DispositivoResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -329,7 +329,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al guardar horario");
-                return new HorarioResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new HorarioResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 
@@ -345,7 +345,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar horario ID: {Id}", id);
-                return new HorarioResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
+                return new HorarioResponse { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" };
             }
         }
 

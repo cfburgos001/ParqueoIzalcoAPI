@@ -40,7 +40,7 @@ namespace ParqueoIzalcoAPI.Controllers
             {
                 _logger.LogError(ex, "Error al listar cuentas");
                 return StatusCode(500, new ApiResponse<List<Cuenta>>
-                { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -57,9 +57,9 @@ namespace ParqueoIzalcoAPI.Controllers
 
                 return Ok(new ApiResponse<Cuenta> { Exitoso = true, Mensaje = "Cuenta encontrada", Data = cuenta });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<Cuenta> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<Cuenta> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -79,9 +79,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<CuentaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -101,9 +101,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<CuentaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -119,9 +119,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<CuentaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<CuentaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -144,9 +144,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     Data    = tarjetas
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<List<Tarjeta>> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<List<Tarjeta>> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -169,9 +169,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     Data    = dispositivos
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<List<CuentaDispositivo>> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<List<CuentaDispositivo>> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -191,9 +191,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<DispositivoResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -209,9 +209,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<DispositivoResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<DispositivoResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -234,9 +234,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     Data    = horarios
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<List<CuentaHorario>> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<List<CuentaHorario>> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -256,9 +256,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<HorarioResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -274,9 +274,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<HorarioResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
     }

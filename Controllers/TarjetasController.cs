@@ -34,9 +34,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<TarjetaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -56,9 +56,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<TarjetaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
 
@@ -74,9 +74,9 @@ namespace ParqueoIzalcoAPI.Controllers
                     ? Ok(new ApiResponse<TarjetaResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = resultado.Mensaje });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = $"Error: {ex.Message}" });
+                return StatusCode(500, new ApiResponse<TarjetaResponse> { Exitoso = false, Mensaje = "Error interno al procesar la solicitud" });
             }
         }
     }
