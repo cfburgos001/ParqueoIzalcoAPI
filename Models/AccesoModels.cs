@@ -31,6 +31,7 @@ namespace ParqueoIzalcoAPI.Models
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
+        public string StrRateKey { get; set; } = "L";
     }
 
     public class CuentaResponse
@@ -38,6 +39,7 @@ namespace ParqueoIzalcoAPI.Models
         public bool Exitoso { get; set; }
         public string Mensaje { get; set; } = string.Empty;
         public int? Id { get; set; }
+
     }
 
     // =============================================

@@ -103,12 +103,13 @@ namespace ParqueoIzalcoAPI.Services
             {
                 var parameters = new SqlParameter[]
                 {
-                    new("@Id",          request.Id),
-                    new("@Nombre",      request.Nombre),
-                    new("@Descripcion", (object?)request.Descripcion ?? DBNull.Value)
+            new("@Id",          request.Id),
+            new("@Nombre",      request.Nombre),
+            new("@Descripcion", (object?)request.Descripcion ?? DBNull.Value),
+            new("@strRateKey",  request.StrRateKey ?? "L")
                 };
                 var dt = await _db.ExecuteQueryAsync(
-                    "EXEC IOT_sp_ActualizarCuenta @Id, @Nombre, @Descripcion", parameters);
+                    "EXEC IOT_sp_ActualizarCuenta @Id, @Nombre, @Descripcion, @strRateKey", parameters);
                 return ParseCuentaResponse(dt);
             }
             catch (Exception ex)
@@ -355,15 +356,22 @@ namespace ParqueoIzalcoAPI.Services
 
         private static Cuenta MapCuenta(DataRow row) => new()
         {
-            Id               = Convert.ToInt32(row["Id"]),
-            CodigoUnico      = row["CodigoUnico"]?.ToString() ?? "",
-            Nombre           = row["Nombre"]?.ToString() ?? "",
-            Descripcion      = row["Descripcion"] == DBNull.Value ? null : row["Descripcion"].ToString(),
-            Activo           = Convert.ToBoolean(row["Activo"]),
-            FechaCreacion    = Convert.ToDateTime(row["FechaCreacion"]),
-            FechaModificacion= row.Table.Columns.Contains("FechaModificacion") && row["FechaModificacion"] != DBNull.Value
-                                   ? Convert.ToDateTime(row["FechaModificacion"]) : (DateTime?)null,
-            TotalTarjetas    = row.Table.Columns.Contains("TotalTarjetas") && row["TotalTarjetas"] != DBNull.Value
+            Id = Convert.ToInt32(row["Id"]),
+            CodigoUnico = row["CodigoUnico"]?.ToString() ?? "",
+            Nombre = row["Nombre"]?.ToString() ?? "",
+            Descripcion = row["Descripcion"] == DBNull.Value ? null : row["Descripcion"].ToString(),
+            Activo = row.Table.Columns.Contains("Activa")
+                                   ? Convert.ToBoolean(row["Activa"])
+                                   : row.Table.Columns.Contains("Activo")
+                                       ? Convert.ToBoolean(row["Activo"])
+                                       : true,
+            FechaCreacion = Convert.ToDateTime(row["FechaCreacion"]),
+            FechaModificacion = row.Table.Columns.Contains("FechaModif") && row["FechaModif"] != DBNull.Value
+                                   ? Convert.ToDateTime(row["FechaModif"])
+                                   : row.Table.Columns.Contains("FechaModificacion") && row["FechaModificacion"] != DBNull.Value
+                                       ? Convert.ToDateTime(row["FechaModificacion"])
+                                       : (DateTime?)null,
+            TotalTarjetas = row.Table.Columns.Contains("TotalTarjetas") && row["TotalTarjetas"] != DBNull.Value
                                    ? Convert.ToInt32(row["TotalTarjetas"]) : 0
         };
 

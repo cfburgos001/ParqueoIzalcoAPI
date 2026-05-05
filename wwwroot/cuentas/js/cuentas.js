@@ -85,7 +85,9 @@ function renderizarCuentas() {
         return;
     }
 
-    tbody.innerHTML = cuentasData.map(c => `
+    tbody.innerHTML = cuentasData.map(c => {
+        const activo = c.activo ?? c.activa ?? false;
+        return `
         <tr id="cRow_${c.id}">
             <td><strong style="color:var(--brand-400);">${esc(c.codigoUnico)}</strong></td>
             <td>${esc(c.nombre)}</td>
@@ -98,8 +100,8 @@ function renderizarCuentas() {
                 </span>
             </td>
             <td>
-                <span class="badge ${c.activo ? 'badge-success' : 'badge-danger'}">
-                    ${c.activo ? '✓ Activa' : '✗ Inactiva'}
+                <span class="badge ${activo ? 'badge-success' : 'badge-danger'}">
+                    ${activo ? '✓ Activa' : '✗ Inactiva'}
                 </span>
             </td>
             <td style="color:var(--text-secondary);font-size:12px;">
@@ -117,19 +119,21 @@ function renderizarCuentas() {
                             title="Editar">
                         <i data-lucide="edit-3" style="width:12px;height:12px;"></i>
                     </button>
-                    <button class="btn btn-xs ${c.activo ? 'btn-warning' : 'btn-success'}"
+                    <button class="btn btn-xs ${activo ? 'btn-warning' : 'btn-success'}"
                             onclick="toggleCuenta(${c.id})"
-                            title="${c.activo ? 'Desactivar' : 'Activar'}">
-                        <i data-lucide="${c.activo ? 'toggle-left' : 'toggle-right'}" style="width:12px;height:12px;"></i>
-                        ${c.activo ? 'Desactivar' : 'Activar'}
+                            title="${activo ? 'Desactivar' : 'Activar'}">
+                        <i data-lucide="${activo ? 'toggle-left' : 'toggle-right'}" style="width:12px;height:12px;"></i>
+                        ${activo ? 'Desactivar' : 'Activar'}
                     </button>
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 
     if (window.lucide) lucide.createIcons({ root: tbody });
 }
+
 
 // ─────────────────────────────────────────────────────────────────
 // CUENTAS — CRUD
