@@ -269,7 +269,7 @@ namespace ParqueoIzalcoAPI.Controllers
         {
             try
             {
-                var resultado = await _cuentasService.EliminarHorarioAsync(idHorario);
+                var resultado = await _cuentasService.EliminarHorarioAsync(idHorario, id);
                 return resultado.Exitoso
                     ? Ok(new ApiResponse<HorarioResponse> { Exitoso = true, Mensaje = resultado.Mensaje, Data = resultado })
                     : BadRequest(new ApiResponse<HorarioResponse> { Exitoso = false, Mensaje = resultado.Mensaje });

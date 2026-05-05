@@ -6,8 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ===== CONFIGURACIÓN DE SERVICIOS =====
 
-// Agregar controladores
-builder.Services.AddControllers();
+// Agregar controladores con serialización JSON camelCase explícita
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 // Swagger para documentación
 builder.Services.AddEndpointsApiExplorer();

@@ -286,6 +286,15 @@
                     <textarea id="cuentaDescripcion" class="form-input" rows="3"
                               placeholder="Descripción opcional…" maxlength="500" style="resize:vertical;"></textarea>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Tarifa (Rate Key)</label>
+                    <select id="cuentaRateKey" class="form-input">
+                        <option value="L">L — Local</option>
+                        <option value="H">H — Horas</option>
+                        <option value="M">M — Mensual</option>
+                        <option value="D">D — Diario</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="cerrarModalCuenta()">Cancelar</button>

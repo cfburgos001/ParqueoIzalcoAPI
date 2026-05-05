@@ -144,6 +144,7 @@ function abrirModalNuevaCuenta() {
     document.getElementById('cuentaCodigo').value = '';
     document.getElementById('cuentaNombre').value = '';
     document.getElementById('cuentaDescripcion').value = '';
+    document.getElementById('cuentaRateKey').value = 'L';
     document.getElementById('cuentaCodigo').disabled = false;
     document.getElementById('modalCuentaTitulo').innerHTML = '<i data-lucide="users"></i> Nueva Cuenta';
     document.getElementById('modalCuenta').style.display = 'flex';
@@ -159,6 +160,7 @@ function abrirModalEditarCuenta(id) {
     document.getElementById('cuentaCodigo').disabled = true;   // no se puede cambiar el código único
     document.getElementById('cuentaNombre').value = c.nombre;
     document.getElementById('cuentaDescripcion').value = c.descripcion || '';
+    document.getElementById('cuentaRateKey').value = c.strRateKey || 'L';
     document.getElementById('modalCuentaTitulo').innerHTML = '<i data-lucide="edit-3"></i> Editar Cuenta';
     document.getElementById('modalCuenta').style.display = 'flex';
     if (window.lucide) lucide.createIcons({ root: document.getElementById('modalCuenta') });
@@ -174,6 +176,7 @@ async function guardarCuenta() {
     const codigo = document.getElementById('cuentaCodigo').value.trim();
     const nombre = document.getElementById('cuentaNombre').value.trim();
     const desc   = document.getElementById('cuentaDescripcion').value.trim();
+    const rateKey = document.getElementById('cuentaRateKey')?.value || 'L';
 
     if (!nombre) { mostrarToast('El nombre es requerido', 'error'); return; }
 
@@ -189,7 +192,7 @@ async function guardarCuenta() {
             res  = await fetch(`${API_CUENTAS}/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, descripcion: desc || null })
+                body: JSON.stringify({ nombre, descripcion: desc || null, strRateKey: rateKey })
             });
         } else {
             // Crear
@@ -292,6 +295,11 @@ async function cargarTarjetasDeCuenta(idCuenta) {
     try {
         const res  = await fetch(`${API_CUENTAS}/${idCuenta}/tarjetas`);
         const data = await res.json();
+        if (!data.exitoso) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-row" style="color:var(--danger-text);">
+                ${data.mensaje || 'Error al cargar tarjetas'}</td></tr>`;
+            return;
+        }
         tarjetasData = data.data || [];
         renderizarTarjetasDeCuenta();
     } catch {
@@ -667,10 +675,10 @@ async function cargarTodasTarjetas() {
         </div></td></tr>`;
 
     try {
-        // Cargamos cuentas para filtro
-        if (cuentasData.length === 0) {
-            const rc = await fetch(API_CUENTAS);
-            const dc = await rc.json();
+        // Cargamos cuentas para filtro (siempre refrescar para tener datos actualizados)
+        const rc = await fetch(API_CUENTAS);
+        const dc = await rc.json();
+        if (dc.exitoso) {
             cuentasData = dc.data || [];
             poblarFiltroCuentas();
         }

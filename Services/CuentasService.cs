@@ -23,7 +23,7 @@ namespace ParqueoIzalcoAPI.Services
 
         Task<List<CuentaHorario>> ListarHorariosDeCuentaAsync(int idCuenta);
         Task<HorarioResponse> GuardarHorarioAsync(GuardarHorarioRequest request);
-        Task<HorarioResponse> EliminarHorarioAsync(int id);
+        Task<HorarioResponse> EliminarHorarioAsync(int id, int idCuenta);
     }
 
     public class CuentasService : ICuentasService
@@ -50,8 +50,13 @@ namespace ParqueoIzalcoAPI.Services
             {
                 var dt = await _db.ExecuteQueryAsync("EXEC IOT_sp_ListarCuentas");
                 var list = new List<Cuenta>();
+                var seen = new HashSet<int>();
                 foreach (DataRow row in dt.Rows)
-                    list.Add(MapCuenta(row));
+                {
+                    var c = MapCuenta(row);
+                    if (seen.Add(c.Id))
+                        list.Add(c);
+                }
                 return list;
             }
             catch (Exception ex)
@@ -334,10 +339,15 @@ namespace ParqueoIzalcoAPI.Services
             }
         }
 
-        public async Task<HorarioResponse> EliminarHorarioAsync(int id)
+        public async Task<HorarioResponse> EliminarHorarioAsync(int id, int idCuenta)
         {
             try
             {
+                // Validar que el horario pertenece a la cuenta solicitada
+                var horarios = await ListarHorariosDeCuentaAsync(idCuenta);
+                if (!horarios.Any(h => h.Id == id))
+                    return new HorarioResponse { Exitoso = false, Mensaje = "Horario no encontrado o no pertenece a esta cuenta" };
+
                 var parameters = new[] { new SqlParameter("@Id", id) };
                 var dt = await _db.ExecuteQueryAsync(
                     "EXEC IOT_sp_EliminarHorarioCuenta @Id", parameters);
@@ -365,6 +375,9 @@ namespace ParqueoIzalcoAPI.Services
                                    : row.Table.Columns.Contains("Activo")
                                        ? Convert.ToBoolean(row["Activo"])
                                        : true,
+            StrRateKey = row.Table.Columns.Contains("strRateKey") && row["strRateKey"] != DBNull.Value
+                                   ? row["strRateKey"].ToString() ?? "L"
+                                   : "L",
             FechaCreacion = Convert.ToDateTime(row["FechaCreacion"]),
             FechaModificacion = row.Table.Columns.Contains("FechaModif") && row["FechaModif"] != DBNull.Value
                                    ? Convert.ToDateTime(row["FechaModif"])
@@ -384,7 +397,11 @@ namespace ParqueoIzalcoAPI.Services
             NombreUsuario  = row["NombreUsuario"]?.ToString() ?? "",
             PlacaVehiculo  = row["PlacaVehiculo"] == DBNull.Value ? null : row["PlacaVehiculo"].ToString(),
             Telefono       = row["Telefono"] == DBNull.Value ? null : row["Telefono"].ToString(),
-            Activo         = Convert.ToBoolean(row["Activo"]),
+            Activo         = row.Table.Columns.Contains("Activa")
+                                   ? Convert.ToBoolean(row["Activa"])
+                                   : row.Table.Columns.Contains("Activo")
+                                       ? Convert.ToBoolean(row["Activo"])
+                                       : true,
             FechaCreacion  = Convert.ToDateTime(row["FechaCreacion"]),
             FechaUltimoUso = row["FechaUltimoUso"] == DBNull.Value ? null : Convert.ToDateTime(row["FechaUltimoUso"])
         };
@@ -417,7 +434,7 @@ namespace ParqueoIzalcoAPI.Services
         private static CuentaResponse ParseCuentaResponse(DataTable dt)
         {
             if (dt.Rows.Count == 0)
-                return new CuentaResponse { Exitoso = false, Mensaje = "Sin respuesta del servidor" };
+                return new CuentaResponse { Exitoso = true, Mensaje = "Operación completada" };
             var row = dt.Rows[0];
             return new CuentaResponse
             {
@@ -430,7 +447,7 @@ namespace ParqueoIzalcoAPI.Services
         private static TarjetaResponse ParseTarjetaResponse(DataTable dt)
         {
             if (dt.Rows.Count == 0)
-                return new TarjetaResponse { Exitoso = false, Mensaje = "Sin respuesta del servidor" };
+                return new TarjetaResponse { Exitoso = true, Mensaje = "Operación completada" };
             var row = dt.Rows[0];
             return new TarjetaResponse
             {
@@ -443,7 +460,7 @@ namespace ParqueoIzalcoAPI.Services
         private static DispositivoResponse ParseDispositivoResponse(DataTable dt)
         {
             if (dt.Rows.Count == 0)
-                return new DispositivoResponse { Exitoso = false, Mensaje = "Sin respuesta del servidor" };
+                return new DispositivoResponse { Exitoso = true, Mensaje = "Operación completada" };
             var row = dt.Rows[0];
             return new DispositivoResponse
             {
@@ -455,7 +472,7 @@ namespace ParqueoIzalcoAPI.Services
         private static HorarioResponse ParseHorarioResponse(DataTable dt)
         {
             if (dt.Rows.Count == 0)
-                return new HorarioResponse { Exitoso = false, Mensaje = "Sin respuesta del servidor" };
+                return new HorarioResponse { Exitoso = true, Mensaje = "Operación completada" };
             var row = dt.Rows[0];
             return new HorarioResponse
             {
