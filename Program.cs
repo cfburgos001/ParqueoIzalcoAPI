@@ -1,15 +1,10 @@
 ﻿using ParqueoIzalcoAPI.Services;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===== CONFIGURACIÓN DE SERVICIOS =====
-
-// Agregar controladores
+// ===== SERVICIOS =====
 builder.Services.AddControllers();
-
-// Swagger para documentación
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -17,27 +12,18 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "IOT API",
         Version = "v1",
-        Description = "API para control de barrera de parqueo - Sistema IOT",
-        Contact = new OpenApiContact
-        {
-            Name = "Sistema IOT",
-            Email = "cfburgos001@gmail.com"
-        }
+        Description = "API para control de parqueo — Sistema IOT",
+        Contact = new OpenApiContact { Name = "Sistema IOT", Email = "cfburgos001@gmail.com" }
     });
 });
 
-// Configurar CORS (permitir acceso desde cualquier origen)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// Registrar servicios personalizados
+// Registrar todos los servicios
 builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 builder.Services.AddSingleton<ISitioService, SitioService>();
 builder.Services.AddSingleton<IBarreraService, BarreraService>();
@@ -46,44 +32,39 @@ builder.Services.AddSingleton<IVisitasService, VisitasService>();
 builder.Services.AddSingleton<ITicketsService, TicketsService>();
 builder.Services.AddSingleton<ITarifasService, TarifasService>();
 builder.Services.AddSingleton<IVehiculosService, VehiculosService>();
-// ===== CONSTRUCCIÓN DE LA APLICACIÓN =====
+builder.Services.AddSingleton<ITarjetasService, TarjetasService>(); // ← NUEVO
+
+// ===== BUILD =====
 var app = builder.Build();
 
-// CARGAR CONFIG DEL SITIO AL INICIAR
+// Cargar config del sitio al iniciar
 using (var scope = app.Services.CreateScope())
 {
     var sitioService = scope.ServiceProvider.GetRequiredService<ISitioService>();
     await sitioService.CargarDesdeDBAsync();
 }
 
-
-// Configurar el pipeline HTTP
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Datapark Barrera API v1");
-    c.RoutePrefix = "swagger"; // ← CAMBIO: Swagger ahora en /swagger para liberar la raíz
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Datapark IOT API v1");
+    c.RoutePrefix = "swagger";
 });
 
-// ===== NUEVO: Servir archivos estáticos desde wwwroot =====
 app.UseStaticFiles();
-
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
-
-// ===== NUEVO: Redirigir la raíz al portal de visitas =====
 app.MapGet("/", () => Results.Redirect("/visitas/login.html"));
 
-// Mensaje de inicio - Obtener URL y puerto de la configuración
 var urls = builder.Configuration["urls"] ?? "http://localhost:5225";
 Console.WriteLine("════════════════════════════════════════════════");
-Console.WriteLine("🚀 DATAPARK BARRERA API - INICIANDO");
+Console.WriteLine("🚀 DATAPARK IOT API — INICIANDO");
 Console.WriteLine("════════════════════════════════════════════════");
-Console.WriteLine($"🌐 Servidor: {urls}");
-Console.WriteLine($"📚 Swagger: {urls}/swagger");
-Console.WriteLine($"🌐 Portal Visitas: {urls}/visitas/index.html");
-Console.WriteLine($"🗄️  Base de Datos: Datapark");
+Console.WriteLine($"🌐 Servidor  : {urls}");
+Console.WriteLine($"📚 Swagger   : {urls}/swagger");
+Console.WriteLine($"🌐 Portal    : {urls}/visitas/index.html");
+Console.WriteLine($"💳 Tarjetas  : {urls}/visitas/tarjetas.html");
 Console.WriteLine("════════════════════════════════════════════════");
 
 app.Run();

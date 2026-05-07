@@ -1,0 +1,1236 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjetas de Acceso — IOT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/visitas/css/visitas.css">
+    <link rel="stylesheet" href="/visitas/css/layout.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/visitas/js/site-config.js"></script>
+    <style>
+        /* ── Stats bar ── */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 16px 22px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+            .stat-item .si-val {
+                font-size: 24px;
+                font-weight: 800;
+                letter-spacing: -0.03em;
+                color: var(--text-primary);
+            }
+
+            .stat-item .si-lbl {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text-tertiary);
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+
+        /* ── Tab nav ── */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border-default);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: -1px;
+        }
+
+            .tab-btn:hover {
+                color: var(--text-secondary);
+            }
+
+            .tab-btn.active {
+                color: var(--brand-400);
+                border-bottom-color: var(--brand-500);
+            }
+
+        /* ── Tarjeta cards ── */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 14px;
+        }
+
+        .tarjeta-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .tarjeta-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, var(--brand-600), var(--brand-400));
+            }
+
+            .tarjeta-card.inactiva::before {
+                background: var(--surface-5);
+            }
+
+            .tarjeta-card.expirada::before {
+                background: linear-gradient(90deg,#b91c1c,#ef4444);
+            }
+
+            .tarjeta-card.dentro::before {
+                background: linear-gradient(90deg,#059669,#10b981);
+            }
+
+            .tarjeta-card:hover {
+                border-color: var(--border-strong);
+                box-shadow: var(--shadow-md);
+            }
+
+        .tc-codigo {
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-400);
+            letter-spacing: 0.04em;
+        }
+
+        .tc-nombre {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .tc-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+            .tc-row i {
+                width: 14px;
+                height: 14px;
+                flex-shrink: 0;
+                color: var(--text-tertiary);
+            }
+
+        .vigencia-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 9px;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .vigencia-VIGENTE {
+            background: var(--success-dim);
+            color: var(--success-text);
+        }
+
+        .vigencia-INACTIVA {
+            background: var(--surface-4);
+            color: var(--text-tertiary);
+        }
+
+        .vigencia-EXPIRADA {
+            background: var(--danger-dim);
+            color: var(--danger-text);
+        }
+
+        .vigencia-FUTURA {
+            background: var(--warning-dim);
+            color: var(--warning-text);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+            grid-column: 1 / -1;
+        }
+
+            .empty-state i {
+                width: 48px;
+                height: 48px;
+                opacity: 0.35;
+            }
+
+            .empty-state p {
+                font-size: 14px;
+                font-weight: 500;
+                margin: 0;
+            }
+
+        /* ── Search input ── */
+        .search-input {
+            padding: 7px 12px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius);
+            background: var(--surface-3);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 180px;
+            transition: border-color var(--transition);
+        }
+
+            .search-input:focus {
+                border-color: var(--brand-500);
+                box-shadow: 0 0 0 3px var(--brand-glow);
+            }
+
+        /* ── MODAL TARJETA — grande y scrollable ── */
+        .modal-tarjeta-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 16px;
+            animation: overlayIn 0.15s ease;
+        }
+
+        @keyframes overlayIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .modal-tarjeta {
+            background: var(--surface-2);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-default);
+            box-shadow: var(--shadow-xl);
+            width: 100%;
+            max-width: 660px;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-tarjeta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--surface-3);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            flex-shrink: 0;
+        }
+
+            .modal-tarjeta-header h3 {
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        .modal-tarjeta-body {
+            padding: 22px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-tarjeta-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 14px 22px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--surface-3);
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+            flex-shrink: 0;
+        }
+
+        /* Grid 2 columnas dentro del modal */
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+            .modal-form-grid .span-2 {
+                grid-column: 1 / -1;
+            }
+
+        /* Sección dentro del modal */
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Info nivel */
+        .nivel-info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--info-dim);
+            border: 1px solid var(--border-brand);
+            border-radius: var(--radius);
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+            .nivel-info-box i {
+                width: 14px;
+                height: 14px;
+                flex-shrink: 0;
+                margin-top: 1px;
+                color: var(--brand-400);
+            }
+
+        @media (max-width: 640px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+                .modal-form-grid .span-2 {
+                    grid-column: 1;
+                }
+
+            .stats-bar {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" id="sidebarLogoBox">
+                <i data-lucide="building-2" style="width:28px;height:28px;color:var(--brand-500);"></i>
+            </div>
+            <div class="sidebar-brand">
+                <h1 class="sidebar-title" id="sidebarTitle" data-sitio-field="nombreComercial">PARQUEO IOT</h1>
+                <p class="sidebar-subtitle" id="sidebarSubtitle" data-sitio-field="slogan">Sistema de Parqueo</p>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-text">Inicio</span>
+            </a>
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                <span class="nav-text">Bitácora de Accesos</span>
+            </a>
+            <a href="/visitas/tarjetas.html" class="nav-item active">
+                <span class="nav-icon"><i data-lucide="credit-card"></i></span>
+                <span class="nav-text">Tarjetas de Acceso</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-icon"><i data-lucide="user-circle"></i></span>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarUserName">Usuario</span>
+                    <span class="user-role" id="sidebarUserRole">Rol</span>
+                </div>
+            </div>
+            <button class="btn-sidebar-logout" onclick="cerrarSesion()"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Salir
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-wrapper">
+        <header class="top-header">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+            <h2 class="page-title" style="display:flex;align-items:center;gap:8px;">
+                <i data-lucide="credit-card"></i> Control de Tarjetas de Acceso
+            </h2>
+            <div class="header-right">
+                <div class="header-clock">
+                    <span id="fechaActual"></span>
+                    <span id="horaActual" class="hora"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+
+            <!-- STATS -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="si-val" id="statCuentas">—</div>
+                    <div class="si-lbl">Cuentas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-val" id="statTarjetas">—</div>
+                    <div class="si-lbl">Tarjetas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-val" id="statVigentes" style="color:var(--success-text);">—</div>
+                    <div class="si-lbl">Vigentes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-val" id="statDentroAhora" style="color:var(--brand-400);">—</div>
+                    <div class="si-lbl">Dentro ahora</div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="tab-nav">
+                <button class="tab-btn active" id="tabCuentasBtn" onclick="switchTab('cuentas')">
+                    <i data-lucide="building-2" style="width:15px;height:15px;"></i> Cuentas
+                </button>
+                <button class="tab-btn" id="tabTarjetasBtn" onclick="switchTab('tarjetas')">
+                    <i data-lucide="credit-card" style="width:15px;height:15px;"></i> Tarjetas
+                </button>
+            </div>
+
+            <!-- ════════════════════════ TAB CUENTAS ════════════════════════ -->
+            <div id="tabCuentas">
+                <section class="table-section">
+                    <div class="section-header">
+                        <h2 style="display:flex;align-items:center;gap:8px;">
+                            <i data-lucide="building-2"></i> Cuentas
+                        </h2>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" class="search-input" id="buscarCuenta"
+                                   placeholder="Buscar cuenta..."
+                                   oninput="filtrarCuentas(this.value)">
+                            <button class="btn btn-sm btn-secondary" onclick="cargarCuentas()"
+                                    style="display:flex;align-items:center;gap:4px;">
+                                <i data-lucide="refresh-cw" style="width:14px;"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="abrirModalCuenta()"
+                                    style="display:flex;align-items:center;gap:6px;">
+                                <i data-lucide="plus" style="width:14px;"></i> Nueva cuenta
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Contacto</th>
+                                    <th>Tarjetas</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyCuentas">
+                                <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ════════════════════════ TAB TARJETAS ════════════════════════ -->
+            <div id="tabTarjetas" style="display:none;">
+                <section class="table-section">
+                    <div class="section-header">
+                        <h2 style="display:flex;align-items:center;gap:8px;">
+                            <i data-lucide="credit-card"></i> Tarjetas
+                        </h2>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="filtroCuenta" onchange="cargarTarjetas()"
+                                    style="padding:7px 12px;border:1px solid var(--border-default);
+                                       border-radius:var(--radius);background:var(--surface-3);
+                                       color:var(--text-primary);font-size:13px;outline:none;">
+                                <option value="">Todas las cuentas</option>
+                            </select>
+                            <input type="text" class="search-input" id="buscarTarjeta"
+                                   placeholder="Buscar tarjeta..."
+                                   oninput="cargarTarjetas()" style="width:160px;">
+                            <button class="btn btn-sm btn-secondary" onclick="cargarTarjetas()"
+                                    style="display:flex;align-items:center;gap:4px;">
+                                <i data-lucide="refresh-cw" style="width:14px;"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="abrirModalTarjeta()"
+                                    style="display:flex;align-items:center;gap:6px;">
+                                <i data-lucide="plus" style="width:14px;"></i> Nueva tarjeta
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-grid" id="gridTarjetas">
+                        <div class="empty-state">
+                            <div class="dash-spinner"></div>
+                            <p>Cargando tarjetas...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div><!-- /.main-wrapper -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MODAL CUENTA                                             -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalCuenta" style="display:none;">
+        <div class="modal" style="max-width:520px;">
+            <div class="modal-header">
+                <h3 id="modalCuentaTitulo" style="display:flex;align-items:center;gap:8px;">
+                    <i data-lucide="building-2"></i> Nueva cuenta
+                </h3>
+                <button class="btn-close" onclick="cerrarModalCuenta()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cuentaId">
+                <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+                    <div class="form-group">
+                        <label for="cuentaCodigo">Código único *</label>
+                        <input type="text" id="cuentaCodigo" placeholder="EMP-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="cuentaNombre">Nombre *</label>
+                        <input type="text" id="cuentaNombre" placeholder="Nombre de la empresa">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label for="cuentaDescripcion">Descripción</label>
+                        <input type="text" id="cuentaDescripcion" placeholder="Descripción opcional">
+                    </div>
+                    <div class="form-group">
+                        <label for="cuentaEmail">Email</label>
+                        <input type="email" id="cuentaEmail" placeholder="correo@empresa.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="cuentaTelefono">Teléfono</label>
+                        <input type="text" id="cuentaTelefono" placeholder="2222-0000">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalCuenta()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarCuenta" onclick="guardarCuenta()"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="save" style="width:16px;"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MODAL TARJETA — grande, dos columnas, scrollable          -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-tarjeta-overlay" id="modalTarjeta" style="display:none;">
+        <div class="modal-tarjeta">
+
+            <div class="modal-tarjeta-header">
+                <h3 id="modalTarjetaTitulo">
+                    <i data-lucide="credit-card"></i> Nueva tarjeta
+                </h3>
+                <button class="btn-close" onclick="cerrarModalTarjeta()">✕</button>
+            </div>
+
+            <div class="modal-tarjeta-body">
+                <input type="hidden" id="tarjetaId">
+
+                <!-- SECCIÓN 1: Identificación de la tarjeta -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Identificación de la tarjeta</div>
+                    <div class="modal-form-grid">
+                        <div class="form-group">
+                            <label for="tarjetaCodigo">Código de tarjeta *</label>
+                            <input type="text" id="tarjetaCodigo" placeholder="RFID / QR / Código físico">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarjetaCuenta">Cuenta *</label>
+                            <select id="tarjetaCuenta" onchange="actualizarNivelesPorCuenta()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tarjetaNivel">Nivel de acceso *</label>
+                            <select id="tarjetaNivel" onchange="mostrarInfoNivel()"></select>
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio vacío o info del nivel -->
+                        </div>
+                        <!-- Info del nivel ocupa todo el ancho -->
+                        <div class="span-2" id="nivelInfoWrap" style="display:none;">
+                            <div class="nivel-info-box">
+                                <i data-lucide="clock"></i>
+                                <span id="nivelInfoTexto"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: Datos del titular -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Datos del titular</div>
+                    <div class="modal-form-grid">
+                        <div class="form-group">
+                            <label for="tarjetaTitular">Nombre completo</label>
+                            <input type="text" id="tarjetaTitular" placeholder="Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarjetaIdentificacion">Identificación</label>
+                            <input type="text" id="tarjetaIdentificacion" placeholder="DUI / Pasaporte">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: Vigencia -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Vigencia</div>
+                    <div class="modal-form-grid">
+                        <div class="form-group">
+                            <label for="tarjetaVigenciaInicio">Fecha inicio</label>
+                            <input type="date" id="tarjetaVigenciaInicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="tarjetaVigenciaFin">Fecha fin</label>
+                            <input type="date" id="tarjetaVigenciaFin">
+                        </div>
+                        <div class="span-2" style="font-size:11px;color:var(--text-tertiary);margin-top:-4px;">
+                            Dejar en blanco = sin restricción de fechas (vigencia indefinida).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 4: Observación -->
+                <div class="modal-section" style="margin-bottom:0;">
+                    <div class="modal-section-title">Observación</div>
+                    <div class="form-group">
+                        <input type="text" id="tarjetaObservacion" placeholder="Notas opcionales...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-tarjeta-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalTarjeta()">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarTarjeta" onclick="guardarTarjeta()"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="save" style="width:16px;"></i> Guardar tarjeta
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MODAL CONFIRMAR ELIMINAR                                  -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalConfirmar" style="display:none;">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 style="display:flex;align-items:center;gap:8px;color:var(--danger-text);">
+                    <i data-lucide="alert-triangle"></i> Confirmar eliminación
+                </h3>
+                <button class="btn-close" onclick="cerrarModalConfirmar()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmarTexto" style="font-size:14px;color:var(--text-secondary);margin:0;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalConfirmar()">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmarEliminar"
+                        style="display:flex;align-items:center;gap:6px;">
+                    <i data-lucide="trash-2" style="width:16px;"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+
+
+    <script>
+        // ═══════════════════════════════════════════════════
+        // ESTADO GLOBAL
+        // ═══════════════════════════════════════════════════
+        const API = '/api/tarjetas';
+        let cuentasData = [];
+        let tarjetasData = [];
+        let nivelesData = [];
+        let operador = null;
+
+        // ═══════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', async () => {
+            const datos = sessionStorage.getItem('operador');
+            if (!datos) { window.location.href = '/visitas/login.html'; return; }
+            operador = JSON.parse(datos);
+
+            if (operador.tipoUsuario !== 'ADMINISTRADOR') {
+                window.location.href = '/visitas/index.html';
+                return;
+            }
+
+            document.getElementById('sidebarUserName').textContent = operador.nombreCompleto;
+            document.getElementById('sidebarUserRole').textContent = operador.tipoUsuario;
+
+            cargarConfigSitio();
+            actualizarReloj();
+            setInterval(actualizarReloj, 1000);
+            lucide.createIcons();
+
+            await Promise.all([cargarNiveles(), cargarCuentas()]);
+            await cargarTarjetas();
+        });
+
+        // ═══════════════════════════════════════════════════
+        // RELOJ
+        // ═══════════════════════════════════════════════════
+        function actualizarReloj() {
+            const now = new Date();
+            document.getElementById('fechaActual').textContent =
+                now.toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('horaActual').textContent =
+                now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // TABS
+        // ═══════════════════════════════════════════════════
+        function switchTab(tab) {
+            document.getElementById('tabCuentas').style.display = tab === 'cuentas' ? '' : 'none';
+            document.getElementById('tabTarjetas').style.display = tab === 'tarjetas' ? '' : 'none';
+            document.getElementById('tabCuentasBtn').classList.toggle('active', tab === 'cuentas');
+            document.getElementById('tabTarjetasBtn').classList.toggle('active', tab === 'tarjetas');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // STATS
+        // ═══════════════════════════════════════════════════
+        function actualizarStats() {
+            document.getElementById('statCuentas').textContent = cuentasData.length;
+            document.getElementById('statTarjetas').textContent = tarjetasData.length;
+            document.getElementById('statVigentes').textContent = tarjetasData.filter(t => t.estadoVigencia === 'VIGENTE').length;
+            document.getElementById('statDentroAhora').textContent = tarjetasData.filter(t => t.estaActualmenteDentro).length;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // NIVELES
+        // ═══════════════════════════════════════════════════
+        async function cargarNiveles() {
+            try {
+                const r = await fetch(`${API}/niveles`);
+                const d = await r.json();
+                if (d.exitoso) nivelesData = d.data || [];
+            } catch (e) { console.error('niveles', e); }
+        }
+
+        function poblarSelectNiveles(selectEl, selectedId) {
+            selectEl.innerHTML = '<option value="">Seleccione nivel...</option>' +
+                nivelesData.map(n =>
+                    `<option value="${n.id}"
+                    data-horarios="${(n.horariosResumen || '24/7 sin restricción').replace(/"/g, '&quot;')}"
+                    ${selectedId == n.id ? 'selected' : ''}>
+                 ${n.nombre}
+                 </option>`
+                ).join('');
+        }
+
+        // ═══════════════════════════════════════════════════
+        // CUENTAS
+        // ═══════════════════════════════════════════════════
+        async function cargarCuentas() {
+            const tbody = document.getElementById('tbodyCuentas');
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-row">Cargando...</td></tr>`;
+            try {
+                const r = await fetch(`${API}/cuentas`);
+                const d = await r.json();
+                cuentasData = d.data || [];
+                renderizarCuentas(cuentasData);
+                poblarFiltroCuentas();
+                actualizarStats();
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-row" style="color:var(--danger-text);">Error de conexión</td></tr>`;
+            }
+        }
+
+        function renderizarCuentas(lista) {
+            const tbody = document.getElementById('tbodyCuentas');
+            if (!lista.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-row">No hay cuentas registradas</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = lista.map(c => `
+            <tr>
+                <td><span style="font-family:monospace;font-size:12px;font-weight:700;
+                                 color:var(--brand-400);">${c.codigoUnico}</span></td>
+                <td>
+                    <div style="font-weight:600;color:var(--text-primary);">${c.nombre}</div>
+                    ${c.descripcion ? `<div style="font-size:11px;color:var(--text-tertiary);">${c.descripcion}</div>` : ''}
+                </td>
+                <td style="font-size:12px;">
+                    ${c.email ? `<div>${c.email}</div>` : ''}
+                    ${c.telefono ? `<div style="color:var(--text-tertiary);">${c.telefono}</div>` : ''}
+                    ${!c.email && !c.telefono ? '<span style="color:var(--text-disabled);">—</span>' : ''}
+                </td>
+                <td>
+                    <strong style="color:var(--text-primary);">${c.totalTarjetas}</strong>
+                    <span style="font-size:11px;color:var(--text-tertiary);"> (${c.tarjetasVigentes} vigentes)</span>
+                </td>
+                <td>
+                    <span class="badge ${c.activa ? 'badge-dentro' : 'badge-salio'}">
+                        ${c.activa ? '● Activa' : '● Inactiva'}
+                    </span>
+                </td>
+                <td>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        <button class="btn btn-xs btn-secondary" onclick="editarCuenta(${c.id})"
+                                style="display:flex;align-items:center;gap:3px;" title="Editar">
+                            <i data-lucide="edit-3" style="width:12px;"></i>
+                        </button>
+                        <button class="btn btn-xs ${c.activa ? 'btn-danger' : 'btn-success'}"
+                                onclick="toggleCuenta(${c.id}, ${c.activa})"
+                                style="display:flex;align-items:center;gap:3px;">
+                            <i data-lucide="${c.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
+                            ${c.activa ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button class="btn btn-xs btn-primary"
+                                onclick="switchTab('tarjetas');filtrarPorCuenta(${c.id})"
+                                style="display:flex;align-items:center;gap:3px;" title="Ver tarjetas">
+                            <i data-lucide="credit-card" style="width:12px;"></i> Tarjetas
+                        </button>
+                        <button class="btn btn-xs btn-danger"
+                                onclick="confirmarEliminarCuenta(${c.id},'${esc(c.nombre)}')"
+                                style="display:flex;align-items:center;gap:3px;" title="Eliminar">
+                            <i data-lucide="trash-2" style="width:12px;"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`).join('');
+            lucide.createIcons({ root: tbody });
+        }
+
+        function filtrarCuentas(t) {
+            t = t.toLowerCase();
+            renderizarCuentas(cuentasData.filter(c =>
+                c.nombre.toLowerCase().includes(t) ||
+                c.codigoUnico.toLowerCase().includes(t)));
+        }
+
+        function poblarFiltroCuentas() {
+            const sel = document.getElementById('filtroCuenta');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">Todas las cuentas</option>' +
+                cuentasData.map(c => `<option value="${c.id}" ${c.id == cur ? 'selected' : ''}>${c.nombre}</option>`).join('');
+
+            // También llenar el select del modal
+            const selModal = document.getElementById('tarjetaCuenta');
+            const curModal = selModal.value;
+            selModal.innerHTML = '<option value="">Seleccione cuenta...</option>' +
+                cuentasData.filter(c => c.activa)
+                    .map(c => `<option value="${c.id}" ${c.id == curModal ? 'selected' : ''}>${c.nombre} (${c.codigoUnico})</option>`)
+                    .join('');
+        }
+
+        // CRUD Cuentas
+        function abrirModalCuenta(c = null) {
+            document.getElementById('cuentaId').value = c?.id || '';
+            document.getElementById('cuentaCodigo').value = c?.codigoUnico || '';
+            document.getElementById('cuentaNombre').value = c?.nombre || '';
+            document.getElementById('cuentaDescripcion').value = c?.descripcion || '';
+            document.getElementById('cuentaEmail').value = c?.email || '';
+            document.getElementById('cuentaTelefono').value = c?.telefono || '';
+            document.getElementById('cuentaCodigo').disabled = !!c;
+            document.getElementById('modalCuentaTitulo').innerHTML =
+                `<i data-lucide="building-2"></i> ${c ? 'Editar cuenta' : 'Nueva cuenta'}`;
+            document.getElementById('modalCuenta').style.display = 'flex';
+            lucide.createIcons({ root: document.getElementById('modalCuenta') });
+            setTimeout(() => document.getElementById(c ? 'cuentaNombre' : 'cuentaCodigo').focus(), 80);
+        }
+        function cerrarModalCuenta() { document.getElementById('modalCuenta').style.display = 'none'; }
+        function editarCuenta(id) { const c = cuentasData.find(x => x.id === id); if (c) abrirModalCuenta(c); }
+
+        async function guardarCuenta() {
+            const id = document.getElementById('cuentaId').value;
+            const codigo = document.getElementById('cuentaCodigo').value.trim();
+            const nombre = document.getElementById('cuentaNombre').value.trim();
+            if (!codigo) { mostrarToast('El código único es requerido', 'error'); return; }
+            if (!nombre) { mostrarToast('El nombre es requerido', 'error'); return; }
+
+            const btn = document.getElementById('btnGuardarCuenta');
+            btn.disabled = true;
+            try {
+                const body = {
+                    codigoUnico: codigo, nombre,
+                    descripcion: document.getElementById('cuentaDescripcion').value.trim() || null,
+                    email: document.getElementById('cuentaEmail').value.trim() || null,
+                    telefono: document.getElementById('cuentaTelefono').value.trim() || null,
+                    idOperadorCreo: operador?.idOperador || null
+                };
+                const res = await fetch(id ? `${API}/cuentas/${id}` : `${API}/cuentas`, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.exitoso) { mostrarToast(data.mensaje, 'success'); cerrarModalCuenta(); await cargarCuentas(); }
+                else mostrarToast(data.mensaje, 'error');
+            } catch (e) { mostrarToast('Error de conexión', 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        async function toggleCuenta(id, activa) {
+            try {
+                const r = await fetch(`${API}/cuentas/${id}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ activa: !activa })
+                });
+                const d = await r.json();
+                mostrarToast(d.mensaje, d.exitoso ? 'success' : 'error');
+                if (d.exitoso) await cargarCuentas();
+            } catch (e) { mostrarToast('Error', 'error'); }
+        }
+
+        function confirmarEliminarCuenta(id, nombre) {
+            document.getElementById('confirmarTexto').textContent =
+                `¿Eliminar la cuenta "${nombre}"? Esta acción no se puede deshacer.`;
+            document.getElementById('btnConfirmarEliminar').onclick = () => eliminarCuenta(id);
+            document.getElementById('modalConfirmar').style.display = 'flex';
+            lucide.createIcons({ root: document.getElementById('modalConfirmar') });
+        }
+        async function eliminarCuenta(id) {
+            cerrarModalConfirmar();
+            try {
+                const r = await fetch(`${API}/cuentas/${id}`, { method: 'DELETE' });
+                const d = await r.json();
+                mostrarToast(d.mensaje, d.exitoso ? 'success' : 'error');
+                if (d.exitoso) await cargarCuentas();
+            } catch (e) { mostrarToast('Error', 'error'); }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // TARJETAS
+        // ═══════════════════════════════════════════════════
+        async function cargarTarjetas() {
+            const grid = document.getElementById('gridTarjetas');
+            grid.innerHTML = `<div class="empty-state"><div class="dash-spinner"></div><p>Cargando...</p></div>`;
+            try {
+                const idCuenta = document.getElementById('filtroCuenta')?.value || '';
+                const buscar = document.getElementById('buscarTarjeta')?.value || '';
+                let url = `${API}?soloActivas=false`;
+                if (idCuenta) url += `&idCuenta=${idCuenta}`;
+                if (buscar) url += `&buscar=${encodeURIComponent(buscar)}`;
+                const r = await fetch(url);
+                const d = await r.json();
+                tarjetasData = d.data || [];
+                renderizarTarjetas(tarjetasData);
+                actualizarStats();
+            } catch (e) {
+                grid.innerHTML = `<div class="empty-state"><i data-lucide="wifi-off"></i><p>Error de conexión</p></div>`;
+                lucide.createIcons({ root: grid });
+            }
+        }
+
+        function filtrarPorCuenta(id) {
+            document.getElementById('filtroCuenta').value = id;
+            cargarTarjetas();
+        }
+
+        function renderizarTarjetas(lista) {
+            const grid = document.getElementById('gridTarjetas');
+            if (!lista.length) {
+                grid.innerHTML = `<div class="empty-state">
+                <i data-lucide="credit-card"></i>
+                <p>No hay tarjetas registradas</p></div>`;
+                lucide.createIcons({ root: grid });
+                return;
+            }
+            grid.innerHTML = lista.map(t => {
+                const cls = t.estaActualmenteDentro ? 'dentro'
+                    : t.estadoVigencia === 'INACTIVA' ? 'inactiva'
+                        : t.estadoVigencia === 'EXPIRADA' ? 'expirada' : '';
+                const vigFin = t.fechaVigenciaFin
+                    ? new Date(t.fechaVigenciaFin).toLocaleDateString('es-GT') : null;
+                const vigIni = t.fechaVigenciaInicio
+                    ? new Date(t.fechaVigenciaInicio).toLocaleDateString('es-GT') : null;
+                return `
+            <div class="tarjeta-card ${cls}">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+                    <div>
+                        <div class="tc-codigo">${t.codigoTarjeta}</div>
+                        <div class="tc-nombre">${t.nombreTitular || '(Sin titular)'}</div>
+                        ${t.identificacionTitular ? `<div style="font-size:11px;color:var(--text-tertiary);">${t.identificacionTitular}</div>` : ''}
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                        <span class="vigencia-badge vigencia-${t.estadoVigencia}">${t.estadoVigencia}</span>
+                        ${t.estaActualmenteDentro ? `<span class="badge badge-dentro" style="font-size:9px;">● DENTRO</span>` : ''}
+                    </div>
+                </div>
+                <div class="tc-row"><i data-lucide="building-2"></i><span>${t.nombreCuenta}</span></div>
+                <div class="tc-row"><i data-lucide="shield"></i><span>${t.nivelAcceso}</span></div>
+                <div class="tc-row">
+                    <i data-lucide="calendar"></i>
+                    <span>${vigIni ? 'Desde ' + vigIni : ''} ${vigFin ? 'hasta ' + vigFin : '(sin expiración)'}</span>
+                </div>
+                ${t.observacion ? `<div class="tc-row"><i data-lucide="message-square"></i><span>${t.observacion}</span></div>` : ''}
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+                    <button class="btn btn-xs btn-secondary" onclick="editarTarjeta(${t.id})"
+                            style="display:flex;align-items:center;gap:4px;">
+                        <i data-lucide="edit-3" style="width:12px;"></i> Editar
+                    </button>
+                    <button class="btn btn-xs ${t.activa ? 'btn-danger' : 'btn-success'}"
+                            onclick="toggleTarjeta(${t.id}, ${t.activa})"
+                            style="display:flex;align-items:center;gap:4px;">
+                        <i data-lucide="${t.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
+                        ${t.activa ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button class="btn btn-xs btn-danger"
+                            onclick="confirmarEliminarTarjeta(${t.id},'${esc(t.codigoTarjeta)}')"
+                            style="display:flex;align-items:center;gap:4px;">
+                        <i data-lucide="trash-2" style="width:12px;"></i>
+                    </button>
+                </div>
+            </div>`;
+            }).join('');
+            lucide.createIcons({ root: grid });
+        }
+
+        // CRUD Tarjetas
+        function abrirModalTarjeta(t = null) {
+            document.getElementById('tarjetaId').value = t?.id || '';
+            document.getElementById('tarjetaCodigo').value = t?.codigoTarjeta || '';
+            document.getElementById('tarjetaTitular').value = t?.nombreTitular || '';
+            document.getElementById('tarjetaIdentificacion').value = t?.identificacionTitular || '';
+            document.getElementById('tarjetaObservacion').value = t?.observacion || '';
+            document.getElementById('tarjetaVigenciaInicio').value =
+                t?.fechaVigenciaInicio ? new Date(t.fechaVigenciaInicio).toISOString().split('T')[0] : '';
+            document.getElementById('tarjetaVigenciaFin').value =
+                t?.fechaVigenciaFin ? new Date(t.fechaVigenciaFin).toISOString().split('T')[0] : '';
+
+            document.getElementById('tarjetaCodigo').disabled = !!t;
+
+            // Poblar cuenta
+            poblarFiltroCuentas();
+            if (t?.idCuenta) document.getElementById('tarjetaCuenta').value = t.idCuenta;
+
+            // Poblar niveles
+            poblarSelectNiveles(document.getElementById('tarjetaNivel'), t?.idNivelAcceso);
+            mostrarInfoNivel();
+
+            document.getElementById('modalTarjetaTitulo').innerHTML =
+                `<i data-lucide="credit-card"></i> ${t ? 'Editar tarjeta' : 'Nueva tarjeta'}`;
+
+            document.getElementById('modalTarjeta').style.display = 'flex';
+            lucide.createIcons({ root: document.getElementById('modalTarjeta') });
+            setTimeout(() => {
+                if (!t) document.getElementById('tarjetaCodigo').focus();
+                else document.getElementById('tarjetaTitular').focus();
+            }, 80);
+        }
+
+        function cerrarModalTarjeta() { document.getElementById('modalTarjeta').style.display = 'none'; }
+        function editarTarjeta(id) { const t = tarjetasData.find(x => x.id === id); if (t) abrirModalTarjeta(t); }
+
+        function mostrarInfoNivel() {
+            const sel = document.getElementById('tarjetaNivel');
+            const opt = sel.options[sel.selectedIndex];
+            const wrap = document.getElementById('nivelInfoWrap');
+            const txt = document.getElementById('nivelInfoTexto');
+            if (opt && opt.value) {
+                txt.textContent = 'Horarios permitidos: ' + (opt.dataset.horarios || '24/7 sin restricción');
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
+            }
+            if (window.lucide) lucide.createIcons({ root: wrap });
+        }
+
+        function actualizarNivelesPorCuenta() {
+            // Re-poblar niveles (siempre los mismos, pero podría extenderse)
+            poblarSelectNiveles(document.getElementById('tarjetaNivel'));
+            mostrarInfoNivel();
+        }
+
+        async function guardarTarjeta() {
+            const id = document.getElementById('tarjetaId').value;
+            const codigo = document.getElementById('tarjetaCodigo').value.trim();
+            const idC = parseInt(document.getElementById('tarjetaCuenta').value);
+            const idN = parseInt(document.getElementById('tarjetaNivel').value);
+
+            if (!codigo) { mostrarToast('El código de tarjeta es requerido', 'error'); return; }
+            if (!idC || isNaN(idC)) { mostrarToast('Seleccione una cuenta', 'error'); return; }
+            if (!idN || isNaN(idN)) { mostrarToast('Seleccione un nivel de acceso', 'error'); return; }
+
+            const btn = document.getElementById('btnGuardarTarjeta');
+            btn.disabled = true;
+            try {
+                const vigIni = document.getElementById('tarjetaVigenciaInicio').value || null;
+                const vigFin = document.getElementById('tarjetaVigenciaFin').value || null;
+                const body = id
+                    ? {
+                        idNivelAcceso: idN,
+                        nombreTitular: document.getElementById('tarjetaTitular').value.trim() || null,
+                        identificacionTitular: document.getElementById('tarjetaIdentificacion').value.trim() || null,
+                        fechaVigenciaInicio: vigIni, fechaVigenciaFin: vigFin,
+                        observacion: document.getElementById('tarjetaObservacion').value.trim() || null
+                    }
+                    : {
+                        idCuenta: idC, idNivelAcceso: idN, codigoTarjeta: codigo,
+                        nombreTitular: document.getElementById('tarjetaTitular').value.trim() || null,
+                        identificacionTitular: document.getElementById('tarjetaIdentificacion').value.trim() || null,
+                        fechaVigenciaInicio: vigIni, fechaVigenciaFin: vigFin,
+                        observacion: document.getElementById('tarjetaObservacion').value.trim() || null,
+                        idOperadorCreo: operador?.idOperador || null
+                    };
+
+                const r = await fetch(id ? `${API}/${id}` : API, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const d = await r.json();
+                if (d.exitoso) { mostrarToast(d.mensaje, 'success'); cerrarModalTarjeta(); await cargarTarjetas(); }
+                else mostrarToast(d.mensaje, 'error');
+            } catch (e) { mostrarToast('Error de conexión', 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        async function toggleTarjeta(id, activa) {
+            try {
+                const r = await fetch(`${API}/${id}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ activa: !activa })
+                });
+                const d = await r.json();
+                mostrarToast(d.mensaje, d.exitoso ? 'success' : 'error');
+                if (d.exitoso) await cargarTarjetas();
+            } catch (e) { mostrarToast('Error', 'error'); }
+        }
+
+        function confirmarEliminarTarjeta(id, codigo) {
+            document.getElementById('confirmarTexto').textContent =
+                `¿Eliminar la tarjeta "${codigo}"? Esta acción no se puede deshacer.`;
+            document.getElementById('btnConfirmarEliminar').onclick = () => eliminarTarjeta(id);
+            document.getElementById('modalConfirmar').style.display = 'flex';
+            lucide.createIcons({ root: document.getElementById('modalConfirmar') });
+        }
+        async function eliminarTarjeta(id) {
+            cerrarModalConfirmar();
+            try {
+                const r = await fetch(`${API}/${id}`, { method: 'DELETE' });
+                const d = await r.json();
+                mostrarToast(d.mensaje, d.exitoso ? 'success' : 'error');
+                if (d.exitoso) await cargarTarjetas();
+            } catch (e) { mostrarToast('Error', 'error'); }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // UTILS
+        // ═══════════════════════════════════════════════════
+        function cerrarModalConfirmar() { document.getElementById('modalConfirmar').style.display = 'none'; }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('operador');
+            window.location.href = '/visitas/login.html';
+        }
+
+        function esc(str) { return (str || '').replace(/'/g, "\\'"); }
+
+        function mostrarToast(msg, tipo = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast toast-${tipo}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateX(100px)';
+                t.style.transition = 'all 0.3s ease';
+                setTimeout(() => t.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
