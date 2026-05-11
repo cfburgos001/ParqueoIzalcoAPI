@@ -1,4 +1,4 @@
-﻿using ParqueoIzalcoAPI.Models;
+using ParqueoIzalcoAPI.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -6,10 +6,11 @@ namespace ParqueoIzalcoAPI.Services
 {
     public interface IBarreraService
     {
-        Task<Barrera?> ObtenerEstadoBarreraAsync();
-        Task<bool> CerrarBarreraAsync(string motivo = "Vehículo pasó");
-        Task<bool> AbrirBarreraManualAsync();
-        Task<bool> ResetearBarreraAsync();
+        Task<List<Barrera>> ListarBarrerasAsync();
+        Task<Barrera?> ObtenerEstadoBarreraAsync(int idBarrera = 1);
+        Task<bool> CerrarBarreraAsync(string motivo = "Vehículo pasó", int idBarrera = 1);
+        Task<bool> AbrirBarreraManualAsync(int idBarrera = 1);
+        Task<bool> ResetearBarreraAsync(int idBarrera = 1);
         Task<BarreraEstadisticas> ObtenerEstadisticasAsync();
         Task<List<BarreraLog>> ObtenerHistorialAsync(int ultimosRegistros = 10);
         Task<RegistroLogResponse> RegistrarLogAsync(RegistroLogRequest request);
@@ -26,28 +27,49 @@ namespace ParqueoIzalcoAPI.Services
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtiene el estado actual de la barrera
-        /// </summary>
-        public async Task<Barrera?> ObtenerEstadoBarreraAsync()
+        public async Task<List<Barrera>> ListarBarrerasAsync()
+        {
+            try
+            {
+                var dt = await _db.ExecuteQueryAsync("EXEC dbo.IOT_sp_ListarBarreras");
+                var barreras = new List<Barrera>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    barreras.Add(new Barrera
+                    {
+                        ID = Convert.ToInt32(row["ID"]),
+                        BarreraSeteo = row["BarreraSeteo"].ToString() ?? "",
+                        EstadoBarrera = Convert.ToBoolean(row["EstadoBarrera"]),
+                        ComandoBarrera = Convert.ToBoolean(row["ComandoBarrera"]),
+                        FechaUltimaActualizacion = Convert.ToDateTime(row["FechaUltimaActualizacion"])
+                    });
+                }
+
+                return barreras;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al listar barreras");
+                throw;
+            }
+        }
+
+        public async Task<Barrera?> ObtenerEstadoBarreraAsync(int idBarrera = 1)
         {
             try
             {
                 var sql = @"
-                    SELECT 
-                        ID,
-                        BarreraSeteo,
-                        EstadoBarrera,
-                        ComandoBarrera,
-                        FechaUltimaActualizacion
+                    SELECT ID, BarreraSeteo, EstadoBarrera, ComandoBarrera, FechaUltimaActualizacion
                     FROM IOT_Barrera
-                    WHERE ID = 1";
+                    WHERE ID = @IdBarrera";
 
-                var dt = await _db.ExecuteQueryAsync(sql);
+                var dt = await _db.ExecuteQueryAsync(sql,
+                    new SqlParameter[] { new SqlParameter("@IdBarrera", idBarrera) });
 
                 if (dt.Rows.Count == 0)
                 {
-                    _logger.LogWarning("No se encontró la barrera con ID = 1");
+                    _logger.LogWarning("No se encontró la barrera con ID = {IdBarrera}", idBarrera);
                     return null;
                 }
 
@@ -63,97 +85,84 @@ namespace ParqueoIzalcoAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener estado de barrera");
+                _logger.LogError(ex, "Error al obtener estado de barrera {IdBarrera}", idBarrera);
                 throw;
             }
         }
 
-        /// <summary>
-        /// Cierra la barrera (simula que el controlino detectó que pasó el vehículo)
-        /// </summary>
-        public async Task<bool> CerrarBarreraAsync(string motivo = "Vehículo pasó")
+        public async Task<bool> CerrarBarreraAsync(string motivo = "Vehículo pasó", int idBarrera = 1)
         {
             try
             {
-                var sql = "EXEC IOT_sp_CerrarBarreraManual";
-                var result = await _db.ExecuteNonQueryAsync(sql);
+                await _db.ExecuteNonQueryAsync(
+                    "EXEC IOT_sp_CerrarBarreraManual @IdBarrera",
+                    new SqlParameter[] { new SqlParameter("@IdBarrera", idBarrera) });
 
-                _logger.LogInformation("✓ Barrera cerrada - Motivo: {Motivo}", motivo);
+                _logger.LogInformation("✓ Barrera {IdBarrera} cerrada - Motivo: {Motivo}", idBarrera, motivo);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al cerrar barrera");
+                _logger.LogError(ex, "Error al cerrar barrera {IdBarrera}", idBarrera);
                 return false;
             }
         }
 
-        /// <summary>
-        /// Abre la barrera manualmente (emergencias)
-        /// </summary>
-        public async Task<bool> AbrirBarreraManualAsync()
+        public async Task<bool> AbrirBarreraManualAsync(int idBarrera = 1)
         {
             try
             {
                 var sql = @"
                     UPDATE IOT_Barrera
-                    SET 
-                        EstadoBarrera = 1,
-                        ComandoBarrera = 1,
-                        FechaUltimaActualizacion = GETDATE()
-                    WHERE ID = 1";
+                    SET EstadoBarrera = 1, ComandoBarrera = 1, FechaUltimaActualizacion = GETDATE()
+                    WHERE ID = @IdBarrera";
 
-                await _db.ExecuteNonQueryAsync(sql);
-                _logger.LogInformation("✓ Barrera abierta manualmente");
+                await _db.ExecuteNonQueryAsync(sql,
+                    new SqlParameter[] { new SqlParameter("@IdBarrera", idBarrera) });
+
+                _logger.LogInformation("✓ Barrera {IdBarrera} abierta manualmente", idBarrera);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al abrir barrera manualmente");
+                _logger.LogError(ex, "Error al abrir barrera {IdBarrera} manualmente", idBarrera);
                 return false;
             }
         }
 
-        /// <summary>
-        /// Resetea la barrera a estado cerrado
-        /// </summary>
-        public async Task<bool> ResetearBarreraAsync()
+        public async Task<bool> ResetearBarreraAsync(int idBarrera = 1)
         {
             try
             {
-                var sql = "EXEC IOT_sp_ResetearBarrera";
-                await _db.ExecuteNonQueryAsync(sql);
-                _logger.LogInformation("✓ Barrera reseteada");
+                await _db.ExecuteNonQueryAsync(
+                    "EXEC IOT_sp_ResetearBarrera @IdBarrera",
+                    new SqlParameter[] { new SqlParameter("@IdBarrera", idBarrera) });
+
+                _logger.LogInformation("✓ Barrera {IdBarrera} reseteada", idBarrera);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al resetear barrera");
+                _logger.LogError(ex, "Error al resetear barrera {IdBarrera}", idBarrera);
                 return false;
             }
         }
 
-        /// <summary>
-        /// Obtiene estadísticas de uso de la barrera
-        /// </summary>
         public async Task<BarreraEstadisticas> ObtenerEstadisticasAsync()
         {
             try
             {
                 var sql = @"
-                    SELECT 
-                        COUNT(*) as TotalMovimientos,
-                        MAX(FechaUltimaActualizacion) as UltimaActividad
-                    FROM IOT_Barrera
-                    WHERE ID = 1";
+                    SELECT COUNT(*) as TotalMovimientos, MAX(FechaUltimaActualizacion) as UltimaActividad
+                    FROM IOT_Barrera";
 
                 var dt = await _db.ExecuteQueryAsync(sql);
                 var row = dt.Rows[0];
 
                 var sqlHoy = @"
-                    SELECT 
+                    SELECT
                         SUM(CASE WHEN bitEntry = 1 THEN 1 ELSE 0 END) as Entradas,
-                        SUM(CASE WHEN bitExit = 1 THEN 1 ELSE 0 END) as Salidas
+                        SUM(CASE WHEN bitExit  = 1 THEN 1 ELSE 0 END) as Salidas
                     FROM IOT_Vehiculos
                     WHERE CAST(FechaEntrada AS DATE) = CAST(GETDATE() AS DATE)";
 
@@ -163,9 +172,9 @@ namespace ParqueoIzalcoAPI.Services
                 return new BarreraEstadisticas
                 {
                     TotalAperturas = Convert.ToInt32(rowHoy["Entradas"] ?? 0) +
-                                    Convert.ToInt32(rowHoy["Salidas"] ?? 0),
-                    TotalCierres = Convert.ToInt32(rowHoy["Entradas"] ?? 0) +
-                                  Convert.ToInt32(rowHoy["Salidas"] ?? 0),
+                                     Convert.ToInt32(rowHoy["Salidas"]  ?? 0),
+                    TotalCierres   = Convert.ToInt32(rowHoy["Entradas"] ?? 0) +
+                                     Convert.ToInt32(rowHoy["Salidas"]  ?? 0),
                     UltimaApertura = row["UltimaActividad"] != DBNull.Value
                         ? Convert.ToDateTime(row["UltimaActividad"])
                         : null
@@ -178,34 +187,19 @@ namespace ParqueoIzalcoAPI.Services
             }
         }
 
-        /// <summary>
-        /// Obtiene el historial de movimientos
-        /// </summary>
         public async Task<List<BarreraLog>> ObtenerHistorialAsync(int ultimosRegistros = 10)
         {
             try
             {
                 var sql = $@"
                     SELECT TOP {ultimosRegistros}
-                        CASE 
-                            WHEN bitEntry = 1 THEN FechaEntrada
-                            WHEN bitExit = 1 THEN FechaSalida
-                        END as Fecha,
-                        CASE 
-                            WHEN bitEntry = 1 THEN 'ENTRADA'
-                            WHEN bitExit = 1 THEN 'SALIDA'
-                        END as Accion,
+                        CASE WHEN bitEntry = 1 THEN FechaEntrada WHEN bitExit = 1 THEN FechaSalida END as Fecha,
+                        CASE WHEN bitEntry = 1 THEN 'ENTRADA'    WHEN bitExit = 1 THEN 'SALIDA'    END as Accion,
                         Placa,
-                        CASE 
-                            WHEN bitEntry = 1 THEN 'Entrada'
-                            WHEN bitExit = 1 THEN 'Salida'
-                        END as TipoMovimiento
+                        CASE WHEN bitEntry = 1 THEN 'Entrada'    WHEN bitExit = 1 THEN 'Salida'    END as TipoMovimiento
                     FROM IOT_Vehiculos
                     WHERE (bitEntry = 1 OR bitExit = 1)
-                    ORDER BY CASE 
-                        WHEN bitEntry = 1 THEN FechaEntrada
-                        WHEN bitExit = 1 THEN FechaSalida
-                    END DESC";
+                    ORDER BY CASE WHEN bitEntry = 1 THEN FechaEntrada WHEN bitExit = 1 THEN FechaSalida END DESC";
 
                 var dt = await _db.ExecuteQueryAsync(sql);
                 var logs = new List<BarreraLog>();
@@ -214,9 +208,9 @@ namespace ParqueoIzalcoAPI.Services
                 {
                     logs.Add(new BarreraLog
                     {
-                        Fecha = Convert.ToDateTime(row["Fecha"]),
-                        Accion = row["Accion"].ToString() ?? "",
-                        PlacaVehiculo = row["Placa"].ToString(),
+                        Fecha          = Convert.ToDateTime(row["Fecha"]),
+                        Accion         = row["Accion"].ToString() ?? "",
+                        PlacaVehiculo  = row["Placa"].ToString(),
                         TipoMovimiento = row["TipoMovimiento"].ToString()
                     });
                 }
@@ -230,49 +224,31 @@ namespace ParqueoIzalcoAPI.Services
             }
         }
 
-        /// <summary>
-        /// Registra un log en IOT_Logs usando el SP existente IOT_sp_RegistroLog
-        /// Permite al Controllino escribir cualquier tipo de log
-        /// </summary>
         public async Task<RegistroLogResponse> RegistrarLogAsync(RegistroLogRequest request)
         {
             try
             {
-                // Validar que IdTipoLog sea válido
                 if (request.IdTipoLog <= 0)
-                {
-                    return new RegistroLogResponse
-                    {
-                        Exitoso = false,
-                        Mensaje = "IdTipoLog debe ser mayor a 0"
-                    };
-                }
+                    return new RegistroLogResponse { Exitoso = false, Mensaje = "IdTipoLog debe ser mayor a 0" };
 
-                // Validar que IdDispositivo no esté vacío
                 if (string.IsNullOrWhiteSpace(request.IdDispositivo))
-                {
                     request.IdDispositivo = "CONTROLLINO";
-                }
 
                 var parameters = new SqlParameter[]
                 {
-                    new SqlParameter("@IdTipoLog", request.IdTipoLog),
-                    new SqlParameter("@Placa", (object?)request. Placa ?? DBNull.Value),
-                    new SqlParameter("@IdDispositivo", request.IdDispositivo),
+                    new SqlParameter("@IdTipoLog",        request.IdTipoLog),
+                    new SqlParameter("@Placa",            (object?)request.Placa            ?? DBNull.Value),
+                    new SqlParameter("@IdDispositivo",    request.IdDispositivo),
                     new SqlParameter("@DatosAdicionales", (object?)request.DatosAdicionales ?? DBNull.Value)
                 };
 
-                // Ejecutar el SP existente
                 await _db.ExecuteNonQueryAsync(
                     "EXEC IOT_sp_RegistroLog @IdTipoLog, @Placa, @IdDispositivo, @DatosAdicionales",
-                    parameters
-                );
+                    parameters);
 
-                // Obtener el ID del log recién insertado
                 var dtLastId = await _db.ExecuteQueryAsync(
                     "SELECT TOP 1 Id, FechaEvento FROM IOT_Logs WHERE IdDispositivo = @IdDispositivo ORDER BY Id DESC",
-                    new SqlParameter[] { new SqlParameter("@IdDispositivo", request.IdDispositivo) }
-                );
+                    new SqlParameter[] { new SqlParameter("@IdDispositivo", request.IdDispositivo) });
 
                 int? idLog = null;
                 DateTime? fechaRegistro = null;
@@ -285,10 +261,7 @@ namespace ParqueoIzalcoAPI.Services
 
                 _logger.LogInformation(
                     "✓ Log registrado - TipoLog: {TipoLog}, Dispositivo: {Dispositivo}, Placa: {Placa}",
-                    request.IdTipoLog,
-                    request.IdDispositivo,
-                    request.Placa ?? "N/A"
-                );
+                    request.IdTipoLog, request.IdDispositivo, request.Placa ?? "N/A");
 
                 return new RegistroLogResponse
                 {
@@ -301,11 +274,7 @@ namespace ParqueoIzalcoAPI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al registrar log");
-                return new RegistroLogResponse
-                {
-                    Exitoso = false,
-                    Mensaje = $"Error:  {ex.Message}"
-                };
+                return new RegistroLogResponse { Exitoso = false, Mensaje = $"Error: {ex.Message}" };
             }
         }
     }
