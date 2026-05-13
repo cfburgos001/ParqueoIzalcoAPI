@@ -1,4 +1,4 @@
-﻿using ParqueoIzalcoAPI.Models;
+using ParqueoIzalcoAPI.Models;
 using ParqueoIzalcoAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,80 +22,96 @@ namespace ParqueoIzalcoAPI.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtiene el estado actual de la barrera
-        /// </summary>
-        /// <returns>Estado de la barrera</returns>
-        [HttpGet("estado")]
-        [ProducesResponseType(typeof(ApiResponse<Barrera>), 200)]
-        public async Task<IActionResult> ObtenerEstado()
+        /// <summary>Lista todas las barreras registradas en IOT_Barrera</summary>
+        [HttpGet("listar")]
+        [ProducesResponseType(typeof(ApiResponse<List<Barrera>>), 200)]
+        public async Task<IActionResult> ListarBarreras()
         {
             try
             {
-                var barrera = await _barreraService.ObtenerEstadoBarreraAsync();
+                var barreras = await _barreraService.ListarBarrerasAsync();
+                return Ok(new ApiResponse<List<Barrera>>
+                {
+                    Exitoso = true,
+                    Mensaje = $"{barreras.Count} barrera(s) encontrada(s)",
+                    Data = barreras
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al listar barreras");
+                return StatusCode(500, new ApiResponse<List<Barrera>>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>Obtiene el estado de una barrera. ?idBarrera=1 por defecto.</summary>
+        [HttpGet("estado")]
+        [ProducesResponseType(typeof(ApiResponse<Barrera>), 200)]
+        public async Task<IActionResult> ObtenerEstado([FromQuery] int idBarrera = 1)
+        {
+            try
+            {
+                var barrera = await _barreraService.ObtenerEstadoBarreraAsync(idBarrera);
 
                 if (barrera == null)
-                {
                     return NotFound(new ApiResponse<Barrera>
                     {
                         Exitoso = false,
-                        Mensaje = "No se encontró la barrera"
+                        Mensaje = $"No se encontró la barrera con ID {idBarrera}"
                     });
-                }
 
                 return Ok(new ApiResponse<Barrera>
                 {
                     Exitoso = true,
-                    Mensaje = $"Estado:  {barrera.EstadoTexto}",
+                    Mensaje = $"Estado: {barrera.EstadoTexto}",
                     Data = barrera
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener estado de barrera");
+                _logger.LogError(ex, "Error al obtener estado de barrera {IdBarrera}", idBarrera);
                 return StatusCode(500, new ApiResponse<Barrera>
                 {
                     Exitoso = false,
-                    Mensaje = $"Error:  {ex.Message}"
+                    Mensaje = $"Error: {ex.Message}"
                 });
             }
         }
 
-        /// <summary>
-        /// Cierra la barrera (usado por el controlino cuando detecta que pasó el vehículo)
-        /// </summary>
-        /// <param name="request">Motivo del cierre (opcional)</param>
-        /// <returns>Confirmación de cierre</returns>
+        /// <summary>Cierra una barrera. ?idBarrera=1 por defecto.</summary>
         [HttpPost("cerrar")]
         [ProducesResponseType(typeof(ApiResponse<Barrera>), 200)]
-        public async Task<IActionResult> CerrarBarrera([FromBody] CerrarBarreraRequest? request = null)
+        public async Task<IActionResult> CerrarBarrera(
+            [FromBody] CerrarBarreraRequest? request = null,
+            [FromQuery] int idBarrera = 1)
         {
             try
             {
                 var motivo = request?.Motivo ?? "Vehículo pasó";
-                var resultado = await _barreraService.CerrarBarreraAsync(motivo);
+                var resultado = await _barreraService.CerrarBarreraAsync(motivo, idBarrera);
 
                 if (!resultado)
-                {
                     return BadRequest(new ApiResponse<object>
                     {
                         Exitoso = false,
-                        Mensaje = "No se pudo cerrar la barrera"
+                        Mensaje = $"No se pudo cerrar la barrera {idBarrera}"
                     });
-                }
 
-                var barrera = await _barreraService.ObtenerEstadoBarreraAsync();
-
+                var barrera = await _barreraService.ObtenerEstadoBarreraAsync(idBarrera);
                 return Ok(new ApiResponse<Barrera>
                 {
                     Exitoso = true,
-                    Mensaje = $"✓ Barrera cerrada - {motivo}",
+                    Mensaje = $"✓ Barrera {idBarrera} cerrada - {motivo}",
                     Data = barrera
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al cerrar barrera");
+                _logger.LogError(ex, "Error al cerrar barrera {IdBarrera}", idBarrera);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Exitoso = false,
@@ -104,39 +120,33 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Abre la barrera manualmente (emergencias o pruebas)
-        /// </summary>
-        /// <returns>Confirmación de apertura</returns>
+        /// <summary>Abre una barrera manualmente. ?idBarrera=1 por defecto.</summary>
         [HttpPost("abrir")]
         [ProducesResponseType(typeof(ApiResponse<Barrera>), 200)]
-        public async Task<IActionResult> AbrirBarrera()
+        public async Task<IActionResult> AbrirBarrera([FromQuery] int idBarrera = 1)
         {
             try
             {
-                var resultado = await _barreraService.AbrirBarreraManualAsync();
+                var resultado = await _barreraService.AbrirBarreraManualAsync(idBarrera);
 
                 if (!resultado)
-                {
                     return BadRequest(new ApiResponse<object>
                     {
                         Exitoso = false,
-                        Mensaje = "No se pudo abrir la barrera"
+                        Mensaje = $"No se pudo abrir la barrera {idBarrera}"
                     });
-                }
 
-                var barrera = await _barreraService.ObtenerEstadoBarreraAsync();
-
+                var barrera = await _barreraService.ObtenerEstadoBarreraAsync(idBarrera);
                 return Ok(new ApiResponse<Barrera>
                 {
                     Exitoso = true,
-                    Mensaje = "✓ Barrera abierta manualmente",
+                    Mensaje = $"✓ Barrera {idBarrera} abierta manualmente",
                     Data = barrera
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al abrir barrera");
+                _logger.LogError(ex, "Error al abrir barrera {IdBarrera}", idBarrera);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Exitoso = false,
@@ -145,39 +155,33 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Resetea la barrera a estado cerrado
-        /// </summary>
-        /// <returns>Confirmación de reseteo</returns>
+        /// <summary>Resetea una barrera a estado cerrado. ?idBarrera=1 por defecto.</summary>
         [HttpPost("resetear")]
         [ProducesResponseType(typeof(ApiResponse<Barrera>), 200)]
-        public async Task<IActionResult> ResetearBarrera()
+        public async Task<IActionResult> ResetearBarrera([FromQuery] int idBarrera = 1)
         {
             try
             {
-                var resultado = await _barreraService.ResetearBarreraAsync();
+                var resultado = await _barreraService.ResetearBarreraAsync(idBarrera);
 
                 if (!resultado)
-                {
                     return BadRequest(new ApiResponse<object>
                     {
                         Exitoso = false,
-                        Mensaje = "No se pudo resetear la barrera"
+                        Mensaje = $"No se pudo resetear la barrera {idBarrera}"
                     });
-                }
 
-                var barrera = await _barreraService.ObtenerEstadoBarreraAsync();
-
+                var barrera = await _barreraService.ObtenerEstadoBarreraAsync(idBarrera);
                 return Ok(new ApiResponse<Barrera>
                 {
                     Exitoso = true,
-                    Mensaje = "✓ Barrera reseteada correctamente",
+                    Mensaje = $"✓ Barrera {idBarrera} reseteada correctamente",
                     Data = barrera
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al resetear barrera");
+                _logger.LogError(ex, "Error al resetear barrera {IdBarrera}", idBarrera);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Exitoso = false,
@@ -186,10 +190,7 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene estadísticas de uso de la barrera
-        /// </summary>
-        /// <returns>Estadísticas</returns>
+        /// <summary>Obtiene estadísticas de uso de las barreras</summary>
         [HttpGet("estadisticas")]
         [ProducesResponseType(typeof(ApiResponse<BarreraEstadisticas>), 200)]
         public async Task<IActionResult> ObtenerEstadisticas()
@@ -197,7 +198,6 @@ namespace ParqueoIzalcoAPI.Controllers
             try
             {
                 var estadisticas = await _barreraService.ObtenerEstadisticasAsync();
-
                 return Ok(new ApiResponse<BarreraEstadisticas>
                 {
                     Exitoso = true,
@@ -216,11 +216,7 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene el historial de movimientos recientes
-        /// </summary>
-        /// <param name="limite">Número de registros a obtener (default: 10)</param>
-        /// <returns>Lista de movimientos</returns>
+        /// <summary>Obtiene el historial de movimientos recientes</summary>
         [HttpGet("historial")]
         [ProducesResponseType(typeof(ApiResponse<List<BarreraLog>>), 200)]
         public async Task<IActionResult> ObtenerHistorial([FromQuery] int limite = 10)
@@ -228,7 +224,6 @@ namespace ParqueoIzalcoAPI.Controllers
             try
             {
                 var historial = await _barreraService.ObtenerHistorialAsync(limite);
-
                 return Ok(new ApiResponse<List<BarreraLog>>
                 {
                     Exitoso = true,
@@ -247,10 +242,7 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Prueba la conexión a la base de datos
-        /// </summary>
-        /// <returns>Estado de la conexión</returns>
+        /// <summary>Prueba la conexión a la base de datos</summary>
         [HttpGet("test-conexion")]
         [ProducesResponseType(typeof(ApiResponse<object>), 200)]
         public async Task<IActionResult> TestConexion()
@@ -258,19 +250,11 @@ namespace ParqueoIzalcoAPI.Controllers
             try
             {
                 var conectado = await _databaseService.TestConnectionAsync();
-
                 return Ok(new ApiResponse<object>
                 {
                     Exitoso = conectado,
-                    Mensaje = conectado
-                        ? "✓ Conexión a Datapark exitosa"
-                        : "✗ No se pudo conectar a Datapark",
-                    Data = new
-                    {
-                        Servidor = "10.0.1.39: 1433",
-                        BaseDatos = "Datapark",
-                        Estado = conectado ? "Conectado" : "Desconectado"
-                    }
+                    Mensaje = conectado ? "✓ Conexión a Datapark exitosa" : "✗ No se pudo conectar a Datapark",
+                    Data = new { Estado = conectado ? "Conectado" : "Desconectado" }
                 });
             }
             catch (Exception ex)
@@ -284,12 +268,7 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Registra un log en IOT_Logs - Endpoint genérico para el Controllino
-        /// Permite escribir cualquier tipo de log con los datos que se necesiten
-        /// </summary>
-        /// <param name="request">Datos del log a registrar</param>
-        /// <returns>Confirmación del registro</returns>
+        /// <summary>Registra un log genérico en IOT_Logs (para el Controllino)</summary>
         [HttpPost("registro-log")]
         [ProducesResponseType(typeof(ApiResponse<RegistroLogResponse>), 200)]
         public async Task<IActionResult> RegistrarLog([FromBody] RegistroLogRequest request)
@@ -297,28 +276,17 @@ namespace ParqueoIzalcoAPI.Controllers
             try
             {
                 if (request == null)
-                {
                     return BadRequest(new ApiResponse<RegistroLogResponse>
                     {
                         Exitoso = false,
                         Mensaje = "El request no puede ser nulo"
                     });
-                }
 
                 _logger.LogInformation(
-                    "Registrando log - TipoLog: {TipoLog}, Dispositivo: {Dispositivo}, Placa: {Placa}, Datos: {Datos}",
-                    request.IdTipoLog,
-                    request.IdDispositivo,
-                    request.Placa ?? "N/A",
-                    request.DatosAdicionales ?? "N/A"
-                );
+                    "Registrando log - TipoLog: {TipoLog}, Dispositivo: {Dispositivo}, Placa: {Placa}",
+                    request.IdTipoLog, request.IdDispositivo, request.Placa ?? "N/A");
 
                 var resultado = await _barreraService.RegistrarLogAsync(request);
-
-                if (resultado.Exitoso)
-                {
-                    _logger.LogInformation("✓ Log registrado exitosamente - ID: {IdLog}", resultado.IdLog);
-                }
 
                 return Ok(new ApiResponse<RegistroLogResponse>
                 {
@@ -333,7 +301,7 @@ namespace ParqueoIzalcoAPI.Controllers
                 return StatusCode(500, new ApiResponse<RegistroLogResponse>
                 {
                     Exitoso = false,
-                    Mensaje = $"Error:  {ex.Message}"
+                    Mensaje = $"Error: {ex.Message}"
                 });
             }
         }
