@@ -32,7 +32,8 @@ builder.Services.AddSingleton<IVisitasService, VisitasService>();
 builder.Services.AddSingleton<ITicketsService, TicketsService>();
 builder.Services.AddSingleton<ITarifasService, TarifasService>();
 builder.Services.AddSingleton<IVehiculosService, VehiculosService>();
-builder.Services.AddSingleton<ITarjetasService, TarjetasService>(); // ← NUEVO
+builder.Services.AddSingleton<ITarjetasService, TarjetasService>();
+builder.Services.AddSingleton<IEspaciosService, EspaciosService>();
 
 // ===== BUILD =====
 var app = builder.Build();
