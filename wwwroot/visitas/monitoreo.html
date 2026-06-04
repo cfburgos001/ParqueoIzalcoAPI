@@ -1,0 +1,784 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo de Logs — IOT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/visitas/css/visitas.css">
+    <link rel="stylesheet" href="/visitas/css/layout.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/visitas/js/site-config.js"></script>
+    <style>
+        /* ── Dot de estado en vivo ── */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            flex-shrink: 0;
+            box-shadow: 0 0 0 0 rgba(16,185,129,.6);
+        }
+
+            .live-dot.activo {
+                animation: ripple 1.8s ease infinite;
+            }
+
+            .live-dot.pausado {
+                background: var(--text-disabled);
+                animation: none;
+                box-shadow: none;
+            }
+
+        @keyframes ripple {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16,185,129,.6);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(16,185,129,0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16,185,129,0);
+            }
+        }
+
+        /* ── Contadores ── */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 11px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            white-space: nowrap;
+        }
+
+        .chip-total {
+            background: var(--surface-3);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-default);
+        }
+
+        .chip-alta {
+            background: rgba(239,68,68,.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,.25);
+        }
+
+        .chip-media {
+            background: rgba(245,158,11,.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245,158,11,.25);
+        }
+
+        .chip-baja {
+            background: rgba(16,185,129,.12);
+            color: #34d399;
+            border: 1px solid rgba(16,185,129,.25);
+        }
+
+        /* ── Botones de filtro de prioridad ── */
+        .prio-btn {
+            padding: 5px 14px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            border: 1px solid var(--border-default);
+            background: transparent;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+            .prio-btn:hover {
+                border-color: var(--border-strong);
+                color: var(--text-secondary);
+            }
+
+            .prio-btn.active-all {
+                background: var(--surface-4);
+                color: var(--text-primary);
+                border-color: var(--border-strong);
+            }
+
+            .prio-btn.active-alta {
+                background: rgba(239,68,68,.15);
+                color: #f87171;
+                border-color: rgba(239,68,68,.4);
+            }
+
+            .prio-btn.active-media {
+                background: rgba(245,158,11,.15);
+                color: #fbbf24;
+                border-color: rgba(245,158,11,.4);
+            }
+
+            .prio-btn.active-baja {
+                background: rgba(16,185,129,.12);
+                color: #34d399;
+                border-color: rgba(16,185,129,.4);
+            }
+
+        /* ── Badge de prioridad dentro de cada fila ── */
+        .prio-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .05em;
+            white-space: nowrap;
+        }
+
+        .prio-badge-ALTA {
+            background: rgba(239,68,68,.18);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,.35);
+        }
+
+        .prio-badge-MEDIA {
+            background: rgba(245,158,11,.18);
+            color: #fbbf24;
+            border: 1px solid rgba(245,158,11,.35);
+        }
+
+        .prio-badge-BAJA {
+            background: rgba(16,185,129,.14);
+            color: #34d399;
+            border: 1px solid rgba(16,185,129,.3);
+        }
+
+        /* ── Cabecera de columnas ── */
+        .col-header {
+            display: grid;
+            grid-template-columns: 155px 68px 110px 1fr 140px;
+            gap: 10px;
+            padding: 6px 14px;
+            border-bottom: 1px solid var(--border-default);
+            margin-bottom: 4px;
+        }
+
+            .col-header span {
+                font-size: 9px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .09em;
+                color: var(--text-disabled);
+            }
+
+                .col-header span:last-child {
+                    text-align: right;
+                }
+
+        /* ── Fila de log ── */
+        .log-row {
+            display: grid;
+            grid-template-columns: 155px 68px 110px 1fr 140px;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            border-left: 3px solid transparent;
+            transition: background var(--transition-fast);
+            animation: fadeSlide .22s ease;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .log-row:hover {
+            background: var(--surface-3);
+        }
+
+        .log-row.ALTA {
+            border-left-color: rgba(239,68,68,.65);
+            background: rgba(239,68,68,.04);
+        }
+
+            .log-row.ALTA:hover {
+                background: rgba(239,68,68,.08);
+            }
+
+        .log-row.MEDIA {
+            border-left-color: rgba(245,158,11,.55);
+            background: rgba(245,158,11,.03);
+        }
+
+            .log-row.MEDIA:hover {
+                background: rgba(245,158,11,.07);
+            }
+
+        .log-row.BAJA {
+            border-left-color: rgba(16,185,129,.4);
+            background: rgba(16,185,129,.025);
+        }
+
+            .log-row.BAJA:hover {
+                background: rgba(16,185,129,.06);
+            }
+
+        /* Celdas */
+        .c-fecha {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .c-tipo {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .c-datos {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+            .c-datos strong {
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+        .c-disp {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-disabled);
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ── Feed container ── */
+        .log-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow-y: auto;
+            max-height: calc(100vh - 290px);
+            padding-right: 2px;
+        }
+
+        /* ── Estado vacío/cargando ── */
+        .feed-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+
+        /* ── Footer de status ── */
+        .mon-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        /* ── Search input ── */
+        .srch {
+            padding: 6px 11px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius);
+            background: var(--surface-3);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+            width: 170px;
+            transition: border-color var(--transition);
+        }
+
+            .srch:focus {
+                border-color: var(--brand-500);
+                box-shadow: 0 0 0 3px var(--brand-glow);
+            }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .col-header,
+            .log-row {
+                grid-template-columns: 120px 65px 1fr;
+            }
+
+                .col-header > *:nth-child(4),
+                .col-header > *:nth-child(5),
+                .log-row > *:nth-child(4),
+                .log-row > *:nth-child(5) {
+                    display: none;
+                }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" id="sidebarLogoBox">
+                <i data-lucide="building-2" style="width:28px;height:28px;color:var(--brand-500);"></i>
+            </div>
+            <div class="sidebar-brand">
+                <h1 class="sidebar-title" id="sidebarTitle" data-sitio-field="nombreComercial">PARQUEO IOT</h1>
+                <p class="sidebar-subtitle" id="sidebarSubtitle" data-sitio-field="slogan">Sistema de Parqueo</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-text">Inicio</span>
+            </a>
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                <span class="nav-text">Bitácora de Accesos</span>
+            </a>
+            <a href="/visitas/index.html" class="nav-item admin-only">
+                <span class="nav-icon"><i data-lucide="ticket"></i></span>
+                <span class="nav-text">Cerrar Tickets</span>
+            </a>
+            <a href="/visitas/index.html" class="nav-item admin-only">
+                <span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span>
+                <span class="nav-text">Tarifas</span>
+            </a>
+            <a href="/visitas/tarjetas.html" class="nav-item admin-only">
+                <span class="nav-icon"><i data-lucide="credit-card"></i></span>
+                <span class="nav-text">Tarjetas de Acceso</span>
+            </a>
+            <!-- ADMINISTRADOR + MONITOREO -->
+            <a href="/visitas/monitoreo.html" class="nav-item active">
+                <span class="nav-icon"><i data-lucide="activity"></i></span>
+                <span class="nav-text">Monitoreo</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-icon"><i data-lucide="user-circle"></i></span>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarUserName">Usuario</span>
+                    <span class="user-role" id="sidebarUserRole">Rol</span>
+                </div>
+            </div>
+            <button class="btn-sidebar-logout" onclick="cerrarSesion()"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Salir
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════ MAIN ═══════════════════════ -->
+    <div class="main-wrapper">
+        <header class="top-header">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+            <h2 class="page-title" style="display:flex;align-items:center;gap:8px;">
+                <i data-lucide="activity"></i> Monitoreo de Eventos
+            </h2>
+            <div class="header-right">
+                <div class="header-clock">
+                    <span id="fechaActual"></span>
+                    <span id="horaActual" class="hora"></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="table-section"
+                     style="flex:1;display:flex;flex-direction:column;gap:0;padding:18px 20px 14px;">
+
+                <!-- ── Barra superior ── -->
+                <div style="display:flex;align-items:center;justify-content:space-between;
+                            flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+
+                    <!-- Título + dot + contadores -->
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:14px;
+                                    font-weight:700;color:var(--text-primary);">
+                            <span class="live-dot activo" id="liveDot"></span>
+                            Feed en vivo
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <span class="chip chip-total"><span id="cntTotal">0</span>&nbsp;total</span>
+                            <span class="chip chip-alta"><span id="cntAlta">0</span>&nbsp;ALTA</span>
+                            <span class="chip chip-media"><span id="cntMedia">0</span>&nbsp;MEDIA</span>
+                            <span class="chip chip-baja"><span id="cntBaja">0</span>&nbsp;BAJA</span>
+                        </div>
+                    </div>
+
+                    <!-- Controles -->
+                    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+                        <!-- Filtro prioridad -->
+                        <div style="display:flex;gap:3px;">
+                            <button class="prio-btn active-all" onclick="setPrioridad(null, this)">Todos</button>
+                            <button class="prio-btn" onclick="setPrioridad('ALTA',  this)">🔴 ALTA</button>
+                            <button class="prio-btn" onclick="setPrioridad('MEDIA', this)">🟡 MEDIA</button>
+                            <button class="prio-btn" onclick="setPrioridad('BAJA',  this)">🟢 BAJA</button>
+                        </div>
+                        <!-- Búsqueda local -->
+                        <input type="text" class="srch" id="srchInput"
+                               placeholder="Buscar placa, datos, tipo…"
+                               oninput="renderFeed()">
+                        <!-- Pausar -->
+                        <button id="btnPausa" class="btn btn-sm btn-secondary"
+                                onclick="togglePausa()"
+                                style="display:flex;align-items:center;gap:5px;">
+                            <i data-lucide="pause" id="iconPausa" style="width:13px;"></i>
+                            <span id="lblPausa">Pausar</span>
+                        </button>
+                        <!-- Limpiar pantalla -->
+                        <button class="btn btn-sm btn-secondary" onclick="limpiarPantalla()"
+                                style="display:flex;align-items:center;gap:5px;"
+                                title="Limpiar pantalla (no borra BD)">
+                            <i data-lucide="eraser" style="width:13px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Cabecera de columnas ── -->
+                <div class="col-header">
+                    <span>Fecha / Hora</span>
+                    <span>Prioridad</span>
+                    <span>Tipo de Log</span>
+                    <span>Datos del evento</span>
+                    <span style="text-align:right;">Dispositivo</span>
+                </div>
+
+                <!-- ── Feed de logs ── -->
+                <div class="log-feed" id="logFeed">
+                    <div class="feed-empty">
+                        <div class="dash-spinner"></div>
+                        <p style="font-size:13px;">Conectando…</p>
+                    </div>
+                </div>
+
+                <!-- ── Footer de estado ── -->
+                <div class="mon-footer">
+                    <span style="display:flex;align-items:center;gap:5px;" id="statusTxt">
+                        <i data-lucide="refresh-cw" style="width:12px;"></i>
+                        Actualizando cada 2 s
+                    </span>
+                    <span id="ultimaAct" style="font-variant-numeric:tabular-nums;">—</span>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══════════════════════ JS ═══════════════════════ -->
+    <script>
+    // ── Estado global ───────────────────────────────────────────────────
+    let operador      = null;
+    let pausado       = false;
+    let filtroPrio    = null;   // null = todas
+    let ultimoId      = 0;     // Id más alto visto → polling incremental
+    let buffer        = [];    // todos los logs en memoria (máx MAX_BUF)
+    let contTotal     = 0, contAlta = 0, contMedia = 0, contBaja = 0;
+    const POLL_MS     = 2000;
+    const MAX_BUF     = 500;   // máximo de filas en memoria/pantalla
+    const API_LOGS    = '/api/monitoreo/logs';
+
+    // ── INIT ────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        const raw = sessionStorage.getItem('operador');
+        if (!raw) { location.href = '/visitas/login.html'; return; }
+        operador = JSON.parse(raw);
+
+        if (operador.tipoUsuario !== 'ADMINISTRADOR' &&
+            operador.tipoUsuario !== 'MONITOREO') {
+            location.href = '/visitas/index.html';
+            return;
+        }
+
+        // Ocultar items solo-admin si es MONITOREO
+        if (operador.tipoUsuario === 'MONITOREO') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        }
+
+        document.getElementById('sidebarUserName').textContent = operador.nombreCompleto;
+        document.getElementById('sidebarUserRole').textContent = operador.tipoUsuario;
+
+        cargarConfigSitio();
+        actualizarReloj();
+        setInterval(actualizarReloj, 1000);
+        lucide.createIcons();
+
+        // Carga inicial: últimos 200 logs
+        cargarInicial();
+        // Arrancar polling incremental
+        setInterval(poll, POLL_MS);
+    });
+
+    // ── Reloj ───────────────────────────────────────────────────────────
+    function actualizarReloj() {
+        const n = new Date();
+        document.getElementById('fechaActual').textContent =
+            n.toLocaleDateString('es-GT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        document.getElementById('horaActual').textContent =
+            n.toLocaleTimeString('es-GT', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+
+    // ── Fetch helper ─────────────────────────────────────────────────────
+    async function fetchLogs({ top = 200, prioridad = null, ultimoIdParam = null } = {}) {
+        const qs = new URLSearchParams({ top });
+        if (prioridad)    qs.append('prioridad', prioridad);
+        if (ultimoIdParam) qs.append('ultimoId', ultimoIdParam);
+        const res = await fetch(`${API_LOGS}?${qs}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        return json.data || [];
+    }
+
+    // ── Carga inicial ────────────────────────────────────────────────────
+    async function cargarInicial() {
+        try {
+            const logs = await fetchLogs({ top: 200, prioridad: filtroPrio });
+            if (logs.length === 0) {
+                mostrarEmpty('Sin eventos registrados. Esperando…');
+                return;
+            }
+            // El SP devuelve ORDER BY Id DESC → el primero es el más reciente
+            ultimoId = logs[0].id;
+            buffer   = logs;          // ya vienen más recientes primero
+            actualizarContadores(logs, true);
+            renderFeed();
+        } catch (e) {
+            mostrarError(e.message);
+        }
+    }
+
+    // ── Polling incremental (cada 2 s) ───────────────────────────────────
+    async function poll() {
+        if (pausado) return;
+        try {
+            // Solo pedir logs con Id > ultimoId (sin filtro de prioridad para
+            // que los contadores globales sean correctos)
+            const nuevos = await fetchLogs({ top: 100, ultimoIdParam: ultimoId });
+            if (nuevos.length === 0) {
+                marcarActualizado();
+                return;
+            }
+            // nuevos viene ORDER BY Id DESC → el [0] es el más reciente
+            ultimoId = nuevos[0].id;
+
+            // Prepend al buffer y recortar a MAX_BUF
+            buffer = [...nuevos, ...buffer].slice(0, MAX_BUF);
+            actualizarContadores(nuevos, false);
+            renderFeed();
+            marcarActualizado();
+        } catch (e) {
+            console.warn('Poll error:', e.message);
+        }
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────
+    function renderFeed() {
+        const feed  = document.getElementById('logFeed');
+        const texto = document.getElementById('srchInput').value.toLowerCase().trim();
+
+        // Filtrar por búsqueda local
+        const visible = buffer.filter(l => {
+            // filtro de prioridad ya aplicado en la carga/poll para contadores,
+            // pero si el usuario cambia el filtro UI sin recargar, filtramos aquí
+            if (filtroPrio && (l.prioridad || 'BAJA').toUpperCase() !== filtroPrio) return false;
+            if (!texto) return true;
+            return (l.datos         || '').toLowerCase().includes(texto)
+                || (l.placa        || '').toLowerCase().includes(texto)
+                || (l.tipoLog      || '').toLowerCase().includes(texto)
+                || (l.idDispositivo|| '').toLowerCase().includes(texto)
+                || (l.nombreDispositivo || '').toLowerCase().includes(texto);
+        });
+
+        if (visible.length === 0) {
+            feed.innerHTML = `<div class="feed-empty">
+                <i data-lucide="search-x" style="width:36px;height:36px;opacity:.3;"></i>
+                <p style="font-size:13px;">Sin resultados para el filtro actual.</p>
+            </div>`;
+            lucide.createIcons({ root: feed });
+            return;
+        }
+
+        // Construir HTML — solo animar las primeras filas (las nuevas)
+        feed.innerHTML = visible.map((l, i) => {
+            const prio  = (l.prioridad || 'BAJA').toUpperCase();
+            const dot   = prio === 'ALTA' ? '🔴' : prio === 'MEDIA' ? '🟡' : '🟢';
+            const fecha = formatFecha(l.fechaEvento);
+            const anim  = i < 5 ? '' : 'style="animation:none;"';
+
+            // Datos: si hay placa, ponerla en negrita antes de los datos
+            let datosHtml = '';
+            if (l.placa) datosHtml += `<strong>${esc(l.placa)}</strong> — `;
+            datosHtml += esc(l.datos || '');
+
+            // Dispositivo: mostrar nombre si existe, si no el ID
+            const disp = l.nombreDispositivo || l.idDispositivo || '—';
+
+            return `<div class="log-row ${prio}" ${anim}>
+                <span class="c-fecha">${fecha}</span>
+                <span class="prio-badge prio-badge-${prio}">${dot} ${prio}</span>
+                <span class="c-tipo" title="${esc(l.tipoLog)}">${esc(l.tipoLog || '—')}</span>
+                <span class="c-datos" title="${esc(l.datos || '')}">${datosHtml}</span>
+                <span class="c-disp"  title="${esc(disp)}">${esc(disp)}</span>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Contadores ────────────────────────────────────────────────────────
+    function actualizarContadores(logs, reiniciar) {
+        if (reiniciar) { contTotal = contAlta = contMedia = contBaja = 0; }
+        logs.forEach(l => {
+            const p = (l.prioridad || 'BAJA').toUpperCase();
+            contTotal++;
+            if (p === 'ALTA')  contAlta++;
+            else if (p === 'MEDIA') contMedia++;
+            else contBaja++;
+        });
+        document.getElementById('cntTotal').textContent = contTotal;
+        document.getElementById('cntAlta').textContent  = contAlta;
+        document.getElementById('cntMedia').textContent = contMedia;
+        document.getElementById('cntBaja').textContent  = contBaja;
+    }
+
+    function marcarActualizado() {
+        const hora = new Date().toLocaleTimeString('es-GT',
+            { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        document.getElementById('ultimaAct').textContent = `Actualizado: ${hora}`;
+    }
+
+    // ── Controles ─────────────────────────────────────────────────────────
+    function setPrioridad(valor, btn) {
+        filtroPrio = valor;
+        // Resetear clase active en todos
+        document.querySelectorAll('.prio-btn').forEach(b =>
+            b.classList.remove('active-all','active-alta','active-media','active-baja'));
+        const cls = valor ? `active-${valor.toLowerCase()}` : 'active-all';
+        btn.classList.add(cls);
+
+        // Reiniciar buffer + contadores y recargar con filtro
+        buffer   = [];
+        ultimoId = 0;
+        contTotal = contAlta = contMedia = contBaja = 0;
+        document.getElementById('cntTotal').textContent = 0;
+        document.getElementById('cntAlta').textContent  = 0;
+        document.getElementById('cntMedia').textContent = 0;
+        document.getElementById('cntBaja').textContent  = 0;
+        mostrarEmpty('Cargando…', true);
+        cargarInicial();
+    }
+
+    function togglePausa() {
+        pausado = !pausado;
+        const dot    = document.getElementById('liveDot');
+        const icon   = document.getElementById('iconPausa');
+        const lbl    = document.getElementById('lblPausa');
+        const status = document.getElementById('statusTxt');
+
+        if (pausado) {
+            dot.classList.replace('activo','pausado');
+            icon.setAttribute('data-lucide','play');
+            lbl.textContent = 'Reanudar';
+            status.innerHTML = '<i data-lucide="pause" style="width:12px;"></i> Feed pausado';
+        } else {
+            dot.classList.replace('pausado','activo');
+            icon.setAttribute('data-lucide','pause');
+            lbl.textContent = 'Pausar';
+            status.innerHTML = '<i data-lucide="refresh-cw" style="width:12px;"></i> Actualizando cada 2 s';
+        }
+        lucide.createIcons({ root: document.getElementById('btnPausa') });
+        lucide.createIcons({ root: status });
+    }
+
+    function limpiarPantalla() {
+        buffer = [];
+        contTotal = contAlta = contMedia = contBaja = 0;
+        ['cntTotal','cntAlta','cntMedia','cntBaja'].forEach(id =>
+            document.getElementById(id).textContent = 0);
+        mostrarEmpty('Pantalla limpiada. Esperando nuevos eventos…');
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function mostrarEmpty(msg, spinner = false) {
+        const feed = document.getElementById('logFeed');
+        feed.innerHTML = `<div class="feed-empty">
+            ${spinner ? '<div class="dash-spinner"></div>' :
+              '<i data-lucide="inbox" style="width:36px;height:36px;opacity:.3;"></i>'}
+            <p style="font-size:13px;">${esc(msg)}</p>
+        </div>`;
+        lucide.createIcons({ root: feed });
+    }
+
+    function mostrarError(msg) {
+        const feed = document.getElementById('logFeed');
+        feed.innerHTML = `<div class="feed-empty">
+            <i data-lucide="wifi-off" style="width:36px;height:36px;color:var(--danger-text);"></i>
+            <p style="font-size:13px;color:var(--danger-text);">Error: ${esc(msg)}</p>
+            <button class="btn btn-sm btn-primary" onclick="cargarInicial()">Reintentar</button>
+        </div>`;
+        lucide.createIcons({ root: feed });
+    }
+
+    function formatFecha(iso) {
+        const d = new Date(iso);
+        const pad = n => String(n).padStart(2,'0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)} `
+             + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    function cerrarSesion() {
+        sessionStorage.removeItem('operador');
+        location.href = '/visitas/login.html';
+    }
+    </script>
+</body>
+</html>

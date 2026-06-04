@@ -74,7 +74,7 @@ namespace ParqueoIzalcoAPI.Services
                 var tipoUsuario = row["TipoUsuario"]?.ToString() ?? "";
 
                 // Solo permitir ADMINISTRADOR y CAJA
-                if (tipoUsuario != "ADMINISTRADOR" && tipoUsuario != "CAJA")
+                if (tipoUsuario != "ADMINISTRADOR" && tipoUsuario != "CAJA" && tipoUsuario != "MONITOREO")
                 {
                     return new LoginVisitasResponse
                     {
