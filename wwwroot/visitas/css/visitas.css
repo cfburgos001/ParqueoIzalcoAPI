@@ -1091,14 +1091,15 @@ tbody td {
         flex-direction: column;
         align-items: flex-start;
     }
-    /* Módulo Monitoreo: visible para ADMINISTRADOR y MONITOREO */
-    .monitoreo-admin {
-        display: none !important;
-    }
 
-    body.role-ADMINISTRADOR .monitoreo-admin,
-    body.role-MONITOREO .monitoreo-admin {
-        display: flex !important;
-    }
 
+}
+/* Módulo Monitoreo: visible para ADMINISTRADOR y MONITOREO */
+.monitoreo-admin {
+    display: none !important;
+}
+
+body.role-ADMINISTRADOR .monitoreo-admin,
+body.role-MONITOREO .monitoreo-admin {
+    display: flex !important;
 }
