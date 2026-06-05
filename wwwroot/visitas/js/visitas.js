@@ -1058,5 +1058,21 @@ function navegarA(pagina, elemento) {
 }
 
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('collapsed');
+    const sidebar = document.getElementById('sidebar');
+    const isMobile = window.innerWidth <= 1024;
+
+    if (isMobile) {
+        sidebar.classList.toggle('open');
+        let overlay = document.getElementById('sidebarOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'sidebarOverlay';
+            overlay.className = 'sidebar-overlay';
+            overlay.onclick = () => toggleSidebar();
+            document.body.appendChild(overlay);
+        }
+        overlay.classList.toggle('active', sidebar.classList.contains('open'));
+    } else {
+        sidebar.classList.toggle('collapsed');
+    }
 }

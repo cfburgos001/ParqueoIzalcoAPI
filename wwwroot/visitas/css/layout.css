@@ -665,14 +665,22 @@ body.role-CAJA a.caja-admin {
 @media (max-width: 1024px) {
     .sidebar {
         transform: translateX(-252px);
+        transition: transform var(--transition-slow);
+        z-index: 200;
     }
 
         .sidebar.open {
             transform: translateX(0);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+        }
+
+        /* En mobile, collapsed NO aplica — solo desktop usa collapsed */
+        .sidebar.collapsed {
+            transform: translateX(-252px);
         }
 
     .main-wrapper {
-        margin-left: 0;
+        margin-left: 0 !important;
     }
 
     .btn-toggle-sidebar {
@@ -707,4 +715,383 @@ body.role-CAJA a.caja-admin {
     }
 
 
+}
+
+/* Overlay oscuro detrás del sidebar en mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 199;
+}
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+/* =============================================
+   MOBILE — max-width: 640px
+   Solo afecta teléfonos, no toca desktop
+   ============================================= */
+@media (max-width: 640px) {
+
+    /* ── Layout base ── */
+    body {
+        overflow-x: hidden;
+    }
+
+    .main-wrapper {
+        margin-left: 0 !important;
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .top-header {
+        padding: 0 12px;
+        gap: 8px;
+        height: 48px;
+    }
+
+    .page-title {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 160px;
+    }
+
+    .header-clock {
+        font-size: 9px;
+        padding-left: 8px;
+        text-align: right;
+    }
+
+        .header-clock .hora {
+            font-size: 11px;
+        }
+
+    .header-stats {
+        display: none;
+    }
+
+    /* ── Content ── */
+    .content {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    /* ── Sections ── */
+    .form-section,
+    .table-section,
+    .admin-section {
+        padding: 14px 12px;
+        border-radius: var(--radius-md);
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+        .section-header h2 {
+            font-size: 13px;
+        }
+
+    /* ── KPI Grid — 2 columnas en mobile ── */
+    .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .kpi-card {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .kpi-value {
+        font-size: 20px;
+    }
+
+    .kpi-label {
+        font-size: 10px;
+    }
+
+    .kpi-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+
+    /* ── Charts ── */
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .chart-full {
+        grid-column: 1;
+    }
+
+    .chart-wrapper {
+        height: 180px;
+    }
+
+    .chart-wrapper-donut {
+        height: 160px;
+    }
+
+    /* ── Dashboard header ── */
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+        .dashboard-header h2 {
+            font-size: 15px;
+        }
+}
+
+/* =============================================
+   MOBILE — visitas.css overrides para forms
+   ============================================= */
+@media (max-width: 640px) {
+
+    /* Formularios — 1 columna */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-group-lg,
+    .form-group-full {
+        grid-column: 1 !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px; /* Evita zoom automático en iOS */
+    }
+
+    /* Botones de acción — columna */
+    .form-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+        .form-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+    /* Tabla — scroll horizontal contenido */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Filtros */
+    .table-filters,
+    .filter-btns {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Section header con botones */
+    .section-header > div {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    /* Reporte grid — 1 columna */
+    .reporte-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .reporte-btns {
+        flex-direction: row;
+    }
+
+    /* Admin grid — 1 columna */
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Resumen venta */
+    .resumen-venta {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .resumen-card .rc-value {
+        font-size: 16px;
+    }
+
+    /* Modal — full screen en mobile */
+    .modal-overlay {
+        padding: 8px;
+        align-items: flex-end;
+    }
+
+    .modal {
+        max-width: 100%;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Monitoreo mobile — layout 2 líneas por fila */
+    .col-header {
+        grid-template-columns: 105px 60px 1fr !important;
+        gap: 6px;
+        padding: 6px 10px;
+    }
+
+        /* Ocultar cabecera de Dispositivo y Datos (se integran en la fila) */
+        .col-header > span:nth-child(4),
+        .col-header > span:nth-child(5) {
+            display: none;
+        }
+
+    /* Cada fila pasa a ser bloque de 2 líneas */
+    .log-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px;
+        padding: 8px 10px;
+    }
+
+        /* Línea 1: Fecha + Badge prioridad + Tipo de log en fila */
+        .log-row .c-fecha,
+        .log-row .prio-badge,
+        .log-row .c-tipo {
+            display: inline;
+        }
+
+        /* Agrupar línea 1 con un wrapper — lo hacemos con pseudo layout */
+        .log-row .c-fecha {
+            font-size: 10px;
+            display: block;
+            margin-bottom: 2px;
+            color: var(--text-tertiary);
+        }
+
+        .log-row .prio-badge {
+            font-size: 9px;
+            padding: 1px 6px;
+        }
+
+        .log-row .c-tipo {
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Línea 2: Dispositivo en color brand */
+        .log-row .c-disp {
+            display: block !important;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--brand-400);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Línea 3: Datos del evento — se puede leer deslizando */
+        .log-row .c-datos {
+            display: block !important;
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+    /* Chips del monitoreo — más pequeños */
+    .chip {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    /* Botones de prioridad — más compactos */
+    .prio-btn {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    /* Search del monitoreo */
+    .srch {
+        width: 120px;
+        font-size: 12px;
+    }
+
+    /* Stats bar de tarjetas */
+    .stats-bar {
+        gap: 12px;
+        padding: 12px 14px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item .si-val {
+        font-size: 18px;
+    }
+
+    /* Card grid de tarjetas — 1 columna */
+    .card-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Modal tarjeta — full screen */
+    .modal-tarjeta-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .modal-tarjeta {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .modal-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+        .modal-form-grid .span-2 {
+            grid-column: 1 !important;
+        }
+
+    /* Columnas selector — 1 columna */
+    .columnas-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Favoritos actions — columna */
+    .favoritos-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .input-favorito {
+        width: 100%;
+    }
+
+    /* Tabla de tickets antiguos — scroll */
+    #tablaTicketsAntiguos {
+        min-width: 700px;
+    }
+
+    /* Cerrar tickets — botones header */
+    #pageCerrarTickets .section-header > div {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
