@@ -6,7 +6,7 @@ namespace ParqueoIzalcoAPI.Services
 {
     public interface IPagoService
     {
-        Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa);
+        Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa, string idDispositivo = "PS_05");
         Task<RegistrarPagoResponse> RegistrarPagoAsync(RegistrarPagoRequest request);
         Task<VerificarPagoResponse> VerificarPagoPorPlacaAsync(string placa);
         Task<ReingresoGraciaResponse> EjecutarReingresoGraciaAsync(string placa, string idDispositivoSalida);
@@ -29,7 +29,7 @@ namespace ParqueoIzalcoAPI.Services
         /// Consulta un vehículo por placa y calcula el monto a pagar.
         /// Si el vehículo ya pagó y excedió la gracia, ejecuta REINGRESO AUTOMÁTICO.
         /// </summary>
-        public async Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa)
+        public async Task<ConsultaPagoResponse> ConsultarPorPlacaAsync(string placa, string idDispositivo = "PS_05")
         {
             try
             {
@@ -84,7 +84,7 @@ namespace ParqueoIzalcoAPI.Services
                     var minutosDesdePago = (int)(DateTime.Now - fechaPago.Value).TotalMinutes;
 
                     // Obtener tiempo de gracia configurado (default 15 min)
-                    var tiempoGracia = await ObtenerTiempoGraciaAsync("POS-APS");
+                    var tiempoGracia = await ObtenerTiempoGraciaAsync(idDispositivo);
 
                     if (minutosDesdePago > tiempoGracia)
                     {
@@ -94,7 +94,7 @@ namespace ParqueoIzalcoAPI.Services
                         );
 
                         // Ejecutar reingreso automático
-                        var reingresoResult = await EjecutarReingresoGraciaAsync(placa, "POS-APS");
+                        var reingresoResult = await EjecutarReingresoGraciaAsync(placa, idDispositivo);
 
                         if (!reingresoResult.Exitoso)
                         {

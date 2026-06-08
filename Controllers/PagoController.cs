@@ -26,7 +26,7 @@ namespace ParqueoIzalcoAPI.Controllers
         /// <returns>Información del vehículo y monto a pagar</returns>
         [HttpGet("consultar/{placa}")]
         [ProducesResponseType(typeof(ApiResponse<ConsultaPagoResponse>), 200)]
-        public async Task<IActionResult> ConsultarPorPlaca(string placa)
+        public async Task<IActionResult> ConsultarPorPlaca( string placa,[FromQuery] string idDispositivo = "PS_05")
         {
             try
             {
@@ -41,7 +41,7 @@ namespace ParqueoIzalcoAPI.Controllers
 
                 _logger.LogInformation("Consultando pago por placa (ticket escaneado): {Placa}", placa);
 
-                var resultado = await _pagoService.ConsultarPorPlacaAsync(placa);
+                var resultado = await _pagoService.ConsultarPorPlacaAsync(placa, idDispositivo);
 
                 if (!resultado.Exitoso)
                 {
