@@ -816,7 +816,8 @@ function escapeXml(str) {
 // =============================================
 let _chartSemanal = null;
 let _chartEstado = null;
-let _chartPagos = null;
+let _chartPagos = null; 
+let _chartTipoVehiculo = null;
 
 async function cargarDashboard() {
     const loading = document.getElementById('dashLoading');
@@ -873,6 +874,7 @@ function renderizarGraficos(d) {
     const semana = d.vehiculosPorDiaSemana ?? [];
     const estadoHoy = d.estadoHoy ?? { dentro: 0, salio: 0 };
     const pagoHoy = d.pagoHoy ?? { pagados: 0, noPagados: 0 };
+    const tipoVehiculo = d.tipoVehiculoDentro ?? { liviano: 0, moto: 0, pesado: 0, otros: 0 };
 
     const ctxSemanal = document.getElementById('chartSemanal');
     if (ctxSemanal) {
@@ -977,6 +979,49 @@ function renderizarGraficos(d) {
             });
         }
     }
+
+    
+    const ctxTipo = document.getElementById('chartTipoVehiculo');
+    if (ctxTipo) {
+        const labelsT = ['Liviano', 'Moto', 'Pesado', 'Otros'];
+        const dataT = [tipoVehiculo.liviano, tipoVehiculo.moto, tipoVehiculo.pesado, tipoVehiculo.otros];
+        if (_chartTipoVehiculo) {
+            _chartTipoVehiculo.data.datasets[0].data = dataT;
+            _chartTipoVehiculo.update();
+        } else {
+            _chartTipoVehiculo = new Chart(ctxTipo, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsT,
+                    datasets: [{
+                        data: dataT,
+                        backgroundColor: [
+                            'rgba(59,130,246,0.8)',   // Liviano — azul
+                            'rgba(16,185,129,0.8)',   // Moto — verde
+                            'rgba(245,158,11,0.8)',   // Pesado — naranja
+                            'rgba(148,163,184,0.6)'   // Otros — gris
+                        ],
+                        borderColor: [
+                            'rgba(59,130,246,1)',
+                            'rgba(16,185,129,1)',
+                            'rgba(245,158,11,1)',
+                            'rgba(148,163,184,1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#6b7280', padding: 14, boxWidth: 10 } }
+                    }
+                }
+            });
+        }
+    }
 }
 
 function formatearTiempo(minutos) {
@@ -1056,6 +1101,7 @@ function navegarA(pagina, elemento) {
         lucide.createIcons({ root: pageTitle });
     }
 }
+
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');

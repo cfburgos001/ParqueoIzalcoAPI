@@ -57,6 +57,11 @@
                 <span class="nav-icon"><i data-lucide="activity"></i></span>
                 <span class="nav-text">Monitoreo</span>
             </a>
+            <!-- Asistencia: visible para ADMINISTRADOR y CAJA -->
+            <a href="/visitas/asistencia.html" class="nav-item caja-admin">
+                <span class="nav-icon"><i data-lucide="bell-ring"></i></span>
+                <span class="nav-text">Asistencia</span>
+            </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -169,19 +174,88 @@
                         <h3 class="chart-title"><i data-lucide="bar-chart-2" style="width:16px; display:inline-block; vertical-align:middle;"></i> Flujo semanal</h3>
                         <div class="chart-wrapper"><canvas id="chartSemanal"></canvas></div>
                     </div>
-                    <div class="chart-card">
-                        <h3 class="chart-title"><i data-lucide="pie-chart" style="width:16px; display:inline-block; vertical-align:middle;"></i> Estado actual</h3>
-                        <div class="chart-wrapper chart-wrapper-donut"><canvas id="chartEstado"></canvas></div>
-                    </div>
-                    <div class="chart-card">
-                        <h3 class="chart-title"><i data-lucide="credit-card" style="width:16px; display:inline-block; vertical-align:middle;"></i> Pagos del Día</h3>
-                        <div class="chart-wrapper chart-wrapper-donut"><canvas id="chartPagos"></canvas></div>
+
+                    <div class="chart-full charts-row-3">
+                        <div class="chart-card">
+                            <h3 class="chart-title"><i data-lucide="pie-chart" style="width:16px; display:inline-block; vertical-align:middle;"></i> Estado actual</h3>
+                            <div class="chart-wrapper chart-wrapper-donut"><canvas id="chartEstado"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title"><i data-lucide="credit-card" style="width:16px; display:inline-block; vertical-align:middle;"></i> Pagos del Día</h3>
+                            <div class="chart-wrapper chart-wrapper-donut"><canvas id="chartPagos"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title"><i data-lucide="car" style="width:16px; display:inline-block; vertical-align:middle;"></i> Vehículos Dentro por Tipo</h3>
+                            <div class="chart-wrapper chart-wrapper-donut"><canvas id="chartTipoVehiculo"></canvas></div>
+                        </div>
                     </div>
                 </div>
 
                 <p class="dash-auto-info" style="display:flex; align-items:center; gap:4px;">
                     <i data-lucide="refresh-cw" style="width:12px; height:12px;"></i> Auto-actualiza cada 30s
                 </p>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════
+            ESTACIONES DE PAGO
+            ═══════════════════════════════════════════════════ -->
+            <section class="dashboard-section" id="estacionesPagoSection">
+                <div class="dashboard-header">
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="banknote"></i> Estaciones de Pago</h2>
+                </div>
+
+                <div class="ep-filtros">
+                    <div class="form-group">
+                        <label for="epFechaA">Fecha</label>
+                        <input type="date" id="epFechaA">
+                    </div>
+
+                    <div class="ep-check-row">
+                        <input type="checkbox" id="epComparar" onchange="epToggleComparar()">
+                        <label for="epComparar">Comparar con otra fecha</label>
+                    </div>
+
+                    <div class="form-group" id="epFechaBWrap" style="display:none;">
+                        <label for="epFechaB">Comparar con</label>
+                        <input type="date" id="epFechaB">
+                    </div>
+
+                    <button class="btn btn-sm btn-primary" onclick="epConsultar()" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="search" style="width:14px; height:14px;"></i> Consultar
+                    </button>
+                </div>
+
+                <div id="epLoading" class="dash-state dash-loading" style="display:none;">
+                    <div class="dash-spinner"></div>
+                    <span>Consultando estaciones…</span>
+                </div>
+
+                <!-- Vista simple (una sola fecha) -->
+                <div class="ep-panel-single" id="epPanelSingle">
+                    <div class="chart-card">
+                        <h3 class="chart-title"><i data-lucide="bar-chart-3" style="width:16px; display:inline-block; vertical-align:middle;"></i> Efectivo vs Tarjeta por estación</h3>
+                        <div class="chart-wrapper"><canvas id="epChartSingle"></canvas></div>
+                    </div>
+                    <div class="ep-block">
+                        <p class="ep-block-title">Resumen del día</p>
+                        <div id="epResumenSingle"><div class="ep-empty"><i data-lucide="loader"></i><span>Cargando…</span></div></div>
+                    </div>
+                </div>
+
+                <!-- Vista comparativa (dos fechas) -->
+                <div class="ep-panel-compare" id="epPanelCompare" style="display:none;">
+                    <div class="ep-block">
+                        <p class="ep-block-title" id="epTituloFechaA">Fecha A</p>
+                        <div class="chart-wrapper chart-wrapper-donut"><canvas id="epChartA"></canvas></div>
+                        <div id="epResumenA"></div>
+                    </div>
+                    <div class="ep-block">
+                        <p class="ep-block-title" id="epTituloFechaB">Fecha B</p>
+                        <div class="chart-wrapper chart-wrapper-donut"><canvas id="epChartB"></canvas></div>
+                        <div id="epResumenB"></div>
+                    </div>
+                    <div class="ep-delta neutro" id="epDelta"></div>
+                </div>
             </section>
         </main>
 
@@ -666,5 +740,6 @@
     <script src="/visitas/js/reportes-venta.js"></script>
     <script src="/visitas/js/cerrar-tickets.js"></script>
     <script src="/visitas/js/tarifas.js"></script>
+    <script src="/visitas/js/dashboard-estaciones.js"></script>
 </body>
 </html>

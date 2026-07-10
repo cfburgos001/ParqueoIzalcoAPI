@@ -261,6 +261,11 @@
         /// <summary>Distribución de Pago del día actual: pagados vs no pagados</summary>
         public PagoHoyItem PagoHoy { get; set; } = new();
 
+
+        public TipoVehiculoDentroItem TipoVehiculoDentro { get; set; } = new();
+
+        public ComparativaAyerItem ComparativaAyer { get; set; } = new();
+
         /// <summary>Momento en que se generó la respuesta (UTC)</summary>
         public DateTime GeneratedAt { get; set; }
     }
@@ -281,6 +286,14 @@
     {
         public int Pagados { get; set; }
         public int NoPagados { get; set; }
+    }
+
+    public class TipoVehiculoDentroItem
+    {
+        public int Liviano { get; set; }
+        public int Moto { get; set; }
+        public int Pesado { get; set; }
+        public int Otros { get; set; }
     }
 
     public class ReporteVehiculosRequest
@@ -305,5 +318,47 @@
         public bool? SoloPagados { get; set; }
         public string? StrRateKey { get; set; }
         public int Top { get; set; } = 500;
+    }
+    // ── Flechitas automáticas (hoy vs ayer) ──
+    public class ComparativaAyerItem
+    {
+        public int TotalVehiculosAyer { get; set; }
+        public decimal MontoTotalAyer { get; set; }
+        public decimal? TicketPromedioAyer { get; set; }
+    }
+
+    // ── Hora Pico / Actividad (vista hora, semana o mes) ──
+    public class BucketActividadItem
+    {
+        public string Label { get; set; } = "";
+        public int Total { get; set; }
+    }
+
+    public class ActividadResponse
+    {
+        public string Vista { get; set; } = "";           // "hora" | "semana" | "mes"
+        public DateTime FechaAncla { get; set; }
+        public List<BucketActividadItem> Buckets { get; set; } = new();
+    }
+
+    // ── Comparativa de periodos personalizados ──
+    public class ComposicionTipoItem
+    {
+        public int Liviano { get; set; }
+        public int Moto { get; set; }
+        public int Pesado { get; set; }
+        public int Otros { get; set; }
+    }
+
+    public class ResumenPeriodoResponse
+    {
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public int TotalVehiculos { get; set; }
+        public decimal IngresoTotal { get; set; }
+        public decimal? TicketPromedio { get; set; }
+        public decimal TotalEfectivo { get; set; }
+        public decimal TotalTarjeta { get; set; }
+        public ComposicionTipoItem Composicion { get; set; } = new();
     }
 }

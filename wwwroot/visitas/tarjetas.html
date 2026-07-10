@@ -409,6 +409,11 @@
                 <span class="nav-icon"><i data-lucide="credit-card"></i></span>
                 <span class="nav-text">Tarjetas de Acceso</span>
             </a>
+            <!-- Asistencia: visible para ADMINISTRADOR y CAJA -->
+            <a href="/visitas/asistencia.html" class="nav-item caja-admin">
+                <span class="nav-icon"><i data-lucide="bell-ring"></i></span>
+                <span class="nav-text">Asistencia</span>
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div class="sidebar-user">
@@ -809,10 +814,10 @@
             selectEl.innerHTML = '<option value="">Seleccione nivel...</option>' +
                 nivelesData.map(n =>
                     `<option value="${n.id}"
-                    data-horarios="${(n.horariosResumen || '24/7 sin restricción').replace(/"/g, '&quot;')}"
-                    ${selectedId == n.id ? 'selected' : ''}>
-                 ${n.nombre}
-                 </option>`
+                        data-horarios="${(n.horariosResumen || '24/7 sin restricción').replace(/"/g, '&quot;')}"
+                        ${selectedId == n.id ? 'selected' : ''}>
+                     ${n.nombre}
+                     </option>`
                 ).join('');
         }
 
@@ -841,52 +846,52 @@
                 return;
             }
             tbody.innerHTML = lista.map(c => `
-            <tr>
-                <td><span style="font-family:monospace;font-size:12px;font-weight:700;
-                                 color:var(--brand-400);">${c.codigoUnico}</span></td>
-                <td>
-                    <div style="font-weight:600;color:var(--text-primary);">${c.nombre}</div>
-                    ${c.descripcion ? `<div style="font-size:11px;color:var(--text-tertiary);">${c.descripcion}</div>` : ''}
-                </td>
-                <td style="font-size:12px;">
-                    ${c.email ? `<div>${c.email}</div>` : ''}
-                    ${c.telefono ? `<div style="color:var(--text-tertiary);">${c.telefono}</div>` : ''}
-                    ${!c.email && !c.telefono ? '<span style="color:var(--text-disabled);">—</span>' : ''}
-                </td>
-                <td>
-                    <strong style="color:var(--text-primary);">${c.totalTarjetas}</strong>
-                    <span style="font-size:11px;color:var(--text-tertiary);"> (${c.tarjetasVigentes} vigentes)</span>
-                </td>
-                <td>
-                    <span class="badge ${c.activa ? 'badge-dentro' : 'badge-salio'}">
-                        ${c.activa ? '● Activa' : '● Inactiva'}
-                    </span>
-                </td>
-                <td>
-                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                        <button class="btn btn-xs btn-secondary" onclick="editarCuenta(${c.id})"
-                                style="display:flex;align-items:center;gap:3px;" title="Editar">
-                            <i data-lucide="edit-3" style="width:12px;"></i>
-                        </button>
-                        <button class="btn btn-xs ${c.activa ? 'btn-danger' : 'btn-success'}"
-                                onclick="toggleCuenta(${c.id}, ${c.activa})"
-                                style="display:flex;align-items:center;gap:3px;">
-                            <i data-lucide="${c.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
-                            ${c.activa ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button class="btn btn-xs btn-primary"
-                                onclick="switchTab('tarjetas');filtrarPorCuenta(${c.id})"
-                                style="display:flex;align-items:center;gap:3px;" title="Ver tarjetas">
-                            <i data-lucide="credit-card" style="width:12px;"></i> Tarjetas
-                        </button>
-                        <button class="btn btn-xs btn-danger"
-                                onclick="confirmarEliminarCuenta(${c.id},'${esc(c.nombre)}')"
-                                style="display:flex;align-items:center;gap:3px;" title="Eliminar">
-                            <i data-lucide="trash-2" style="width:12px;"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>`).join('');
+                <tr>
+                    <td><span style="font-family:monospace;font-size:12px;font-weight:700;
+                                     color:var(--brand-400);">${c.codigoUnico}</span></td>
+                    <td>
+                        <div style="font-weight:600;color:var(--text-primary);">${c.nombre}</div>
+                        ${c.descripcion ? `<div style="font-size:11px;color:var(--text-tertiary);">${c.descripcion}</div>` : ''}
+                    </td>
+                    <td style="font-size:12px;">
+                        ${c.email ? `<div>${c.email}</div>` : ''}
+                        ${c.telefono ? `<div style="color:var(--text-tertiary);">${c.telefono}</div>` : ''}
+                        ${!c.email && !c.telefono ? '<span style="color:var(--text-disabled);">—</span>' : ''}
+                    </td>
+                    <td>
+                        <strong style="color:var(--text-primary);">${c.totalTarjetas}</strong>
+                        <span style="font-size:11px;color:var(--text-tertiary);"> (${c.tarjetasVigentes} vigentes)</span>
+                    </td>
+                    <td>
+                        <span class="badge ${c.activa ? 'badge-dentro' : 'badge-salio'}">
+                            ${c.activa ? '● Activa' : '● Inactiva'}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                            <button class="btn btn-xs btn-secondary" onclick="editarCuenta(${c.id})"
+                                    style="display:flex;align-items:center;gap:3px;" title="Editar">
+                                <i data-lucide="edit-3" style="width:12px;"></i>
+                            </button>
+                            <button class="btn btn-xs ${c.activa ? 'btn-danger' : 'btn-success'}"
+                                    onclick="toggleCuenta(${c.id}, ${c.activa})"
+                                    style="display:flex;align-items:center;gap:3px;">
+                                <i data-lucide="${c.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
+                                ${c.activa ? 'Desactivar' : 'Activar'}
+                            </button>
+                            <button class="btn btn-xs btn-primary"
+                                    onclick="switchTab('tarjetas');filtrarPorCuenta(${c.id})"
+                                    style="display:flex;align-items:center;gap:3px;" title="Ver tarjetas">
+                                <i data-lucide="credit-card" style="width:12px;"></i> Tarjetas
+                            </button>
+                            <button class="btn btn-xs btn-danger"
+                                    onclick="confirmarEliminarCuenta(${c.id},'${esc(c.nombre)}')"
+                                    style="display:flex;align-items:center;gap:3px;" title="Eliminar">
+                                <i data-lucide="trash-2" style="width:12px;"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('');
             lucide.createIcons({ root: tbody });
         }
 
@@ -1020,8 +1025,8 @@
             const grid = document.getElementById('gridTarjetas');
             if (!lista.length) {
                 grid.innerHTML = `<div class="empty-state">
-                <i data-lucide="credit-card"></i>
-                <p>No hay tarjetas registradas</p></div>`;
+                    <i data-lucide="credit-card"></i>
+                    <p>No hay tarjetas registradas</p></div>`;
                 lucide.createIcons({ root: grid });
                 return;
             }
@@ -1034,43 +1039,43 @@
                 const vigIni = t.fechaVigenciaInicio
                     ? new Date(t.fechaVigenciaInicio).toLocaleDateString('es-GT') : null;
                 return `
-            <div class="tarjeta-card ${cls}">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-                    <div>
-                        <div class="tc-codigo">${t.codigoTarjeta}</div>
-                        <div class="tc-nombre">${t.nombreTitular || '(Sin titular)'}</div>
-                        ${t.identificacionTitular ? `<div style="font-size:11px;color:var(--text-tertiary);">${t.identificacionTitular}</div>` : ''}
+                <div class="tarjeta-card ${cls}">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+                        <div>
+                            <div class="tc-codigo">${t.codigoTarjeta}</div>
+                            <div class="tc-nombre">${t.nombreTitular || '(Sin titular)'}</div>
+                            ${t.identificacionTitular ? `<div style="font-size:11px;color:var(--text-tertiary);">${t.identificacionTitular}</div>` : ''}
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                            <span class="vigencia-badge vigencia-${t.estadoVigencia}">${t.estadoVigencia}</span>
+                            ${t.estaActualmenteDentro ? `<span class="badge badge-dentro" style="font-size:9px;">● DENTRO</span>` : ''}
+                        </div>
                     </div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-                        <span class="vigencia-badge vigencia-${t.estadoVigencia}">${t.estadoVigencia}</span>
-                        ${t.estaActualmenteDentro ? `<span class="badge badge-dentro" style="font-size:9px;">● DENTRO</span>` : ''}
+                    <div class="tc-row"><i data-lucide="building-2"></i><span>${t.nombreCuenta}</span></div>
+                    <div class="tc-row"><i data-lucide="shield"></i><span>${t.nivelAcceso}</span></div>
+                    <div class="tc-row">
+                        <i data-lucide="calendar"></i>
+                        <span>${vigIni ? 'Desde ' + vigIni : ''} ${vigFin ? 'hasta ' + vigFin : '(sin expiración)'}</span>
                     </div>
-                </div>
-                <div class="tc-row"><i data-lucide="building-2"></i><span>${t.nombreCuenta}</span></div>
-                <div class="tc-row"><i data-lucide="shield"></i><span>${t.nivelAcceso}</span></div>
-                <div class="tc-row">
-                    <i data-lucide="calendar"></i>
-                    <span>${vigIni ? 'Desde ' + vigIni : ''} ${vigFin ? 'hasta ' + vigFin : '(sin expiración)'}</span>
-                </div>
-                ${t.observacion ? `<div class="tc-row"><i data-lucide="message-square"></i><span>${t.observacion}</span></div>` : ''}
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-                    <button class="btn btn-xs btn-secondary" onclick="editarTarjeta(${t.id})"
-                            style="display:flex;align-items:center;gap:4px;">
-                        <i data-lucide="edit-3" style="width:12px;"></i> Editar
-                    </button>
-                    <button class="btn btn-xs ${t.activa ? 'btn-danger' : 'btn-success'}"
-                            onclick="toggleTarjeta(${t.id}, ${t.activa})"
-                            style="display:flex;align-items:center;gap:4px;">
-                        <i data-lucide="${t.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
-                        ${t.activa ? 'Desactivar' : 'Activar'}
-                    </button>
-                    <button class="btn btn-xs btn-danger"
-                            onclick="confirmarEliminarTarjeta(${t.id},'${esc(t.codigoTarjeta)}')"
-                            style="display:flex;align-items:center;gap:4px;">
-                        <i data-lucide="trash-2" style="width:12px;"></i>
-                    </button>
-                </div>
-            </div>`;
+                    ${t.observacion ? `<div class="tc-row"><i data-lucide="message-square"></i><span>${t.observacion}</span></div>` : ''}
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+                        <button class="btn btn-xs btn-secondary" onclick="editarTarjeta(${t.id})"
+                                style="display:flex;align-items:center;gap:4px;">
+                            <i data-lucide="edit-3" style="width:12px;"></i> Editar
+                        </button>
+                        <button class="btn btn-xs ${t.activa ? 'btn-danger' : 'btn-success'}"
+                                onclick="toggleTarjeta(${t.id}, ${t.activa})"
+                                style="display:flex;align-items:center;gap:4px;">
+                            <i data-lucide="${t.activa ? 'toggle-left' : 'toggle-right'}" style="width:12px;"></i>
+                            ${t.activa ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button class="btn btn-xs btn-danger"
+                                onclick="confirmarEliminarTarjeta(${t.id},'${esc(t.codigoTarjeta)}')"
+                                style="display:flex;align-items:center;gap:4px;">
+                            <i data-lucide="trash-2" style="width:12px;"></i>
+                        </button>
+                    </div>
+                </div>`;
             }).join('');
             lucide.createIcons({ root: grid });
         }

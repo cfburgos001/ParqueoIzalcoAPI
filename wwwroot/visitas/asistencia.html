@@ -3,122 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia — Parqueo Izalco</title>
-    <link rel="stylesheet" href="css/visitas.css">
-    <link rel="stylesheet" href="css/layout.css">
+    <title>Asistencia — IOT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/visitas/css/visitas.css">
+    <link rel="stylesheet" href="/visitas/css/layout.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/visitas/js/site-config.js"></script>
     <style>
-        /* ── Asistencia layout ── */
+        /* ── Asistencia grid ── */
         .asist-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            padding: 1.5rem;
+            gap: 16px;
         }
 
         .asist-card {
-            background: var(--surface, #1e1e2e);
-            border: 1px solid var(--border, #2e2e42);
-            border-radius: 12px;
-            padding: 1.5rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 14px;
         }
 
         .asist-card-header {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            border-bottom: 1px solid var(--border, #2e2e42);
-            padding-bottom: 0.75rem;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-default);
+            padding-bottom: 12px;
         }
 
-        .asist-card-icon {
+        .asist-icon {
             width: 40px;
             height: 40px;
-            border-radius: 8px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
             flex-shrink: 0;
         }
 
-        .icon-extraviado {
-            background: rgba(255, 170, 50, 0.15);
-            color: #ffaa32;
-        }
+            .asist-icon.warning {
+                background: var(--warning-dim);
+                color: var(--warning-text);
+            }
 
-        .icon-pesado {
-            background: rgba(255, 80, 80, 0.15);
-            color: #ff5050;
-        }
+            .asist-icon.danger {
+                background: var(--danger-dim);
+                color: var(--danger-text);
+            }
 
-        .icon-barrera {
-            background: rgba( 80, 180, 255, 0.15);
-            color: #50b4ff;
-        }
+            .asist-icon.info {
+                background: var(--info-dim);
+                color: var(--brand-400);
+            }
 
-        .icon-paystation {
-            background: rgba(100, 220, 130, 0.15);
-            color: #64dc82;
-        }
+            .asist-icon i {
+                width: 20px;
+                height: 20px;
+            }
 
-        .asist-card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary, #e0e0f0);
-            margin: 0;
-        }
-
-        .asist-card-sub {
-            font-size: 0.78rem;
-            color: var(--text-muted, #888);
-            margin: 0;
-        }
-
-        .asist-monto-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 99px;
-            font-size: 0.9rem;
+        .asist-title {
+            font-size: 14px;
             font-weight: 700;
-            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            margin: 0;
         }
 
-        .badge-amarillo {
-            background: rgba(255,170,50,0.15);
-            color: #ffaa32;
-            border: 1px solid rgba(255,170,50,0.3);
+        .asist-sub {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin: 2px 0 0;
         }
 
-        .badge-rojo {
-            background: rgba(255, 80,80,0.15);
-            color: #ff5050;
-            border: 1px solid rgba(255, 80,80,0.3);
+        .asist-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
+
+        .asist-monto {
+            font-size: 15px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+        }
+
+            .asist-monto.warning {
+                background: var(--warning-dim);
+                color: var(--warning-text);
+            }
+
+            .asist-monto.danger {
+                background: var(--danger-dim);
+                color: var(--danger-text);
+            }
+
+        .asist-select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-default);
+            background: var(--surface-1);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+            .asist-select:focus {
+                outline: 2px solid var(--brand-500);
+                outline-offset: 1px;
+            }
 
         .asist-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 8px;
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 10px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            transition: opacity 0.15s, transform 0.1s;
+            transition: opacity var(--transition);
         }
 
             .asist-btn:hover:not(:disabled) {
                 opacity: 0.88;
-            }
-
-            .asist-btn:active:not(:disabled) {
-                transform: scale(0.97);
             }
 
             .asist-btn:disabled {
@@ -126,495 +146,380 @@
                 cursor: not-allowed;
             }
 
-        .btn-amarillo {
-            background: #ffaa32;
-            color: #1a1a2e;
+            .asist-btn.warning {
+                background: var(--warning);
+                color: #1a1305;
+            }
+
+            .asist-btn.danger {
+                background: var(--danger);
+                color: #fff;
+            }
+
+            .asist-btn i {
+                width: 16px;
+                height: 16px;
+            }
+
+        /* ── Resultado ── */
+        .asist-result {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--surface-1);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius);
+            padding: 12px;
+            font-size: 12px;
         }
 
-        .btn-rojo {
-            background: #ff5050;
-            color: #ffffff;
-        }
+            .asist-result.visible {
+                display: flex;
+            }
 
-        .btn-azul {
-            background: #50b4ff;
-            color: #1a1a2e;
-        }
-
-        .btn-verde {
-            background: #64dc82;
-            color: #1a1a2e;
-        }
-
-        .btn-gris {
-            background: var(--border, #2e2e42);
-            color: var(--text-primary, #e0e0f0);
-        }
-
-        .asist-info-row {
+        .asist-result-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.82rem;
-            color: var(--text-muted, #888);
         }
 
-            .asist-info-row span:last-child {
-                color: var(--text-primary, #e0e0f0);
-                font-weight: 500;
+            .asist-result-row label {
+                color: var(--text-tertiary);
             }
 
-        .coming-soon-overlay {
+            .asist-result-row .val {
+                font-weight: 700;
+                color: var(--text-primary);
+                font-family: 'Courier New', monospace;
+            }
+
+        /* ── Placeholder cards ── */
+        .asist-placeholder {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 1.5rem;
-            border: 1px dashed var(--border, #2e2e42);
-            border-radius: 8px;
-            color: var(--text-muted, #888);
-            font-size: 0.82rem;
+            gap: 6px;
+            padding: 24px 16px;
+            border: 1px dashed var(--border-default);
+            border-radius: var(--radius);
+            color: var(--text-tertiary);
+            font-size: 12px;
             text-align: center;
         }
 
-            .coming-soon-overlay span:first-child {
-                font-size: 1.4rem;
+            .asist-placeholder i {
+                width: 22px;
+                height: 22px;
+                margin-bottom: 4px;
             }
 
-        /* ── Resultado ticket ── */
-        .ticket-result {
-            display: none;
-            flex-direction: column;
-            gap: 0.5rem;
-            background: var(--bg, #13131f);
-            border: 1px solid var(--border, #2e2e42);
-            border-radius: 8px;
-            padding: 1rem;
-            font-size: 0.85rem;
-        }
-
-            .ticket-result.visible {
-                display: flex;
+            .asist-placeholder strong {
+                color: var(--text-secondary);
+                font-size: 13px;
             }
-
-        .ticket-result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-            .ticket-result-row label {
-                color: var(--text-muted, #888);
-                font-size: 0.78rem;
-            }
-
-            .ticket-result-row .val {
-                font-weight: 600;
-                color: var(--text-primary, #e0e0f0);
-                font-family: monospace;
-                letter-spacing: 0.05em;
-            }
-
-                .ticket-result-row .val.codigo {
-                    font-size: 0.82rem;
-                    word-break: break-all;
-                }
-
-        .ticket-result-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.25rem;
-        }
-
-        /* ── Toast ── */
-        #asist-toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            padding: 0.65rem 1.2rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #fff;
-            z-index: 9999;
-            display: none;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-
-            #asist-toast.show {
-                display: block;
-                animation: fadeSlide 0.2s ease;
-            }
-
-            #asist-toast.ok {
-                background: #2ecc71;
-            }
-
-            #asist-toast.err {
-                background: #e74c3c;
-            }
-
-            #asist-toast.warn {
-                background: #f39c12;
-            }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ── Select dispositivo ── */
-        .asist-select {
-            width: 100%;
-            padding: 0.55rem 0.75rem;
-            border-radius: 8px;
-            border: 1px solid var(--border, #2e2e42);
-            background: var(--bg, #13131f);
-            color: var(--text-primary, #e0e0f0);
-            font-size: 0.85rem;
-        }
-
-            .asist-select:focus {
-                outline: 2px solid #50b4ff;
-                outline-offset: 1px;
-            }
-
-        /* ── Page header ── */
-        .asist-page-header {
-            padding: 1.5rem 1.5rem 0;
-        }
-
-            .asist-page-header h2 {
-                font-size: 1.3rem;
-                font-weight: 700;
-                color: var(--text-primary, #e0e0f0);
-                margin: 0 0 0.25rem;
-            }
-
-            .asist-page-header p {
-                font-size: 0.82rem;
-                color: var(--text-muted, #888);
-                margin: 0;
-            }
-
-        @media (max-width: 640px) {
-            .asist-grid {
-                grid-template-columns: 1fr;
-                padding: 1rem;
-                gap: 1rem;
-            }
-
-            .asist-page-header {
-                padding: 1rem 1rem 0;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <!-- ── Sidebar overlay (mobile) ── -->
-    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
-
-    <!-- ── Sidebar ── -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-logo">
-            <span class="logo-icon">🅿</span>
-            <span class="logo-text">Parqueo Izalco</span>
-        </div>
-        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Colapsar menú">
-            <span>◀</span>
-        </button>
-
-        <ul class="sidebar-nav">
-            <li><a href="index.html" class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></a></li>
-            <li><a href="monitoreo.html" class="nav-item"><span class="nav-icon">📡</span><span class="nav-label">Monitoreo</span></a></li>
-            <li><a href="tarjetas.html" class="nav-item"><span class="nav-icon">💳</span><span class="nav-label">Tarjetas</span></a></li>
-            <li><a href="asistencia.html" class="nav-item active"><span class="nav-icon">🛎</span><span class="nav-label">Asistencia</span></a></li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <span class="user-icon">👤</span>
-                <span class="user-name" id="sidebarUserName">Usuario</span>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo" id="sidebarLogoBox">
+                <i data-lucide="building-2" style="width:28px;height:28px;color:var(--brand-500);"></i>
             </div>
-            <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            <div class="sidebar-brand">
+                <h1 class="sidebar-title" id="sidebarTitle" data-sitio-field="nombreComercial">PARQUEO IOT</h1>
+                <p class="sidebar-subtitle" id="sidebarSubtitle" data-sitio-field="slogan">Sistema de Parqueo</p>
+            </div>
         </div>
-    </nav>
+        <nav class="sidebar-nav">
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-text">Inicio</span>
+            </a>
+            <a href="/visitas/index.html" class="nav-item">
+                <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                <span class="nav-text">Bitácora de Accesos</span>
+            </a>
+            <a href="/visitas/tarjetas.html" class="nav-item admin-only">
+                <span class="nav-icon"><i data-lucide="credit-card"></i></span>
+                <span class="nav-text">Tarjetas de Acceso</span>
+            </a>
+            <a href="/visitas/monitoreo.html" class="nav-item monitoreo-admin">
+                <span class="nav-icon"><i data-lucide="activity"></i></span>
+                <span class="nav-text">Monitoreo</span>
+            </a>
+            <a href="/visitas/asistencia.html" class="nav-item active caja-admin">
+                <span class="nav-icon"><i data-lucide="bell-ring"></i></span>
+                <span class="nav-text">Asistencia</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-icon"><i data-lucide="user-circle"></i></span>
+                <div class="user-info">
+                    <span class="user-name" id="sidebarUserName">Usuario</span>
+                    <span class="user-role" id="sidebarUserRole">Rol</span>
+                </div>
+            </div>
+            <button class="btn-sidebar-logout" onclick="cerrarSesion()"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Salir
+            </button>
+        </div>
+    </aside>
 
-    <!-- ── Main ── -->
+    <!-- MAIN -->
     <div class="main-wrapper">
-
-        <!-- Topbar -->
-        <header class="topbar">
-            <button class="topbar-menu-btn" onclick="toggleSidebar()">☰</button>
-            <h1 class="topbar-title">Asistencia</h1>
-            <span class="topbar-user" id="topbarUser"></span>
+        <header class="top-header">
+            <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                <i data-lucide="menu"></i>
+            </button>
+            <h2 class="page-title" style="display:flex;align-items:center;gap:8px;">
+                <i data-lucide="bell-ring"></i> Asistencia
+            </h2>
+            <div class="header-right">
+                <div class="header-clock">
+                    <span id="fechaActual"></span>
+                    <span id="horaActual" class="hora"></span>
+                </div>
+            </div>
         </header>
 
-        <!-- Contenido -->
-        <main class="main-content">
-
-            <div class="asist-page-header">
-                <h2>Centro de Asistencia</h2>
-                <p>Operaciones especiales: tickets extraviados, control de barreras y PayStation.</p>
-            </div>
+        <main class="content">
 
             <div class="asist-grid">
 
-                <!-- ── Ticket Extraviado Normal ($10) ── -->
+                <!-- ── Ticket Extraviado ── -->
                 <div class="asist-card">
                     <div class="asist-card-header">
-                        <div class="asist-card-icon icon-extraviado">🎫</div>
+                        <div class="asist-icon warning"><i data-lucide="ticket"></i></div>
                         <div>
-                            <p class="asist-card-title">Ticket Extraviado</p>
-                            <p class="asist-card-sub">Genera un ticket de reemplazo para el vehículo.</p>
+                            <p class="asist-title">Ticket Extraviado</p>
+                            <p class="asist-sub">Genera un ticket de reemplazo</p>
                         </div>
                     </div>
 
-                    <div class="asist-info-row">
+                    <div class="asist-row">
                         <span>Monto fijo</span>
-                        <span><span class="asist-monto-badge badge-amarillo">$10.00</span></span>
+                        <span class="asist-monto warning">$10.00</span>
                     </div>
 
-                    <label class="asist-info-row" style="flex-direction:column; align-items:flex-start; gap:0.4rem;">
-                        <span>Dispositivo</span>
-                        <select id="sel-disp-normal" class="asist-select">
-                            <option value="PS_05">PS_05 — PayStation 1</option>
-                            <option value="PS_06">PS_06 — PayStation 2</option>
-                        </select>
-                    </label>
+                    <select class="asist-select" id="sel-disp-normal">
+                        <option value="PS_05">PS_05 — PayStation 1</option>
+                        <option value="PS_06">PS_06 — PayStation 2</option>
+                    </select>
 
-                    <button class="asist-btn btn-amarillo" id="btn-extraviado-normal" onclick="crearTicketExtraviado('normal')">
-                        🎫 Generar Ticket Extraviado
+                    <button class="asist-btn warning" id="btn-normal" onclick="crearTicket('normal')">
+                        <i data-lucide="ticket"></i> Generar Ticket Extraviado
                     </button>
 
-                    <!-- Resultado -->
-                    <div class="ticket-result" id="result-normal">
-                        <div class="ticket-result-row">
-                            <label>Código de barras</label>
-                            <span class="val codigo" id="res-normal-codigo">—</span>
-                        </div>
-                        <div class="ticket-result-row">
-                            <label>Monto a cobrar</label>
-                            <span class="val" id="res-normal-monto">—</span>
-                        </div>
-                        <div class="ticket-result-row">
-                            <label>ID interno</label>
-                            <span class="val" id="res-normal-id">—</span>
-                        </div>
-                        <div class="ticket-result-actions">
-                            <button class="asist-btn btn-gris" style="width:auto;padding:0.5rem 1rem;font-size:0.8rem;"
-                                    onclick="copiarCodigo('res-normal-codigo')">
-                                📋 Copiar código
-                            </button>
-                        </div>
+                    <div class="asist-result" id="result-normal">
+                        <div class="asist-result-row"><label>Código</label><span class="val" id="res-normal-codigo">—</span></div>
+                        <div class="asist-result-row"><label>Monto</label><span class="val" id="res-normal-monto">—</span></div>
+                        <div class="asist-result-row"><label>ID</label><span class="val" id="res-normal-id">—</span></div>
                     </div>
                 </div>
 
-                <!-- ── Ticket Extraviado Pesado ($25) ── -->
+                <!-- ── Ticket Extraviado Pesado ── -->
                 <div class="asist-card">
                     <div class="asist-card-header">
-                        <div class="asist-card-icon icon-pesado">🚨</div>
+                        <div class="asist-icon danger"><i data-lucide="triangle-alert"></i></div>
                         <div>
-                            <p class="asist-card-title">Ticket Extraviado Pesado</p>
-                            <p class="asist-card-sub">Tarifa especial para casos de mayor responsabilidad.</p>
+                            <p class="asist-title">Ticket Extraviado Pesado</p>
+                            <p class="asist-sub">Tarifa especial de mayor responsabilidad</p>
                         </div>
                     </div>
 
-                    <div class="asist-info-row">
+                    <div class="asist-row">
                         <span>Monto fijo</span>
-                        <span><span class="asist-monto-badge badge-rojo">$25.00</span></span>
+                        <span class="asist-monto danger">$25.00</span>
                     </div>
 
-                    <label class="asist-info-row" style="flex-direction:column; align-items:flex-start; gap:0.4rem;">
-                        <span>Dispositivo</span>
-                        <select id="sel-disp-pesado" class="asist-select">
-                            <option value="PS_05">PS_05 — PayStation 1</option>
-                            <option value="PS_06">PS_06 — PayStation 2</option>
-                        </select>
-                    </label>
+                    <select class="asist-select" id="sel-disp-pesado">
+                        <option value="PS_05">PS_05 — PayStation 1</option>
+                        <option value="PS_06">PS_06 — PayStation 2</option>
+                    </select>
 
-                    <button class="asist-btn btn-rojo" id="btn-extraviado-pesado" onclick="crearTicketExtraviado('pesado')">
-                        🚨 Generar Ticket Pesado
+                    <button class="asist-btn danger" id="btn-pesado" onclick="crearTicket('pesado')">
+                        <i data-lucide="triangle-alert"></i> Generar Ticket Pesado
                     </button>
 
-                    <!-- Resultado -->
-                    <div class="ticket-result" id="result-pesado">
-                        <div class="ticket-result-row">
-                            <label>Código de barras</label>
-                            <span class="val codigo" id="res-pesado-codigo">—</span>
-                        </div>
-                        <div class="ticket-result-row">
-                            <label>Monto a cobrar</label>
-                            <span class="val" id="res-pesado-monto">—</span>
-                        </div>
-                        <div class="ticket-result-row">
-                            <label>ID interno</label>
-                            <span class="val" id="res-pesado-id">—</span>
-                        </div>
-                        <div class="ticket-result-actions">
-                            <button class="asist-btn btn-gris" style="width:auto;padding:0.5rem 1rem;font-size:0.8rem;"
-                                    onclick="copiarCodigo('res-pesado-codigo')">
-                                📋 Copiar código
-                            </button>
-                        </div>
+                    <div class="asist-result" id="result-pesado">
+                        <div class="asist-result-row"><label>Código</label><span class="val" id="res-pesado-codigo">—</span></div>
+                        <div class="asist-result-row"><label>Monto</label><span class="val" id="res-pesado-monto">—</span></div>
+                        <div class="asist-result-row"><label>ID</label><span class="val" id="res-pesado-id">—</span></div>
                     </div>
                 </div>
 
-                <!-- ── Control de Barreras (placeholder) ── -->
+                <!-- ── Barreras (placeholder) ── -->
                 <div class="asist-card">
                     <div class="asist-card-header">
-                        <div class="asist-card-icon icon-barrera">🚧</div>
+                        <div class="asist-icon info"><i data-lucide="construction"></i></div>
                         <div>
-                            <p class="asist-card-title">Control de Barreras</p>
-                            <p class="asist-card-sub">Abrir / cerrar barreras de entrada y salida.</p>
+                            <p class="asist-title">Control de Barreras</p>
+                            <p class="asist-sub">Abrir / cerrar entrada y salida</p>
                         </div>
                     </div>
-                    <div class="coming-soon-overlay">
-                        <span>🔧</span>
+                    <div class="asist-placeholder">
+                        <i data-lucide="wrench"></i>
                         <strong>Pendiente de configuración</strong>
-                        <span>En espera de endpoints del controlador (ENTRY_01 · EXIT_02).</span>
+                        <span>Disponible pronto</span>
                     </div>
                 </div>
 
                 <!-- ── PayStation (placeholder) ── -->
                 <div class="asist-card">
                     <div class="asist-card-header">
-                        <div class="asist-card-icon icon-paystation">💰</div>
+                        <div class="asist-icon info"><i data-lucide="credit-card"></i></div>
                         <div>
-                            <p class="asist-card-title">PayStation</p>
-                            <p class="asist-card-sub">Comandos remotos para PS_05 y PS_06.</p>
+                            <p class="asist-title">PayStation</p>
+                            <p class="asist-sub">Comandos remotos PS_05 / PS_06</p>
                         </div>
                     </div>
-                    <div class="coming-soon-overlay">
-                        <span>🔧</span>
+                    <div class="asist-placeholder">
+                        <i data-lucide="wrench"></i>
                         <strong>Pendiente de configuración</strong>
-                        <span>En espera de endpoints del controlador (PS_05 · PS_06).</span>
+                        <span>Disponible pronto</span>
                     </div>
                 </div>
 
-            </div><!-- /asist-grid -->
+            </div>
         </main>
-    </div><!-- /main-wrapper -->
-    <!-- Toast -->
-    <div id="asist-toast"></div>
+    </div>
 
-    <script src="js/site-config.js"></script>
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
-    /* ── Auth ── */
-    const session = JSON.parse(sessionStorage.getItem('operadorSession') || 'null');
-    if (!session) { location.href = 'login.html'; }
+        // ═══════════════════════════════════════════════════
+        // ESTADO
+        // ═══════════════════════════════════════════════════
+        const API = '/api/asistencia';
+        let operador = null;
 
-    const TIPOS_PERMITIDOS = ['ADMINISTRADOR', 'CAJA'];
-    if (!TIPOS_PERMITIDOS.includes(session?.tipoUsuario)) {
-        mostrarToast('No tienes permiso para acceder a Asistencia.', 'err');
-        setTimeout(() => location.href = 'index.html', 2000);
-    }
+        // ═══════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const datos = sessionStorage.getItem('operador');
+            if (!datos) { window.location.href = '/visitas/login.html'; return; }
+            operador = JSON.parse(datos);
 
-    document.getElementById('sidebarUserName').textContent = session?.nombreCompleto || session?.username || '—';
-    document.getElementById('topbarUser').textContent      = session?.nombreCompleto || session?.username || '—';
-
-    /* ── Sidebar ── */
-    function toggleSidebar() {
-        const sidebar  = document.getElementById('sidebar');
-        const overlay  = document.getElementById('sidebarOverlay');
-        const isMobile = window.innerWidth <= 1024;
-        if (isMobile) {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-        } else {
-            sidebar.classList.toggle('collapsed');
-        }
-    }
-
-    function closeSidebar() {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sidebarOverlay').classList.remove('active');
-    }
-
-    function cerrarSesion() {
-        sessionStorage.removeItem('operadorSession');
-        location.href = 'login.html';
-    }
-
-    /* ── Toast ── */
-    function mostrarToast(msg, tipo = 'ok', ms = 3500) {
-        const t = document.getElementById('asist-toast');
-        t.textContent = msg;
-        t.className = `show ${tipo}`;
-        clearTimeout(t._timer);
-        t._timer = setTimeout(() => { t.className = ''; }, ms);
-    }
-
-    /* ── Copiar código ── */
-    function copiarCodigo(elemId) {
-        const val = document.getElementById(elemId).textContent.trim();
-        if (!val || val === '—') return;
-        navigator.clipboard.writeText(val)
-            .then(() => mostrarToast('Código copiado al portapapeles.', 'ok'))
-            .catch(() => mostrarToast('No se pudo copiar.', 'warn'));
-    }
-
-    /* ── Crear ticket ── */
-    async function crearTicketExtraviado(tipo) {
-        const esPesado    = tipo === 'pesado';
-        const selId       = esPesado ? 'sel-disp-pesado'       : 'sel-disp-normal';
-        const btnId       = esPesado ? 'btn-extraviado-pesado'  : 'btn-extraviado-normal';
-        const resultId    = esPesado ? 'result-pesado'          : 'result-normal';
-        const endpoint    = esPesado
-            ? `${API_BASE_URL}/api/vehiculos/ticket-extraviado-pesado`
-            : `${API_BASE_URL}/api/vehiculos/ticket-extraviado`;
-
-        const idDispositivo = document.getElementById(selId).value;
-        const idOperador    = session.idOperador;
-        const btn           = document.getElementById(btnId);
-        const resDiv        = document.getElementById(resultId);
-        const prefix        = esPesado ? 'pesado' : 'normal';
-
-        btn.disabled = true;
-        btn.textContent = '⏳ Generando…';
-
-        try {
-            const resp = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idDispositivo, idOperador })
-            });
-
-            const data = await resp.json();
-
-            if (!resp.ok || !data.exitoso) {
-                mostrarToast(data.mensaje || 'Error al generar el ticket.', 'err');
+            const rolesPermitidos = ['ADMINISTRADOR', 'CAJA'];
+            if (!rolesPermitidos.includes(operador.tipoUsuario)) {
+                window.location.href = '/visitas/index.html';
                 return;
             }
 
-            // Mostrar resultado
-            document.getElementById(`res-${prefix}-codigo`).textContent = data.codigoBarras || '—';
-            document.getElementById(`res-${prefix}-monto`).textContent  = data.monto != null ? `$${parseFloat(data.monto).toFixed(2)}` : '—';
-            document.getElementById(`res-${prefix}-id`).textContent     = data.id ?? '—';
-            resDiv.classList.add('visible');
+            document.body.classList.add('role-' + operador.tipoUsuario);
+            document.getElementById('sidebarUserName').textContent = operador.nombreCompleto;
+            document.getElementById('sidebarUserRole').textContent = operador.tipoUsuario;
 
-            mostrarToast(`Ticket ${esPesado ? 'pesado ' : ''}generado correctamente.`, 'ok');
+            cargarConfigSitio();
+            actualizarReloj();
+            setInterval(actualizarReloj, 1000);
+            lucide.createIcons();
+        });
 
-        } catch (err) {
-            mostrarToast('Error de conexión con el servidor.', 'err');
-            console.error(err);
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = esPesado
-                ? '🚨 Generar Ticket Pesado'
-                : '🎫 Generar Ticket Extraviado';
+        function actualizarReloj() {
+            const now = new Date();
+            document.getElementById('fechaActual').textContent =
+                now.toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('horaActual').textContent =
+                now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
-    }
-    </script>
 
+        // ═══════════════════════════════════════════════════
+        // CREAR TICKET
+        // ═══════════════════════════════════════════════════
+        async function crearTicket(tipo) {
+            const esPesado = tipo === 'pesado';
+            const selId = esPesado ? 'sel-disp-pesado' : 'sel-disp-normal';
+            const btnId = esPesado ? 'btn-pesado' : 'btn-normal';
+            const prefix = esPesado ? 'pesado' : 'normal';
+            const endpoint = esPesado ? `${API}/ticket-extraviado-pesado` : `${API}/ticket-extraviado`;
+
+            const idDispositivo = document.getElementById(selId).value;
+            const idOperador = operador.id ?? operador.Id ?? operador.idOperador;
+            const btn = document.getElementById(btnId);
+            const resDiv = document.getElementById(`result-${prefix}`);
+
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> Generando…';
+            lucide.createIcons();
+
+            try {
+                const r = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idDispositivo, idOperador })
+                });
+                const data = await r.json();
+
+                if (!r.ok || !data.exitoso) {
+                    mostrarToast(data.mensaje || 'Error al generar el ticket.', 'error');
+                    return;
+                }
+
+                document.getElementById(`res-${prefix}-codigo`).textContent = data.codigoBarras || '—';
+                document.getElementById(`res-${prefix}-monto`).textContent = data.monto != null ? `$${parseFloat(data.monto).toFixed(2)}` : '—';
+                document.getElementById(`res-${prefix}-id`).textContent = data.id ?? '—';
+                resDiv.classList.add('visible');
+
+                mostrarToast(`Ticket ${esPesado ? 'pesado ' : ''}generado correctamente.`, 'success');
+
+            } catch (e) {
+                mostrarToast('Error de conexión con el servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+                lucide.createIcons();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // UTILS (mismos patrones que tarjetas.html)
+        // ═══════════════════════════════════════════════════
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const isMobile = window.innerWidth <= 1024;
+
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                let overlay = document.getElementById('sidebarOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'sidebarOverlay';
+                    overlay.className = 'sidebar-overlay';
+                    overlay.onclick = () => toggleSidebar();
+                    document.body.appendChild(overlay);
+                }
+                overlay.classList.toggle('active', sidebar.classList.contains('open'));
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.removeItem('operador');
+            window.location.href = '/visitas/login.html';
+        }
+
+        function mostrarToast(msg, tipo = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast toast-${tipo}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateX(100px)';
+                t.style.transition = 'all 0.3s ease';
+                setTimeout(() => t.remove(), 300);
+            }, 3500);
+        }
+    </script>
 </body>
 </html>

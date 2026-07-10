@@ -496,6 +496,72 @@ namespace ParqueoIzalcoAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Hora Pico / Actividad. vista=hora agrupa por hora del día (0-23),
+        /// vista=semana agrupa por día de la semana (Lun-Dom) que contiene
+        /// la fecha, vista=mes agrupa por día del mes que contiene la fecha.
+        /// </summary>
+        [HttpGet("dashboard/actividad")]
+        [ProducesResponseType(typeof(ApiResponse<ActividadResponse>), 200)]
+        public async Task<IActionResult> ObtenerActividad([FromQuery] string vista = "hora", [FromQuery] DateTime? fecha = null)
+        {
+            try
+            {
+                var fechaAncla = fecha ?? DateTime.Today;
+                var resultado = await _visitasService.ObtenerActividadAsync(vista, fechaAncla);
+                return Ok(new ApiResponse<ActividadResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = "Actividad obtenida",
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener actividad");
+                return StatusCode(500, new ApiResponse<ActividadResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
 
+        /// <summary>
+        /// Resumen agregado (totales, composición por tipo, efectivo/tarjeta)
+        /// para un rango de fechas arbitrario. Se usa 2 veces desde el
+        /// frontend para armar comparativas (Periodo A vs Periodo B).
+        /// </summary>
+        [HttpGet("dashboard/resumen-periodo")]
+        [ProducesResponseType(typeof(ApiResponse<ResumenPeriodoResponse>), 200)]
+        public async Task<IActionResult> ObtenerResumenPeriodo([FromQuery] DateTime fechaInicio, [FromQuery] DateTime fechaFin)
+        {
+            try
+            {
+                if (fechaFin <= fechaInicio)
+                    return BadRequest(new ApiResponse<ResumenPeriodoResponse>
+                    {
+                        Exitoso = false,
+                        Mensaje = "fechaFin debe ser mayor que fechaInicio."
+                    });
+
+                var resultado = await _visitasService.ObtenerResumenPeriodoAsync(fechaInicio, fechaFin);
+                return Ok(new ApiResponse<ResumenPeriodoResponse>
+                {
+                    Exitoso = true,
+                    Mensaje = "Resumen de periodo obtenido",
+                    Data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener resumen de periodo");
+                return StatusCode(500, new ApiResponse<ResumenPeriodoResponse>
+                {
+                    Exitoso = false,
+                    Mensaje = $"Error: {ex.Message}"
+                });
+            }
+        }
     }
 }

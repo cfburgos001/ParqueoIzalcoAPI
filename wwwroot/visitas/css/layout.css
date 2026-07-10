@@ -1095,3 +1095,172 @@ body.role-CAJA a.caja-admin {
         align-items: flex-start;
     }
 }
+
+/* Fila interna de 3 columnas dentro de charts-grid (no afecta
+   el grid original de 2 columnas, solo esta fila específica) */
+.charts-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 900px) {
+    .charts-row-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Estaciones de Pago ── */
+.ep-filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+    .ep-filtros .form-group {
+        min-width: 160px;
+    }
+
+.ep-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 9px;
+}
+
+    .ep-check-row input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--brand-500);
+        cursor: pointer;
+    }
+
+    .ep-check-row label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        user-select: none;
+    }
+
+.ep-panel-single {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 16px;
+}
+
+.ep-panel-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .ep-panel-single,
+    .ep-panel-compare {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ep-block {
+    background: var(--surface-1);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.ep-block-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+}
+
+.ep-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 13px;
+}
+
+    .ep-summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .ep-summary-row .ep-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-secondary);
+    }
+
+    .ep-summary-row .ep-value {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+.ep-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 2px solid var(--border-default);
+}
+
+    .ep-summary-total .ep-label {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 13px;
+    }
+
+    .ep-summary-total .ep-value {
+        font-weight: 800;
+        font-size: 17px;
+        color: var(--brand-400);
+    }
+
+.ep-delta {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+    .ep-delta.positivo {
+        background: var(--success-dim);
+        color: var(--success-text);
+    }
+
+    .ep-delta.negativo {
+        background: var(--danger-dim);
+        color: var(--danger-text);
+    }
+
+    .ep-delta.neutro {
+        background: var(--info-dim);
+        color: var(--brand-400);
+    }
+
+.ep-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 30px 16px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    text-align: center;
+}
