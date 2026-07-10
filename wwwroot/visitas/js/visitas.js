@@ -864,7 +864,6 @@ async function cargarDashboard() {
         // Auto-actualiza Afluencia del Estacionamiento junto con el resto
         if (typeof actConsultar === 'function') actConsultar(true);
 
-        const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
         const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (lastUpdate) lastUpdate.textContent = `Actualizado: ${hora}`;
