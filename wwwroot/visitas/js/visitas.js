@@ -847,12 +847,24 @@ async function cargarDashboard() {
         document.getElementById('kpiMonto').textContent = formatearMonto(d.montoPromedioCobrado);
         document.getElementById('kpiMontoTotal').textContent = formatearMonto(d.montoTotalDia);
 
+        // ⬇⬇⬇ BLOQUE NUEVO — Flechitas hoy vs ayer ⬇⬇⬇
+        const ayer = d.comparativaAyer ?? {};
+        renderKpiDelta('kpiHoyDelta', d.totalVehiculosHoy, ayer.totalVehiculosAyer, false);
+        renderKpiDelta('kpiMontoDelta', d.montoPromedioCobrado, ayer.ticketPromedioAyer, true);
+        renderKpiDelta('kpiMontoTotalDelta', d.montoTotalDia, ayer.montoTotalAyer, true);
+        // ⬆⬆⬆ FIN BLOQUE NUEVO ⬆⬆⬆
+
         const statDentro = document.getElementById('statDentro');
         const statHoy = document.getElementById('statHoy');
         if (statDentro) statDentro.textContent = `${d.vehiculosDentroHoy ?? 0} Dentro`;
         if (statHoy) statHoy.textContent = `${d.totalVehiculosHoy ?? 0} Hoy`;
 
         renderizarGraficos(d);
+
+        // Auto-actualiza Afluencia del Estacionamiento junto con el resto
+        if (typeof actConsultar === 'function') actConsultar(true);
+
+        const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
         const hora = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (lastUpdate) lastUpdate.textContent = `Actualizado: ${hora}`;
@@ -868,6 +880,39 @@ async function cargarDashboard() {
     } finally {
         if (loading) loading.style.display = 'none';
     }
+}
+function renderKpiDelta(elId, valorHoy, valorAyer, esMoneda) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+
+    valorHoy = Number(valorHoy) || 0;
+    valorAyer = Number(valorAyer) || 0;
+
+    if (valorAyer === 0 && valorHoy === 0) {
+        el.style.display = 'none';
+        return;
+    }
+
+    const diff = valorHoy - valorAyer;
+    const pct = valorAyer > 0 ? (diff / valorAyer * 100) : (valorHoy > 0 ? 100 : 0);
+
+    el.classList.remove('positivo', 'negativo', 'neutro');
+    el.style.display = 'inline-flex';
+
+    const fmt = v => esMoneda ? `$${Math.abs(v).toFixed(2)}` : Math.abs(v).toFixed(0);
+
+    if (Math.abs(diff) < 0.005) {
+        el.classList.add('neutro');
+        el.innerHTML = `<i data-lucide="minus"></i> Igual que ayer`;
+    } else if (diff > 0) {
+        el.classList.add('positivo');
+        el.innerHTML = `<i data-lucide="trending-up"></i> +${fmt(diff)} (${pct.toFixed(0)}%) vs ayer`;
+    } else {
+        el.classList.add('negativo');
+        el.innerHTML = `<i data-lucide="trending-down"></i> -${fmt(diff)} (${Math.abs(pct).toFixed(0)}%) vs ayer`;
+    }
+
+    if (window.lucide) lucide.createIcons();
 }
 
 function renderizarGraficos(d) {

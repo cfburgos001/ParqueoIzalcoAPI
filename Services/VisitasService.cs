@@ -903,10 +903,13 @@ GROUP BY CAST(FechaEntrada AS DATE)";
                     var fin = inicio.AddDays(1);
 
                     const string sql = @"
-SELECT DATEPART(HOUR, FechaEntrada) AS Bucket, COUNT(*) AS Total
+SELECT
+    DATEPART(HOUR, FechaEntrada) AS Hora,
+    (DATEPART(MINUTE, FechaEntrada) / 30) * 30 AS MinutoBucket,
+    COUNT(*) AS Total
 FROM IOT_Vehiculos
 WHERE FechaEntrada >= @Inicio AND FechaEntrada < @Fin
-GROUP BY DATEPART(HOUR, FechaEntrada)";
+GROUP BY DATEPART(HOUR, FechaEntrada), (DATEPART(MINUTE, FechaEntrada) / 30) * 30";
 
                     var parametros = new SqlParameter[]
                     {
@@ -915,17 +918,24 @@ GROUP BY DATEPART(HOUR, FechaEntrada)";
                     };
 
                     var dt = await _db.ExecuteQueryAsync(sql, parametros);
-                    var totalesPorHora = new Dictionary<int, int>();
+                    var totalesPorBucket = new Dictionary<int, int>(); // clave = hora*60 + minutoBucket
                     foreach (System.Data.DataRow r in dt.Rows)
-                        totalesPorHora[Convert.ToInt32(r["Bucket"])] = Convert.ToInt32(r["Total"]);
+                    {
+                        var clave = Convert.ToInt32(r["Hora"]) * 60 + Convert.ToInt32(r["MinutoBucket"]);
+                        totalesPorBucket[clave] = Convert.ToInt32(r["Total"]);
+                    }
 
                     for (int h = 0; h < 24; h++)
                     {
-                        response.Buckets.Add(new BucketActividadItem
+                        for (int m = 0; m < 60; m += 30)
                         {
-                            Label = $"{h:D2}:00",
-                            Total = totalesPorHora.TryGetValue(h, out var t) ? t : 0
-                        });
+                            var clave = h * 60 + m;
+                            response.Buckets.Add(new BucketActividadItem
+                            {
+                                Label = $"{h:D2}:{m:D2}",
+                                Total = totalesPorBucket.TryGetValue(clave, out var t) ? t : 0
+                            });
+                        }
                     }
                 }
                 else if (vista == "semana")

@@ -1264,3 +1264,138 @@ body.role-CAJA a.caja-admin {
     font-size: 13px;
     text-align: center;
 }
+
+/* ── Flechitas KPI ── */
+.kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+}
+
+    .kpi-delta i {
+        width: 11px;
+        height: 11px;
+    }
+
+    .kpi-delta.positivo {
+        background: var(--success-dim);
+        color: var(--success-text);
+    }
+
+    .kpi-delta.negativo {
+        background: var(--danger-dim);
+        color: var(--danger-text);
+    }
+
+    .kpi-delta.neutro {
+        background: rgba(148,163,184,0.15);
+        color: var(--text-tertiary);
+    }
+
+/* ── Selector de granularidad (Día/Semana/Mes) ── */
+.granularidad-tabs {
+    display: inline-flex;
+    background: var(--surface-1);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    padding: 3px;
+    gap: 2px;
+}
+
+.granularidad-tab {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: calc(var(--radius) - 3px);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: inherit;
+}
+
+    .granularidad-tab.activo {
+        background: var(--brand-500);
+        color: #fff;
+    }
+
+    .granularidad-tab:hover:not(.activo) {
+        background: var(--surface-2);
+        color: var(--text-secondary);
+    }
+
+/* ── Hora Pico / Actividad ── */
+.actividad-filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+    .actividad-filtros .form-group {
+        min-width: 160px;
+    }
+
+.actividad-pico-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--warning-dim);
+    color: var(--warning-text);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+}
+
+    .actividad-pico-badge i {
+        width: 14px;
+        height: 14px;
+    }
+
+/* ── Comparativa de Periodos ── */
+.comp-selector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.comp-selector-block {
+    background: var(--surface-1);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comp-selector-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.comp-btn-wrap {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 900px) {
+    .comp-selector-grid {
+        grid-template-columns: 1fr;
+    }
+}
+ 

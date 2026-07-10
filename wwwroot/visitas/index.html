@@ -137,6 +137,7 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiHoy">—</div>
                             <div class="kpi-label">Ingresos de Hoy</div>
+                            <div class="kpi-delta neutro" id="kpiHoyDelta" style="display:none;"></div>
                         </div>
                     </div>
                     <div class="kpi-card kpi-semana">
@@ -158,6 +159,7 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiMonto">—</div>
                             <div class="kpi-label">Ticket Promedio</div>
+                            <div class="kpi-delta neutro" id="kpiMontoDelta" style="display:none;"></div>
                         </div>
                     </div>
                     <div class="kpi-card kpi-monto-total">
@@ -165,6 +167,7 @@
                         <div class="kpi-body">
                             <div class="kpi-value" id="kpiMontoTotal">—</div>
                             <div class="kpi-label">Ingreso Total del Día</div>
+                            <div class="kpi-delta neutro" id="kpiMontoTotalDelta" style="display:none;"></div>
                         </div>
                     </div>
                 </div>
@@ -255,6 +258,118 @@
                         <div id="epResumenB"></div>
                     </div>
                     <div class="ep-delta neutro" id="epDelta"></div>
+                </div>
+            </section>
+            <!-- ═══════════════════════════════════════════════════
+            Afluencia / ACTIVIDAD
+            ═══════════════════════════════════════════════════ -->
+            <section class="dashboard-section" id="actividadSection">
+                <div class="dashboard-header">
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="flame"></i> Afluencia del Estacionamiento</h2>
+                </div>
+
+                <div class="actividad-filtros">
+                    <div class="granularidad-tabs" id="actGranularidad">
+                        <button class="granularidad-tab activo" data-vista="hora" onclick="actCambiarVista('hora')">Hora</button>
+                        <button class="granularidad-tab" data-vista="semana" onclick="actCambiarVista('semana')">Semana</button>
+                        <button class="granularidad-tab" data-vista="mes" onclick="actCambiarVista('mes')">Mes</button>
+                    </div>
+
+                    <div class="form-group" id="actFechaWrapHora">
+                        <label for="actFechaHora">Día</label>
+                        <input type="date" id="actFechaHora">
+                    </div>
+                    <div class="form-group" id="actFechaWrapSemana" style="display:none;">
+                        <label for="actFechaSemana">Semana</label>
+                        <input type="week" id="actFechaSemana">
+                    </div>
+                    <div class="form-group" id="actFechaWrapMes" style="display:none;">
+                        <label for="actFechaMes">Mes</label>
+                        <input type="month" id="actFechaMes">
+                    </div>
+
+                    <button class="btn btn-sm btn-primary" onclick="actConsultar()" style="display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="search" style="width:14px; height:14px;"></i> Consultar
+                    </button>
+                </div>
+
+                <div id="actLoading" class="dash-state dash-loading" style="display:none;">
+                    <div class="dash-spinner"></div>
+                    <span>Consultando actividad…</span>
+                </div>
+
+                <div class="actividad-pico-badge" id="actPicoBadge" style="display:none;"></div>
+
+                <div class="chart-card">
+                    <div class="chart-wrapper"><canvas id="actChart"></canvas></div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════
+            COMPARATIVA DE PERIODOS
+            ═══════════════════════════════════════════════════ -->
+            <section class="dashboard-section" id="comparativaSection">
+                <div class="dashboard-header">
+                    <h2 style="display:flex; align-items:center; gap:8px;"><i data-lucide="scale"></i> Comparativa de Periodos</h2>
+                </div>
+
+                <div class="comp-selector-grid">
+                    <div class="comp-selector-block">
+                        <span class="comp-selector-label">Periodo A</span>
+                        <div class="granularidad-tabs" id="compGranularidadA">
+                            <button class="granularidad-tab activo" data-vista="dia" onclick="compCambiarVista('A','dia')">Día</button>
+                            <button class="granularidad-tab" data-vista="semana" onclick="compCambiarVista('A','semana')">Semana</button>
+                            <button class="granularidad-tab" data-vista="mes" onclick="compCambiarVista('A','mes')">Mes</button>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="compFechaA_dia">
+                            <input type="week" id="compFechaA_semana" style="display:none;">
+                            <input type="month" id="compFechaA_mes" style="display:none;">
+                        </div>
+                    </div>
+
+                    <div class="comp-selector-block">
+                        <span class="comp-selector-label">Periodo B</span>
+                        <div class="granularidad-tabs" id="compGranularidadB">
+                            <button class="granularidad-tab activo" data-vista="dia" onclick="compCambiarVista('B','dia')">Día</button>
+                            <button class="granularidad-tab" data-vista="semana" onclick="compCambiarVista('B','semana')">Semana</button>
+                            <button class="granularidad-tab" data-vista="mes" onclick="compCambiarVista('B','mes')">Mes</button>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="compFechaB_dia">
+                            <input type="week" id="compFechaB_semana" style="display:none;">
+                            <input type="month" id="compFechaB_mes" style="display:none;">
+                        </div>
+                    </div>
+
+                    <div class="comp-btn-wrap">
+                        <button class="btn btn-sm btn-primary" onclick="compConsultar()" style="display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="search" style="width:14px; height:14px;"></i> Comparar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="compLoading" class="dash-state dash-loading" style="display:none;">
+                    <div class="dash-spinner"></div>
+                    <span>Comparando periodos…</span>
+                </div>
+
+                <div id="compPanel" style="display:none;">
+                    <div class="chart-card" style="margin-bottom:16px;">
+                        <h3 class="chart-title"><i data-lucide="line-chart" style="width:16px; display:inline-block; vertical-align:middle;"></i> Flujo comparado</h3>
+                        <div class="chart-wrapper"><canvas id="compChart"></canvas></div>
+                    </div>
+                    <div class="ep-panel-compare">
+                        <div class="ep-block">
+                            <p class="ep-block-title" id="compTituloA">Periodo A</p>
+                            <div id="compResumenA"></div>
+                        </div>
+                        <div class="ep-block">
+                            <p class="ep-block-title" id="compTituloB">Periodo B</p>
+                            <div id="compResumenB"></div>
+                        </div>
+                        <div class="ep-delta neutro" id="compDelta"></div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -741,5 +856,7 @@
     <script src="/visitas/js/cerrar-tickets.js"></script>
     <script src="/visitas/js/tarifas.js"></script>
     <script src="/visitas/js/dashboard-estaciones.js"></script>
+    <script src="/visitas/js/dashboard-actividad.js"></script>
+    <script src="/visitas/js/dashboard-comparativa.js"></script>
 </body>
 </html>
